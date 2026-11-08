@@ -10,6 +10,7 @@ const technicalCopy = new Set([
   "OAuth",
   "docs",
   "npx",
+  "pi-gui",
   "ollama-local",
   "model-id",
   "http://localhost:11434/v1",
@@ -39,8 +40,8 @@ const sourceRoot = resolve(__dirname, "../../src");
  */
 const translatedSurfaces = [
   "features/settings",
-  "app/secondary-surface.tsx",
-  "app/secondary-surfaces.tsx",
+  "features/threads",
+  "app",
 ];
 
 async function surfaceFiles(): Promise<readonly string[]> {

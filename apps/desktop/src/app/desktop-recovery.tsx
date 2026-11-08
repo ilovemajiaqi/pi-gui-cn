@@ -1,4 +1,5 @@
 import { Component, Fragment, type ReactNode } from "react";
+import { useTranslation, type MessageKey } from "../i18n";
 import type { DesktopAppView, StateHydrationFailure } from "./desktop-app-state";
 
 export type DesktopStartupSurfaceState =
@@ -11,32 +12,32 @@ export type DesktopStartupSurfaceState =
   | { readonly kind: "crashed" };
 
 export interface DesktopStartupCopy {
-  readonly title: string;
-  readonly body: string;
+  readonly titleKey: MessageKey;
+  readonly bodyKey: MessageKey;
   readonly status: "loading" | "failed" | "crashed";
 }
 
 const LOADING_COPY: DesktopStartupCopy = {
-  title: "Loading sessions",
-  body: "The desktop shell is restoring folder and thread state from the main process.",
+  titleKey: "recovery.loadingTitle",
+  bodyKey: "recovery.loadingBody",
   status: "loading",
 };
 
 const STATE_FAILED_COPY: DesktopStartupCopy = {
-  title: "Couldn't restore sessions",
-  body: "The desktop shell couldn't read folder and thread state. Retry, or relaunch the app.",
+  titleKey: "recovery.failedTitle",
+  bodyKey: "recovery.failedBody",
   status: "failed",
 };
 
 const BRIDGE_FAILED_COPY: DesktopStartupCopy = {
-  title: "Couldn't restore sessions",
-  body: "The desktop shell isn't connected. Quit pi-gui and reopen it.",
+  titleKey: "recovery.failedTitle",
+  bodyKey: "recovery.bridgeBody",
   status: "failed",
 };
 
 const CRASHED_COPY: DesktopStartupCopy = {
-  title: "Something went wrong",
-  body: "The desktop window hit an unexpected error. Retry to remount, or relaunch the app.",
+  titleKey: "recovery.crashedTitle",
+  bodyKey: "recovery.crashedBody",
   status: "crashed",
 };
 
@@ -64,6 +65,7 @@ interface DesktopStartupSurfaceProps {
 }
 
 export function DesktopStartupSurface({ state, onRetry, onRelaunch }: DesktopStartupSurfaceProps) {
+  const { t } = useTranslation();
   const copy = startupSurfaceCopy(state);
   const retrying = state.kind === "failed" ? state.retrying : false;
   const showActions = copy.status !== "loading";
@@ -82,8 +84,8 @@ export function DesktopStartupSurface({ state, onRetry, onRelaunch }: DesktopSta
         data-failure={state.kind === "failed" ? state.failure.code : undefined}
       >
         <div className="loading-card__eyebrow">pi-gui</div>
-        <h1>{copy.title}</h1>
-        <p>{copy.body}</p>
+        <h1>{t(copy.titleKey)}</h1>
+        <p>{t(copy.bodyKey)}</p>
         {showActions ? (
           <div className="loading-card__actions">
             <button
@@ -93,7 +95,7 @@ export function DesktopStartupSurface({ state, onRetry, onRelaunch }: DesktopSta
               disabled={retrying}
               onClick={onRetry}
             >
-              {retrying ? "Retrying…" : "Retry"}
+              {retrying ? t("recovery.retrying") : t("recovery.retry")}
             </button>
             {showRelaunch ? (
               <button
@@ -102,7 +104,7 @@ export function DesktopStartupSurface({ state, onRetry, onRelaunch }: DesktopSta
                 type="button"
                 onClick={onRelaunch}
               >
-                Relaunch pi-gui
+                {t("recovery.relaunch")}
               </button>
             ) : null}
           </div>

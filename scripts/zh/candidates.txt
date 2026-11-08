@@ -1,0 +1,648 @@
+Escape	app\secondary-surface.tsx,features\command-palette\command-palette.tsx
+Promise	app\desktop-app-state.ts,app\secondary-surfaces.tsx
+Enter	app\secondary-surface.tsx,features\command-palette\command-palette.tsx
+Workspace	app\App.tsx,features\extensions\extension-display.ts
+Cancel	features\conversation\fork-modal.tsx,features\conversation\queued-composer-messages.tsx
+New thread	app\App.tsx,app\topbar.tsx
+Control	features\threads\hooks\use-thread-switcher.ts,features\threads\sidebar.tsx
+Toggle side panel	app\topbar.tsx,features\command-palette\palette-actions.tsx
+Extensions	features\command-palette\palette-actions.tsx,features\conversation\composer-surface.tsx
+Settings	features\command-palette\palette-actions.tsx,features\conversation\composer-commands.ts
+Files	features\command-palette\palette-sections.ts,features\conversation\composer-attachments.ts
+Delete	features\conversation\queued-composer-messages.tsx,features\scheduled-tasks\scheduled-tasks-view.tsx
+Open folder	features\extensions\extensions-view.tsx,features\extensions\skills-view.tsx
+Retry	app\desktop-recovery.tsx,features\conversation\conversation-timeline.tsx
+Open	features\command-palette\command-palette.tsx,features\scheduled-tasks\scheduled-task-chip.tsx
+Backspace	features\command-palette\command-palette.tsx,features\workbench\terminal-panel.tsx
+Toggle sidebar	features\command-palette\palette-actions.tsx,features\threads\sidebar-toggle-button.tsx
+Skills	features\command-palette\palette-actions.tsx,features\extensions\customize-page.tsx
+Home	features\conversation\hooks\use-timeline-viewport.ts,features\workbench\workbench.tsx
+Edit	features\conversation\queued-composer-messages.tsx,features\scheduled-tasks\scheduled-tasks-view.tsx
+Review	features\conversation\turn-changes-card.tsx,features\workbench\builtin-tools.tsx
+Refresh	features\extensions\customize-page.tsx,features\workbench\diff-panel.tsx
+User	features\extensions\extension-display.ts,features\extensions\extensions-view.tsx
+This session	features\extensions\extension-display.ts,features\extensions\extensions-view.tsx
+Meta	features\threads\sidebar.tsx,features\threads\thread-shortcut-hints.ts
+Retrying…	app\desktop-recovery.tsx,features\conversation\conversation-timeline.tsx
+Open a folder to begin	app\topbar.tsx,features\threads\new-thread-view.tsx
+Hide side panel	app\topbar.tsx,features\workbench\workbench.tsx
+Go to file	features\command-palette\command-palette-surface.tsx,i18n\messages\en.ts
+Models	features\command-palette\command-palette-surface.tsx,i18n\messages\en.ts
+Command palette	features\command-palette\command-palette-surface.tsx,i18n\messages\en.ts
+Back	features\command-palette\command-palette.tsx,features\conversation\tree-modal.tsx
+Close	features\command-palette\command-palette.tsx,features\scheduled-tasks\scheduled-task-editor.tsx
+Find in thread	features\command-palette\palette-actions.tsx,i18n\messages\en.ts
+Scheduled tasks	features\command-palette\palette-actions.tsx,features\scheduled-tasks\scheduled-tasks-view.tsx
+All	features\command-palette\palette-sections.ts,features\scheduled-tasks\scheduled-tasks-view.tsx
+Ctrl	features\conversation\annotations\annotation-selection.tsx,features\settings\settings-shortcuts-section.tsx
+Copy	features\conversation\annotations\annotation-selection.tsx,features\conversation\timeline-item.tsx
+Reasoning	features\conversation\composer-commands.ts,i18n\messages\en.ts
+Login	features\conversation\composer-commands.ts,i18n\messages\en.ts
+Logout	features\conversation\composer-commands.ts,i18n\messages\en.ts
+Enabled models	features\conversation\composer-commands.ts,i18n\messages\en.ts
+Medium	features\conversation\composer-commands.ts,i18n\messages\en.ts
+High	features\conversation\composer-commands.ts,i18n\messages\en.ts
+Extra High	features\conversation\composer-commands.ts,i18n\messages\en.ts
+No models available	features\conversation\composer-commands.ts,features\settings\model-onboarding.ts
+Available	features\conversation\composer-commands.ts,i18n\messages\en.ts
+Attach files	features\conversation\composer-panel.tsx,features\threads\new-thread-view.tsx
+Composer	features\conversation\composer-panel.tsx,i18n\messages\en.ts
+The task changed before its draft could be saved.	features\conversation\hooks\use-composer-draft-sync.ts,features\extensions\use-extension-host-actions.ts
+Skills and extensions	features\extensions\customize-page.tsx,i18n\messages\en.ts
+Location	features\extensions\extensions-view.tsx,features\extensions\skills-view.tsx
+Flags	features\extensions\extensions-view.tsx,features\threads\extension-flags-selector.tsx
+Expand	features\extensions\pinned-cards.tsx,features\threads\sidebar.tsx
+Collapse	features\extensions\pinned-cards.tsx,features\threads\sidebar.tsx
+Enabled	features\extensions\resource-detail.tsx,i18n\messages\en.ts
+Time	features\scheduled-tasks\scheduled-task-editor.tsx,features\threads\sidebar.tsx
+Save	features\scheduled-tasks\scheduled-task-editor.tsx,features\threads\sidebar.tsx
+Create	features\scheduled-tasks\scheduled-task-editor.tsx,features\scheduled-tasks\scheduled-tasks-view.tsx
+Search	features\scheduled-tasks\scheduled-tasks-view.tsx,i18n\messages\en.ts
+Shift	features\settings\settings-shortcuts-section.tsx,features\threads\hooks\use-thread-switcher.ts
+Local	features\threads\new-thread-view.tsx,features\threads\thread-groups.ts
+Worktree	features\threads\new-thread-view.tsx,features\threads\sidebar.tsx
+Threads	features\threads\sidebar.tsx,i18n\messages\en.ts
+Remove	features\threads\sidebar.tsx,i18n\messages\en.ts
+Restore thread	features\threads\sidebar.tsx,features\threads\thread-actions.tsx
+Archive thread	features\threads\sidebar.tsx,features\threads\thread-actions.tsx
+Terminal	features\workbench\builtin-tools.tsx,i18n\messages\en.ts
+Filter files…	features\workbench\file-explorer.tsx,features\workbench\review-file-tree.tsx
+Shell	i18n\messages\en.ts,i18n\messages\zh-CN.ts
+OAuth	i18n\messages\en.ts,i18n\messages\zh-CN.ts
+Some saved workspaces could not be refreshed.	app\App.tsx
+Open a folder to start	app\App.tsx
+Add a project folder before creating a new thread.	app\App.tsx
+Dismiss	app\App.tsx
+Create a thread for this folder, then jump between sessions from the sidebar.	app\App.tsx
+This file checkout is unavailable.	app\App.tsx
+Dismiss notice	app\App.tsx
+Relaunch pi-gui	app\desktop-recovery.tsx
+Loading sessions	app\desktop-recovery.tsx
+Couldn't restore sessions	app\desktop-recovery.tsx
+Something went wrong	app\desktop-recovery.tsx
+The desktop shell isn't connected. Quit pi-gui and reopen it.	app\desktop-recovery.tsx
+Show side panel	app\topbar.tsx
+M5 10h10	app\window-titlebar.tsx
+Switch model	features\command-palette\command-palette-surface.tsx
+Search chats, workspaces and actions	features\command-palette\command-palette-surface.tsx
+Current	features\command-palette\command-palette-surface.tsx
+Running	features\command-palette\command-palette-surface.tsx
+Search files	features\command-palette\command-palette-surface.tsx
+Open a thread to search its files.	features\command-palette\command-palette-surface.tsx
+Loading files…	features\command-palette\command-palette-surface.tsx
+Couldn't load files.	features\command-palette\command-palette-surface.tsx
+Searching…	features\command-palette\command-palette-surface.tsx
+No matching files.	features\command-palette\command-palette-surface.tsx
+No matching models.	features\command-palette\command-palette-surface.tsx
+No models available.	features\command-palette\command-palette-surface.tsx
+No matches.	features\command-palette\command-palette-surface.tsx
+Nothing here yet.	features\command-palette\command-palette-surface.tsx
+Navigate	features\command-palette\command-palette.tsx
+Tab	features\command-palette\command-palette.tsx
+Filters	features\command-palette\command-palette.tsx
+Esc	features\command-palette\command-palette.tsx
+App.tsx	features\command-palette\fuzzy-match.ts
+Open folder…	features\command-palette\palette-actions.tsx
+Go to file…	features\command-palette\palette-actions.tsx
+Switch model…	features\command-palette\palette-actions.tsx
+Chats	features\command-palette\palette-sections.ts
+Workspaces	features\command-palette\palette-sections.ts
+Actions	features\command-palette\palette-sections.ts
+Recents	features\command-palette\palette-sections.ts
+Open files	features\command-palette\palette-sections.ts
+N annotations	features\conversation\annotations\annotation-chip.tsx
+", "	features\conversation\annotations\annotation-prompt.ts
+", escapeTags(quote), "	features\conversation\annotations\annotation-prompt.ts
+", escapeTags(note.trim()), "	features\conversation\annotations\annotation-prompt.ts
+Add to Chat	features\conversation\annotations\annotation-selection.tsx
+Annotation comment	features\conversation\annotations\annotation-selection.tsx
+Add an optional comment…	features\conversation\annotations\annotation-selection.tsx
+Remove annotation	features\conversation\annotations\annotation-selection.tsx
+Copied	features\conversation\annotations\annotation-selection.tsx
+Model	features\conversation\composer-commands.ts
+Choose the model for this session	features\conversation\composer-commands.ts
+Set thinking level for this session	features\conversation\composer-commands.ts
+Tree	features\conversation\composer-commands.ts
+Browse and jump between branches in this session	features\conversation\composer-commands.ts
+Status	features\conversation\composer-commands.ts
+Show current session overrides in the timeline	features\conversation\composer-commands.ts
+Authenticate a provider for this workspace	features\conversation\composer-commands.ts
+Remove a provider login from this workspace	features\conversation\composer-commands.ts
+Open model, skill, and notification settings	features\conversation\composer-commands.ts
+Choose which models appear in pickers	features\conversation\composer-commands.ts
+Session	features\conversation\composer-commands.ts
+Show current session details in the timeline	features\conversation\composer-commands.ts
+Rename	features\conversation\composer-commands.ts
+Rename the current session	features\conversation\composer-commands.ts
+Compact	features\conversation\composer-commands.ts
+Compact session context now	features\conversation\composer-commands.ts
+Reload	features\conversation\composer-commands.ts
+Reload prompts, skills, and session resources	features\conversation\composer-commands.ts
+Low	features\conversation\composer-commands.ts
+Fast responses with lighter reasoning	features\conversation\composer-commands.ts
+Balances speed and reasoning depth for everyday tasks	features\conversation\composer-commands.ts
+Greater reasoning depth for complex problems	features\conversation\composer-commands.ts
+Extra high reasoning depth for complex problems	features\conversation\composer-commands.ts
+Max	features\conversation\composer-commands.ts
+Maximum reasoning depth for supported models	features\conversation\composer-commands.ts
+Open Settings to enable a model or log in to a provider.	features\conversation\composer-commands.ts
+Runtime Commands	features\conversation\composer-commands.ts
+Host Actions	features\conversation\composer-commands.ts
+OAuth connected	features\conversation\composer-commands.ts
+Saved API key	features\conversation\composer-commands.ts
+Configured via environment	features\conversation\composer-commands.ts
+Configured externally	features\conversation\composer-commands.ts
+OAuth available	features\conversation\composer-commands.ts
+Needs API key	features\conversation\composer-commands.ts
+Reusable workflow	features\conversation\composer-commands.ts
+Prompt template	features\conversation\composer-commands.ts
+Skill command	features\conversation\composer-commands.ts
+Extension command	features\conversation\composer-commands.ts
+Skill	features\conversation\composer-commands.ts
+Prompt	features\conversation\composer-commands.ts
+Preparing task… Your current draft is saved before opening it.	features\conversation\composer-panel.tsx
+Stop run	features\conversation\composer-panel.tsx
+Send message	features\conversation\composer-panel.tsx
+Drop images or files to attach	features\conversation\composer-surface.tsx
+Terminal-only	features\conversation\composer-surface.tsx
+Enabling	features\conversation\composer-surface.tsx
+Disabled	features\conversation\composer-surface.tsx
+Enable	features\conversation\composer-surface.tsx
+Context window	features\conversation\context-meter.tsx
+Prompt cache	features\conversation\context-meter.tsx
+Plan limits	features\conversation\context-meter.tsx
+This thread	features\conversation\context-meter.tsx
+Last turn	features\conversation\context-meter.tsx
+Input / Output	features\conversation\context-meter.tsx
+Cache read / write	features\conversation\context-meter.tsx
+Cost	features\conversation\context-meter.tsx
+Kept warm	features\conversation\context-meter.tsx
+Expiry	features\conversation\context-meter.tsx
+Expires in	features\conversation\context-meter.tsx
+Context window: usage unknown until the next reply	features\conversation\context-meter.tsx
+Automatic compaction is off	features\conversation\context-meter.tsx
+Subscription	features\conversation\context-meter.tsx
+New activity below	features\conversation\conversation-timeline.tsx
+Loading transcript…	features\conversation\conversation-timeline.tsx
+Couldn't load this thread	features\conversation\conversation-timeline.tsx
+The selected conversation couldn't be restored. Retry to try again.	features\conversation\conversation-timeline.tsx
+Start the conversation	features\conversation\conversation-timeline.tsx
+Send a prompt below to begin this session.	features\conversation\conversation-timeline.tsx
+Edited N files	features\conversation\extension-card.tsx
+Adds to message	features\conversation\extension-card.tsx
+Opens thread	features\conversation\extension-card.tsx
+Passed	features\conversation\extension-card.tsx
+Warning	features\conversation\extension-card.tsx
+Failed	features\conversation\extension-card.tsx
+Fork conversation	features\conversation\fork-modal.tsx
+Start a new thread	features\conversation\fork-modal.tsx
+Same worktree	features\conversation\fork-modal.tsx
+New worktree	features\conversation\fork-modal.tsx
+Close fork modal	features\conversation\fork-modal.tsx
+Fork environment	features\conversation\fork-modal.tsx
+This workspace can't create worktrees.	features\conversation\fork-modal.tsx
+The forked thread opens in the same folder as the original.	features\conversation\fork-modal.tsx
+Forking…	features\conversation\fork-modal.tsx
+Fork thread	features\conversation\fork-modal.tsx
+The desktop connection is unavailable.	features\conversation\hooks\use-composer-draft-sync.ts
+Working…	features\conversation\hooks\use-running-label.ts
+Close image	features\conversation\image-attachment-thumb.tsx
+Try a different filter.	features\conversation\model-selector.tsx
+Thinking Level	features\conversation\model-selector.tsx
+Filter models...	features\conversation\model-selector.tsx
+Choose model	features\conversation\model-selector.tsx
+No matching models	features\conversation\model-selector.tsx
+Editing queued message	features\conversation\queued-composer-messages.tsx
+Steer	features\conversation\queued-composer-messages.tsx
+Search thread...	features\conversation\thread-search.tsx
+Previous match	features\conversation\thread-search.tsx
+Next match	features\conversation\thread-search.tsx
+Close search	features\conversation\thread-search.tsx
+Sent by scheduled task	features\conversation\timeline-item.tsx
+Fork	features\conversation\timeline-item.tsx
+Fork conversation from this point	features\conversation\timeline-item.tsx
+Branch summary	features\conversation\timeline-item.tsx
+Compaction summary	features\conversation\timeline-item.tsx
+Fork is available when the run finishes	features\conversation\timeline-item.tsx
+Worked for Ns	features\conversation\timeline-turns.ts
+Working	features\conversation\timeline-turns.ts
+Session tree	features\conversation\tree-modal.tsx
+Loading session tree…	features\conversation\tree-modal.tsx
+No matching nodes.	features\conversation\tree-modal.tsx
+No summary	features\conversation\tree-modal.tsx
+Jump immediately with no branch summary.	features\conversation\tree-modal.tsx
+Summarize	features\conversation\tree-modal.tsx
+Generate a branch summary before switching.	features\conversation\tree-modal.tsx
+Summarize with custom prompt	features\conversation\tree-modal.tsx
+Provide extra instructions for the summary.	features\conversation\tree-modal.tsx
+Close tree modal	features\conversation\tree-modal.tsx
+Search session tree	features\conversation\tree-modal.tsx
+Search visible tree entries	features\conversation\tree-modal.tsx
+Custom summary instructions	features\conversation\tree-modal.tsx
+Focus the summary on decisions, changed files, and unresolved risks.	features\conversation\tree-modal.tsx
+Switch branch	features\conversation\tree-modal.tsx
+Browse branches	features\conversation\tree-modal.tsx
+Search expands matching branches.	features\conversation\tree-modal.tsx
+Tree opens at the most recent entries.	features\conversation\tree-modal.tsx
+Select a node to branch from it.	features\conversation\tree-modal.tsx
+Collapse branch	features\conversation\tree-modal.tsx
+Expand branch	features\conversation\tree-modal.tsx
+Already here	features\conversation\tree-modal.tsx
+Continue	features\conversation\tree-modal.tsx
+Switching branches…	features\conversation\tree-modal.tsx
+The current branch will be left as-is.	features\conversation\tree-modal.tsx
+The summary will be attached to the branch you switch to.	features\conversation\tree-modal.tsx
+Switching…	features\conversation\tree-modal.tsx
+Binary	features\conversation\turn-changes-card.tsx
+Files changed in this turn	features\conversation\turn-changes-card.tsx
+New skill	features\extensions\customize-page.tsx
+Open a folder first	features\extensions\customize-page.tsx
+Skills and extensions are discovered per workspace, plus your user folders.	features\extensions\customize-page.tsx
+Built into pi	features\extensions\extension-display.ts
+Warning:	features\extensions\extension-notices.tsx
+Error:	features\extensions\extension-notices.tsx
+Confirm	features\extensions\extension-session-ui.tsx
+Submit	features\extensions\extension-session-ui.tsx
+Hide extension status	features\extensions\extension-session-ui.tsx
+Hide until the extension changes it	features\extensions\extension-session-ui.tsx
+Extension UI active	features\extensions\extension-session-ui.tsx
+Enter a value	features\extensions\extension-session-ui.tsx
+Reload view	features\extensions\extension-view-panel.tsx
+Couldn’t open this view	features\extensions\extension-view-panel.tsx
+The extension’s commands remain available. Reload view reconnects its interface.	features\extensions\extension-view-panel.tsx
+Loading extension view…	features\extensions\extension-view-panel.tsx
+View closed	features\extensions\extension-view-panel.tsx
+The extension frame reloaded. Reload the view to reconnect.	features\extensions\extension-view-panel.tsx
+The extension view could not start.	features\extensions\extension-view-panel.tsx
+A task draft is already being prepared.	features\extensions\extension-view-panel.tsx
+The draft could not be saved.	features\extensions\extension-view-panel.tsx
+The extension sent a message that could not be read.	features\extensions\extension-view-panel.tsx
+This extension view is unavailable.	features\extensions\extension-view-panel.tsx
+Source	features\extensions\extensions-view.tsx
+Tools	features\extensions\extensions-view.tsx
+Shortcuts	features\extensions\extensions-view.tsx
+Diagnostics	features\extensions\extensions-view.tsx
+Commands	features\extensions\extensions-view.tsx
+Whether each command works in the app is learned the first time it runs here.	features\extensions\extensions-view.tsx
+No extensions match	features\extensions\extensions-view.tsx
+No extensions yet	features\extensions\extensions-view.tsx
+Try another name, command or tool.	features\extensions\extensions-view.tsx
+All extensions	features\extensions\extensions-view.tsx
+Installed as a package	features\extensions\extensions-view.tsx
+Loaded from a file	features\extensions\extensions-view.tsx
+Hide until it changes	features\extensions\pinned-cards.tsx
+Try	features\extensions\skills-view.tsx
+Slash command	features\extensions\skills-view.tsx
+Type it in the composer to run the skill.	features\extensions\skills-view.tsx
+Model invocation	features\extensions\skills-view.tsx
+No skills match	features\extensions\skills-view.tsx
+No skills yet	features\extensions\skills-view.tsx
+Try another name, description or slash command.	features\extensions\skills-view.tsx
+All skills	features\extensions\skills-view.tsx
+Only runs when you type its slash command.	features\extensions\skills-view.tsx
+Slash command only	features\extensions\skills-view.tsx
+Automatic	features\extensions\skills-view.tsx
+Return to the extension's task to create a task draft.	features\extensions\use-extension-host-actions.ts
+Try opening the file again.	features\extensions\use-extension-host-actions.ts
+Title	features\scheduled-tasks\scheduled-task-editor.tsx
+Instructions	features\scheduled-tasks\scheduled-task-editor.tsx
+Runs in	features\scheduled-tasks\scheduled-task-editor.tsx
+New thread for this task	features\scheduled-tasks\scheduled-task-editor.tsx
+Existing thread	features\scheduled-tasks\scheduled-task-editor.tsx
+Select a thread	features\scheduled-tasks\scheduled-task-editor.tsx
+Frequency	features\scheduled-tasks\scheduled-task-editor.tsx
+Daily	features\scheduled-tasks\scheduled-task-editor.tsx
+Weekly	features\scheduled-tasks\scheduled-task-editor.tsx
+Interval	features\scheduled-tasks\scheduled-task-editor.tsx
+Once	features\scheduled-tasks\scheduled-task-editor.tsx
+Run at	features\scheduled-tasks\scheduled-task-editor.tsx
+Days	features\scheduled-tasks\scheduled-task-editor.tsx
+Every (minutes)	features\scheduled-tasks\scheduled-task-editor.tsx
+Open chat	features\scheduled-tasks\scheduled-task-editor.tsx
+Weekly status	features\scheduled-tasks\scheduled-task-editor.tsx
+What should pi do when this runs?	features\scheduled-tasks\scheduled-task-editor.tsx
+Edit scheduled task	features\scheduled-tasks\scheduled-task-editor.tsx
+Set up scheduled task	features\scheduled-tasks\scheduled-task-editor.tsx
+Ask pi to schedule tasks, set reminders, or monitor for updates.	features\scheduled-tasks\scheduled-tasks-view.tsx
+Create with pi	features\scheduled-tasks\scheduled-tasks-view.tsx
+Set up manually	features\scheduled-tasks\scheduled-tasks-view.tsx
+Resume	features\scheduled-tasks\scheduled-tasks-view.tsx
+Pause	features\scheduled-tasks\scheduled-tasks-view.tsx
+Active	features\scheduled-tasks\scheduled-tasks-view.tsx
+Paused	features\scheduled-tasks\scheduled-tasks-view.tsx
+Completed	features\scheduled-tasks\scheduled-tasks-view.tsx
+Search scheduled tasks	features\scheduled-tasks\scheduled-tasks-view.tsx
+No active scheduled tasks	features\scheduled-tasks\scheduled-tasks-view.tsx
+No scheduled tasks	features\scheduled-tasks\scheduled-tasks-view.tsx
+Create a task manually or ask pi to set one up.	features\scheduled-tasks\scheduled-tasks-view.tsx
+Selected model unavailable	features\settings\model-onboarding.ts
+No default model set	features\settings\model-onboarding.ts
+Default model unavailable	features\settings\model-onboarding.ts
+Pick a model	features\settings\model-onboarding.ts
+Pick a model.	features\settings\model-onboarding.ts
+URL	features\settings\settings-mcp-section.tsx
+Thread actions	features\threads\chat-header-actions.tsx
+Could not open that editor. Try another one.	features\threads\hooks\use-open-in-editor.ts
+Could not select that editor. Try another one.	features\threads\hooks\use-open-in-editor.ts
+Start thread	features\threads\new-thread-view.tsx
+New thread prompt	features\threads\new-thread-view.tsx
+Ask pi anything, use / for commands and skills	features\threads\new-thread-view.tsx
+Looking for editors…	features\threads\open-in-editor-button.tsx
+No supported editor found on this computer.	features\threads\open-in-editor-button.tsx
+Choose editor	features\threads\open-in-editor-button.tsx
+Folder	features\threads\open-in-editor-button.tsx
+Open this project in the file manager	features\threads\open-in-editor-button.tsx
+Scheduled	features\threads\sidebar.tsx
+No folders yet	features\threads\sidebar.tsx
+Open a project folder to start building a workspace and session list.	features\threads\sidebar.tsx
+Open first folder	features\threads\sidebar.tsx
+Remove worktree	features\threads\sidebar.tsx
+Create permanent worktree	features\threads\sidebar.tsx
+Edit name	features\threads\sidebar.tsx
+Customize Sidebar	features\threads\sidebar.tsx
+Grouping	features\threads\sidebar.tsx
+Archived	features\threads\sidebar.tsx
+Pinned	features\threads\sidebar.tsx
+Sidebar width	features\threads\sidebar.tsx
+Pinned threads	features\threads\sidebar.tsx
+Show less	features\threads\sidebar.tsx
+Show more	features\threads\sidebar.tsx
+Unpin	features\threads\sidebar.tsx
+Restore	features\threads\sidebar.tsx
+Archive	features\threads\sidebar.tsx
+Rename thread	features\threads\thread-actions.tsx
+Mark as read	features\threads\thread-actions.tsx
+Copy session ID	features\threads\thread-actions.tsx
+Unpin thread	features\threads\thread-actions.tsx
+Pin thread	features\threads\thread-actions.tsx
+Edit scheduled task…	features\threads\thread-actions.tsx
+Add scheduled task…	features\threads\thread-actions.tsx
+Switch thread	features\threads\thread-switcher.tsx
+Recent threads	features\threads\thread-switcher.tsx
+Browse files in this checkout	features\workbench\builtin-tools.tsx
+Review uncommitted, branch or turn changes	features\workbench\builtin-tools.tsx
+Run commands in this task's checkout	features\workbench\builtin-tools.tsx
+Base	features\workbench\diff-panel.tsx
+Compare	features\workbench\diff-panel.tsx
+Loading comparison…	features\workbench\diff-panel.tsx
+This file is not part of the selected comparison.	features\workbench\diff-panel.tsx
+Loading diff…	features\workbench\diff-panel.tsx
+No text diff is available for this file.	features\workbench\diff-panel.tsx
+Some changes could not be included.	features\workbench\diff-panel.tsx
+Review scope	features\workbench\diff-panel.tsx
+Refresh comparison	features\workbench\diff-panel.tsx
+Review options	features\workbench\diff-panel.tsx
+Unavailable checkout	features\workbench\diff-panel.tsx
+Base branch	features\workbench\diff-panel.tsx
+Open in Files	features\workbench\diff-panel.tsx
+Diff	features\workbench\diff-panel.tsx
+The selected checkout is unavailable.	features\workbench\diff-panel.tsx
+Hide file tree	features\workbench\diff-panel.tsx
+Show file tree	features\workbench\diff-panel.tsx
+Repository default	features\workbench\diff-panel.tsx
+No changes in the captured files.	features\workbench\diff-panel.tsx
+No changes	features\workbench\diff-panel.tsx
+Last Turn	features\workbench\diff-panel.tsx
+Selected Turn	features\workbench\diff-panel.tsx
+Uncommitted	features\workbench\diff-panel.tsx
+Unstaged	features\workbench\diff-panel.tsx
+Staged	features\workbench\diff-panel.tsx
+Branch	features\workbench\diff-panel.tsx
+Comparison has limits	features\workbench\diff-panel.tsx
+Comparison details	features\workbench\diff-panel.tsx
+View source	features\workbench\file-editor-pane.tsx
+Select a file from the explorer.	features\workbench\file-editor-pane.tsx
+Loading file...	features\workbench\file-editor-pane.tsx
+No preview available.	features\workbench\file-editor-pane.tsx
+Binary or directory preview is not available.	features\workbench\file-editor-pane.tsx
+Preview truncated	features\workbench\file-editor-pane.tsx
+Open file	features\workbench\file-editor-pane.tsx
+Copy file	features\workbench\file-editor-pane.tsx
+File path	features\workbench\file-editor-pane.tsx
+File explorer	features\workbench\file-explorer.tsx
+Filter files	features\workbench\file-explorer.tsx
+Loading files...	features\workbench\file-explorer.tsx
+No indexed files	features\workbench\file-explorer.tsx
+No matching files	features\workbench\file-explorer.tsx
+Couldn't load files	features\workbench\file-workbench.tsx
+No files match.	features\workbench\review-file-tree.tsx
+Unstage	features\workbench\review-file-tree.tsx
+Unstage file	features\workbench\review-file-tree.tsx
+Stage	features\workbench\review-file-tree.tsx
+Stage file	features\workbench\review-file-tree.tsx
+Changed files	features\workbench\review-file-tree.tsx
+Filter changed files	features\workbench\review-file-tree.tsx
+Conflicted	features\workbench\review-file-tree.tsx
+Terminal sessions	features\workbench\terminal-panel.tsx
+New terminal	features\workbench\terminal-panel.tsx
+Restart terminal	features\workbench\terminal-panel.tsx
+Menlo, Monaco, Consolas, 'Liberation Mono', monospace	features\workbench\terminal-panel.tsx
+Black	features\workbench\terminal-theme.ts
+Green	features\workbench\terminal-theme.ts
+Yellow	features\workbench\terminal-theme.ts
+Blue	features\workbench\terminal-theme.ts
+Magenta	features\workbench\terminal-theme.ts
+Cyan	features\workbench\terminal-theme.ts
+White	features\workbench\terminal-theme.ts
+Couldn't save tool tabs. They are kept in this window.	features\workbench\use-workbench.ts
+Side panel width	features\workbench\workbench-resize-handle.tsx
+Close a tool tab before opening another.	features\workbench\workbench-state.ts
+Retry restoring tabs	features\workbench\workbench.tsx
+Open a tool	features\workbench\workbench.tsx
+Keep the tools you need alongside your conversation.	features\workbench\workbench.tsx
+Extension views	features\workbench\workbench.tsx
+Loading extension views…	features\workbench\workbench.tsx
+Refresh views	features\workbench\workbench.tsx
+Installed extensions can provide additional views here.	features\workbench\workbench.tsx
+Close tab	features\workbench\workbench.tsx
+Side workspace	features\workbench\workbench.tsx
+Workspace tools	features\workbench\workbench.tsx
+Add tab	features\workbench\workbench.tsx
+Saved tabs are unavailable until restoration succeeds.	features\workbench\workbench.tsx
+Restoring tool tabs…	features\workbench\workbench.tsx
+View unavailable	features\workbench\workbench.tsx
+Finding this extension view…	features\workbench\workbench.tsx
+This extension view is unavailable	features\workbench\workbench.tsx
+English	i18n\catalog.ts
+Chinese	i18n\catalog.ts
+Manage API key	i18n\messages\en.ts
+Desktop bridge is not available.	i18n\messages\en.ts
+Base URL must start with http:// or https://	i18n\messages\en.ts
+Select at least one model.	i18n\messages\en.ts
+Provider ID is required.	i18n\messages\en.ts
+Use lowercase letters, digits, and dashes (max 64 chars).	i18n\messages\en.ts
+Custom endpoints	i18n\messages\en.ts
+No custom endpoints yet.	i18n\messages\en.ts
+Add endpoint	i18n\messages\en.ts
+Register a local or custom OpenAI-compatible server.	i18n\messages\en.ts
+Edit custom endpoint	i18n\messages\en.ts
+Add custom endpoint	i18n\messages\en.ts
+Provider ID	i18n\messages\en.ts
+Base URL	i18n\messages\en.ts
+Include the	i18n\messages\en.ts
+Required by the storage format. For vLLM started with	i18n\messages\en.ts
+Detecting…	i18n\messages\en.ts
+Detect models	i18n\messages\en.ts
+Save changes	i18n\messages\en.ts
+Add model ID manually	i18n\messages\en.ts
+Servers	i18n\messages\en.ts
+Code mode	i18n\messages\en.ts
+Always on	i18n\messages\en.ts
+Code mode always on	i18n\messages\en.ts
+Add server	i18n\messages\en.ts
+Name	i18n\messages\en.ts
+Server name	i18n\messages\en.ts
+What it does	i18n\messages\en.ts
+Optional. pi tells the model about the server with it.	i18n\messages\en.ts
+Server description	i18n\messages\en.ts
+Searches the team's docs	i18n\messages\en.ts
+Type	i18n\messages\en.ts
+Server type	i18n\messages\en.ts
+Command	i18n\messages\en.ts
+Started on this machine for each thread.	i18n\messages\en.ts
+Server command	i18n\messages\en.ts
+Arguments	i18n\messages\en.ts
+Server arguments	i18n\messages\en.ts
+Server URL	i18n\messages\en.ts
+Default model	i18n\messages\en.ts
+Used for new threads.	i18n\messages\en.ts
+Default reasoning effort for new threads.	i18n\messages\en.ts
+Search models	i18n\messages\en.ts
+Only enabled models appear in model pickers.	i18n\messages\en.ts
+Not connected	i18n\messages\en.ts
+Connect a provider	i18n\messages\en.ts
+Models from providers you have not signed in to.	i18n\messages\en.ts
+Default	i18n\messages\en.ts
+Images	i18n\messages\en.ts
+Needs attention	i18n\messages\en.ts
+Connected	i18n\messages\en.ts
+No providers connected yet. Sign in or add an API key below.	i18n\messages\en.ts
+Search providers	i18n\messages\en.ts
+Sign in with OAuth or save an API key to connect a provider.	i18n\messages\en.ts
+Every provider is connected.	i18n\messages\en.ts
+Enter API key	i18n\messages\en.ts
+Remove saved key	i18n\messages\en.ts
+Save key	i18n\messages\en.ts
+Window controls	i18n\messages\en.ts
+Minimize window	i18n\messages\en.ts
+Maximize or restore window	i18n\messages\en.ts
+Close window	i18n\messages\en.ts
+Back to app	i18n\messages\en.ts
+Select a workspace	i18n\messages\en.ts
+Select a workspace first.	i18n\messages\en.ts
+General	i18n\messages\en.ts
+Appearance	i18n\messages\en.ts
+Notifications	i18n\messages\en.ts
+Keyboard shortcuts	i18n\messages\en.ts
+Providers	i18n\messages\en.ts
+MCP servers	i18n\messages\en.ts
+Agent	i18n\messages\en.ts
+Customize	i18n\messages\en.ts
+App and runtime defaults.	i18n\messages\en.ts
+Choose light, dark or system mode and a color preset.	i18n\messages\en.ts
+Choose which background events alert you.	i18n\messages\en.ts
+Shortcuts available across the app.	i18n\messages\en.ts
+Choose the default model and which models appear in pickers.	i18n\messages\en.ts
+Model settings scope	i18n\messages\en.ts
+App global	i18n\messages\en.ts
+Per repo	i18n\messages\en.ts
+Skill slash commands	i18n\messages\en.ts
+Offer each skill as a slash command in the composer.	i18n\messages\en.ts
+Enable skill slash commands	i18n\messages\en.ts
+Shell of integrated terminal	i18n\messages\en.ts
+Theme	i18n\messages\en.ts
+System	i18n\messages\en.ts
+Light	i18n\messages\en.ts
+Dark	i18n\messages\en.ts
+Language	i18n\messages\en.ts
+Follow system	i18n\messages\en.ts
+Color preset	i18n\messages\en.ts
+Window transparency	i18n\messages\en.ts
+Let desktop colors show through supported surfaces.	i18n\messages\en.ts
+The pi-gui palette.	i18n\messages\en.ts
+Soft pastel Latte and Mocha variants.	i18n\messages\en.ts
+A cool editor palette with a bright Day variant.	i18n\messages\en.ts
+Low-contrast arctic neutrals and blue accents.	i18n\messages\en.ts
+Dracula and its official Alucard light variant.	i18n\messages\en.ts
+Warm retro contrast.	i18n\messages\en.ts
+Familiar editor colours with blue accents.	i18n\messages\en.ts
+Turned off	i18n\messages\en.ts
+Not enabled yet	i18n\messages\en.ts
+Unavailable	i18n\messages\en.ts
+Checking…	i18n\messages\en.ts
+Desktop notifications are unavailable on this system.	i18n\messages\en.ts
+Turn on notifications	i18n\messages\en.ts
+Ask macOS	i18n\messages\en.ts
+Open System Settings	i18n\messages\en.ts
+In-app alerts	i18n\messages\en.ts
+Background completion	i18n\messages\en.ts
+Notify when a background session finishes.	i18n\messages\en.ts
+Background failures	i18n\messages\en.ts
+Notify when a background session fails.	i18n\messages\en.ts
+Needs input or approval	i18n\messages\en.ts
+Notify when input is needed to continue.	i18n\messages\en.ts
+Workbench	i18n\messages\en.ts
+Open settings	i18n\messages\en.ts
+New window	i18n\messages\en.ts
+Switch to recent thread	i18n\messages\en.ts
+Cycle through threads	i18n\messages\en.ts
+Send message, or queue it during a run	i18n\messages\en.ts
+Steer the running agent	i18n\messages\en.ts
+New line	i18n\messages\en.ts
+Toggle terminal	i18n\messages\en.ts
+New terminal tab	i18n\messages\en.ts
+Toggle review	i18n\messages\en.ts
+Switch to side panel tab	i18n\messages\en.ts
+Close workbench tab	i18n\messages\en.ts
+Choose…	i18n\messages\en.ts
+Minimal	i18n\messages\en.ts
+Configure externally	i18n\messages\en.ts
+OAuth or API key	i18n\messages\en.ts
+API key	i18n\messages\en.ts
+Built in	i18n\messages\en.ts
+Manage	i18n\messages\en.ts
+Set API key	i18n\messages\en.ts
+N unmodified lines	ui\diff-inline.tsx
+M10 4.25v11.5M4.25 10h11.5	ui\icons.tsx
+M3.4 7.4h13.2	ui\icons.tsx
+M6 5.75h.02M8.15 5.75h.02	ui\icons.tsx
+M7.4 4.2v11.6	ui\icons.tsx
+M11 8.1 8.9 10l2.1 1.9	ui\icons.tsx
+M12.2 3.6v12.8	ui\icons.tsx
+M7 7h6v6H7z	ui\icons.tsx
+M7.7 7.7h4.6v4.6H7.7z	ui\icons.tsx
+M10 15.2V4.8	ui\icons.tsx
+M5.8 9 10 4.8 14.2 9	ui\icons.tsx
+M11.7 3.9v2.4h2.3M7.2 9.15h5.6M7.2 11.8h4.2	ui\icons.tsx
+M3.4 4.1h13.2v2.4H3.4zM7.1 9.15h5.8	ui\icons.tsx
+M3.4 5.15h13.2v2.1H3.4z	ui\icons.tsx
+M10 12.8V8.4m0 0L8.2 10.2M10 8.4l1.8 1.8	ui\icons.tsx
+M8.8 3.6v3.2M12.4 8.4v3.2M6.6 13.2v3.2	ui\icons.tsx
+M12.8 4.2a1.6 1.6 0 0 1 2.3 2.3L7.6 14l-3.1.8.8-3.1 7.5-7.5Z	ui\icons.tsx
+M4.5 13.5V5a1.5 1.5 0 0 1 1.5-1.5h8.5	ui\icons.tsx
+M5 5.25h10	ui\icons.tsx
+M8 5.25v9.5	ui\icons.tsx
+M8 10.5c0-1.55 1.15-2.8 2.6-2.8 1.05 0 1.95.5 2.45 1.45	ui\icons.tsx
+M10 3.3 15.8 6.4v7.2L10 16.7 4.2 13.6V6.4L10 3.3Z	ui\icons.tsx
+M4.5 6.65 10 9.7l5.5-3.05M10 9.8v6.5	ui\icons.tsx
+M7.2 13.6h5.6M8.2 16h3.6	ui\icons.tsx
+M4.3 10h11.4	ui\icons.tsx
+M10 4.3v11.4	ui\icons.tsx
+M10 2.8 15.8 6v8L10 17.2 4.2 14V6L10 2.8Z	ui\icons.tsx
+M10 2.8V17.2M4.2 6 10 9.2 15.8 6	ui\icons.tsx
+M10 9.1v7.1	ui\icons.tsx
+M10 6.4V10l2.4 1.6	ui\icons.tsx
+M15.1 8.2A5.6 5.6 0 1 0 15 12.8M15.2 4.9v3.7h-3.7	ui\icons.tsx
+M7.2 3.8h5.6l-.8 4 2.2 2.2v1.4H5.8V10l2.2-2.2-.8-4Z	ui\icons.tsx
+M10 11.4v4.8	ui\icons.tsx
+M6 5.3h8.1v8.1	ui\icons.tsx
+M13.9 5.45 5.9 13.45	ui\icons.tsx
+M5.85 9.75v3.95h3.95	ui\icons.tsx
+M6 6.85v6.3	ui\icons.tsx
+M14 6.85v1.4c0 2.1-1.6 3.4-3.6 3.7L7.8 11.7	ui\icons.tsx
+M7 7h6M7 10h4M7 13h5	ui\icons.tsx
+M10 6.5v4M8 8.5h4M8 13.5h4	ui\icons.tsx
+M5.6 13.6V9.2a4.4 4.4 0 0 1 8.8 0v4.4l1.1 1.4H4.5l1.1-1.4Z	ui\icons.tsx
+M8.4 16.6a1.7 1.7 0 0 0 3.2 0	ui\icons.tsx
+M6.2 8.4h.1M8.7 8.4h.1M11.2 8.4h.1M13.7 8.4h.1M7.4 11.6h5.2	ui\icons.tsx
+M4.25 10h11.5	ui\icons.tsx

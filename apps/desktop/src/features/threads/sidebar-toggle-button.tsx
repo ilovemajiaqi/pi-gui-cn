@@ -1,5 +1,6 @@
 import type { Ref } from "react";
 import { SidebarToggleIcon } from "../../ui/icons";
+import { useTranslation } from "../../i18n";
 
 interface SidebarToggleButtonProps {
   readonly collapsed: boolean;
@@ -14,10 +15,11 @@ export function SidebarToggleButton({
   onToggle,
   ref,
 }: SidebarToggleButtonProps) {
+  const { t } = useTranslation();
   return (
     <div className="shortcut-tooltip-wrap sidebar-toggle">
       <button
-        aria-label="Toggle sidebar"
+        aria-label={t("settings.shortcuts.toggleSidebar")}
         aria-pressed={!collapsed}
         className="icon-button sidebar-toggle__button"
         data-testid="sidebar-toggle"
@@ -28,7 +30,7 @@ export function SidebarToggleButton({
         <SidebarToggleIcon />
       </button>
       <span className="shortcut-tooltip sidebar-toggle__tooltip" role="tooltip">
-        <span>Toggle sidebar</span>
+        <span>{t("settings.shortcuts.toggleSidebar")}</span>
         <kbd>{shortcutLabel}</kbd>
       </span>
     </div>

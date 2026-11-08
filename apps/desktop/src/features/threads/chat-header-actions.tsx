@@ -3,6 +3,7 @@ import { ThreadActionsMenu } from "./thread-actions";
 import type { ThreadAction } from "./thread-actions";
 import type { ThreadMenuState } from "./hooks/use-thread-actions";
 import { formatRelativeTime } from "../../lib/string-utils";
+import { useTranslation } from "../../i18n";
 
 interface ChatHeaderActionsProps {
   readonly session: SessionRecord;
@@ -22,6 +23,7 @@ export function ChatHeaderActions({
   threadMenu,
   actions,
 }: ChatHeaderActionsProps) {
+  const { t } = useTranslation();
   return (
     <>
       <div className="chat-header__status">
@@ -34,7 +36,7 @@ export function ChatHeaderActions({
         <button
           aria-haspopup="menu"
           aria-expanded={threadMenu.openMenu?.surface === "header"}
-          aria-label="Thread actions"
+          aria-label={t("threads.header.actions")}
           className="icon-button"
           data-testid="thread-header-menu"
           type="button"

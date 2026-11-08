@@ -14,6 +14,7 @@ import { updateSnapshot, useDesktopAppState } from "./desktop-app-state";
 import { DesktopStartupSurface, toStartupSurfaceState } from "./desktop-recovery";
 import { buildFileWorkbenchContexts } from "./file-workbench-contexts";
 import { canTogglePrimarySidebar } from "./app-shell-utils";
+import { useTranslation } from "../i18n";
 import { useDesktopCommands } from "./use-desktop-commands";
 import { useRunningLabel } from "../features/conversation/hooks/use-running-label";
 import { useTimelineViewport } from "../features/conversation/hooks/use-timeline-viewport";
@@ -97,6 +98,7 @@ import { useTranscriptAnnotations } from "../features/conversation/annotations/u
 import { SidebarDrawerBackdrop, useNarrowSidebarDrawer } from "../features/threads/sidebar-drawer";
 
 export default function App() {
+  const { t } = useTranslation();
   const desktop = useDesktopAppState();
   const workbenchWidth = useWorkbenchWidth();
   const snapshot = desktop.snapshot;
@@ -1054,15 +1056,12 @@ export default function App() {
 
         {snapshot.startupDiagnostics.length > 0 ? (
           <div className="startup-diagnostics" role="status" data-testid="startup-diagnostics">
-            <strong>Some saved workspaces could not be refreshed.</strong>
+            <strong>{t("app.startupDiagnostics")}</strong>
             <span>
               {snapshot.startupDiagnostics
-                .map((diagnostic) => {
-                  const workspaceName = diagnostic.workspacePath
-                    ?.split(/[\\/]/)
-                    .filter(Boolean)
-                    .at(-1);
-                  return workspaceName ? `${workspaceName} is unavailable.` : diagnostic.message;
+                .map(({ workspacePath, message }) => {
+                  const name = workspacePath?.split(/[\\/]/).filter(Boolean).at(-1);
+                  return name ? t("app.workspaceUnavailable", { name }) : message;
                 })
                 .join(" ")}
             </span>
@@ -1140,9 +1139,9 @@ export default function App() {
             ) : (
               <section className="canvas canvas--empty">
                 <div className="empty-panel">
-                  <div className="session-header__eyebrow">Workspace</div>
-                  <h1>Open a folder to start</h1>
-                  <p>Add a project folder before creating a new thread.</p>
+                  <div className="session-header__eyebrow">{t("app.workspaceEyebrow")}</div>
+                  <h1>{t("app.openFolderToStart")}</h1>
+                  <p>{t("app.openFolderHint")}</p>
                 </div>
               </section>
             )
@@ -1157,16 +1156,15 @@ export default function App() {
                       data-testid="schema-skew-notice"
                     >
                       <span className="schema-skew-notice__text">
-                        This session was written by a newer version of pi — some content may not
-                        display. Update pi-gui (or open it with the pi CLI) to see everything.
+                        {t("app.schemaSkewNotice")}
                       </span>
                       <button
                         type="button"
                         className="schema-skew-notice__dismiss"
-                        aria-label="Dismiss notice"
+                        aria-label={t("app.dismissNotice")}
                         onClick={() => dismissSchemaSkewNotice(selectedSessionKey)}
                       >
-                        Dismiss
+                        {t("app.dismiss")}
                       </button>
                     </div>
                   ) : null}
@@ -1308,9 +1306,9 @@ export default function App() {
           ) : selectedWorkspace ? (
             <section className="canvas canvas--empty">
               <div className="empty-panel">
-                <div className="session-header__eyebrow">Workspace</div>
+                <div className="session-header__eyebrow">{t("app.workspaceEyebrow")}</div>
                 <h1>{selectedWorkspace.name}</h1>
-                <p>Create a thread for this folder, then jump between sessions from the sidebar.</p>
+                <p>{t("app.createThreadHint")}</p>
                 <div className="empty-panel__actions">
                   <button
                     className="button button--primary"
@@ -1321,7 +1319,7 @@ export default function App() {
                       )
                     }
                   >
-                    New thread
+                    {t("threads.nav.newThread")}
                   </button>
                 </div>
               </div>
@@ -1329,12 +1327,9 @@ export default function App() {
           ) : (
             <section className="canvas canvas--empty">
               <div className="empty-panel">
-                <div className="session-header__eyebrow">Workspace</div>
-                <h1>Open a folder to start</h1>
-                <p>
-                  Add project folders, group sessions under them, and jump between threads from the
-                  sidebar.
-                </p>
+                <div className="session-header__eyebrow">{t("app.workspaceEyebrow")}</div>
+                <h1>{t("app.openFolderToStart")}</h1>
+                <p>{t("app.workspacePanelHint")}</p>
               </div>
             </section>
           )}
@@ -1402,7 +1397,7 @@ export default function App() {
                     />
                   ) : (
                     <p className="workbench__unavailable" role="status">
-                      This file checkout is unavailable.
+                      {t("app.thisFileCheckoutUnavailable")}
                     </p>
                   ),
                 terminal: () => (

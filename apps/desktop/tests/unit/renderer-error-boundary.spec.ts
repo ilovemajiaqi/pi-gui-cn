@@ -9,8 +9,8 @@ const SENTINEL = "secret-token=/private/path";
 
 test("startup copy switches on failure codes and never interpolates error text", () => {
   expect(startupSurfaceCopy({ kind: "loading" })).toEqual({
-    title: "Loading sessions",
-    body: "The desktop shell is restoring folder and thread state from the main process.",
+    titleKey: "recovery.loadingTitle",
+    bodyKey: "recovery.loadingBody",
     status: "loading",
   });
   expect(
@@ -20,8 +20,8 @@ test("startup copy switches on failure codes and never interpolates error text",
       retrying: false,
     }),
   ).toEqual({
-    title: "Couldn't restore sessions",
-    body: "The desktop shell couldn't read folder and thread state. Retry, or relaunch the app.",
+    titleKey: "recovery.failedTitle",
+    bodyKey: "recovery.failedBody",
     status: "failed",
   });
   expect(
@@ -29,8 +29,8 @@ test("startup copy switches on failure codes and never interpolates error text",
       kind: "failed",
       failure: { code: "bridge-unavailable" },
       retrying: true,
-    }).body,
-  ).toContain("Quit pi-gui and reopen it");
+    }).bodyKey,
+  ).toBe("recovery.bridgeBody");
   expect(JSON.stringify(startupSurfaceCopy({ kind: "crashed" }))).not.toContain(SENTINEL);
 });
 
@@ -43,7 +43,7 @@ test("error boundary derived state stores no thrown details", () => {
 
 test("crash fallback copy stays generic", () => {
   const copy = rendererBoundaryCopy();
-  expect(copy.title).toBe("Something went wrong");
+  expect(copy.titleKey).toBe("recovery.crashedTitle");
   expect(copy.status).toBe("crashed");
   expect(JSON.stringify(copy)).not.toContain(SENTINEL);
 });
