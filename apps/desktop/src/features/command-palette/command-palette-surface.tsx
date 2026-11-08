@@ -2,6 +2,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import type { WorkspaceRecord, WorkspaceSessionTarget } from "../../../contracts/desktop-state";
 import type { PiDesktopApi } from "../../../contracts/ipc";
 import { sessionLastInteractedAt } from "../../../contracts/thread-recency";
+import { useTranslation } from "../../i18n";
 import { formatRelativeTime } from "../../lib/string-utils";
 import { ChatIcon, FileIcon, FolderIcon, ModelIcon } from "../../ui/icons";
 import type { ComposerModelOption } from "../conversation/composer-commands";
@@ -73,6 +74,7 @@ export function CommandPaletteSurface({
   onOpenFile,
   onSelectModel,
 }: CommandPaletteSurfaceProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<CommandFilter>("all");
   const [listing, setListing] = useState<FileListing>({ status: "loading" });
@@ -118,7 +120,11 @@ export function CommandPaletteSurface({
         .filter(Boolean)
         .join(" · "),
       icon: <ChatIcon />,
-      hint: isCurrent ? "Current" : thread.session.status === "running" ? "Running" : undefined,
+      hint: isCurrent
+        ? t("palette.hintCurrent")
+        : thread.session.status === "running"
+          ? t("palette.hintRunning")
+          : undefined,
       run: () => {
         onClose();
         onOpenThread(target);
@@ -153,8 +159,10 @@ export function CommandPaletteSurface({
   let sections: readonly PaletteSection[];
   let emptyText: string;
   if (mode === "files") {
-    label = "Go to file";
-    placeholder = fileScope ? `Search files in ${fileScope.label}` : "Search files";
+    label = t("palette.goToFile");
+    placeholder = fileScope
+      ? t("palette.searchFilesIn", { scope: fileScope.label })
+      : t("palette.searchFiles");
     sections =
       fileScope && files
         ? buildFileSections({
@@ -177,22 +185,22 @@ export function CommandPaletteSurface({
           })
         : [];
     emptyText = !fileScope
-      ? "Open a thread to search its files."
+      ? t("palette.openThreadFirst")
       : listing.status === "loading"
-        ? "Loading files…"
+        ? t("palette.loadingFiles")
         : listing.status === "error"
-          ? "Couldn't load files."
+          ? t("palette.filesLoadError")
           : query !== fileQuery
-            ? "Searching…"
+            ? t("palette.searching")
             : query.trim()
-              ? "No matching files."
-              : `Type to search ${(files?.length ?? 0).toLocaleString()} files.`;
+              ? t("palette.noMatchingFiles")
+              : t("palette.typeToSearchFiles", { count: files?.length ?? 0 });
   } else if (mode === "models") {
-    label = "Switch model";
-    placeholder = "Switch model";
+    label = t("palette.switchModel");
+    placeholder = t("palette.switchModel");
     sections = buildListSection({
       id: "models",
-      label: "Models",
+      label: "palette.models",
       query,
       candidates: (modelScope?.options ?? []).map((option) => ({
         id: `model:${option.providerId}/${option.modelId}`,
@@ -201,7 +209,7 @@ export function CommandPaletteSurface({
         hint:
           option.providerId === modelScope?.currentProvider &&
           option.modelId === modelScope.currentModelId
-            ? "Current"
+            ? t("palette.hintCurrent")
             : undefined,
         run: () => {
           onClose();
@@ -209,10 +217,12 @@ export function CommandPaletteSurface({
         },
       })),
     });
-    emptyText = modelScope?.options.length ? "No matching models." : "No models available.";
+    emptyText = modelScope?.options.length
+      ? t("palette.noMatchingModels")
+      : t("palette.noModelsAvailable");
   } else {
-    label = "Command palette";
-    placeholder = "Search chats, workspaces and actions";
+    label = t("palette.commandPalette");
+    placeholder = t("palette.searchPlaceholder");
     sections = buildCommandSections({
       query,
       filter,
@@ -220,7 +230,7 @@ export function CommandPaletteSurface({
       workspaces: workspaceCandidates,
       actions: actionCandidates,
     });
-    emptyText = query.trim() ? "No matches." : "Nothing here yet.";
+    emptyText = query.trim() ? t("palette.noMatches") : t("palette.nothingYet");
   }
 
   return (

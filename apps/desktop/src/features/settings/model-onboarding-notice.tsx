@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n";
 import type { ModelOnboardingNotice } from "./model-onboarding";
 
 interface ModelOnboardingNoticeBannerProps {
@@ -9,6 +10,7 @@ export function ModelOnboardingNoticeBanner({
   notice,
   onOpenSettings,
 }: ModelOnboardingNoticeBannerProps) {
+  const { t } = useTranslation();
   if (!notice) {
     return null;
   }
@@ -16,15 +18,17 @@ export function ModelOnboardingNoticeBanner({
   return (
     <div className="model-onboarding-notice" data-testid="model-onboarding-notice">
       <div className="model-onboarding-notice__body">
-        <span className="model-onboarding-notice__title">{notice.title}</span>
-        <span className="model-onboarding-notice__description">{notice.description}</span>
+        <span className="model-onboarding-notice__title">{t(notice.titleKey)}</span>
+        <span className="model-onboarding-notice__description">
+          {t(notice.descriptionKey, notice.descriptionParams)}
+        </span>
       </div>
       <button
         className="model-onboarding-notice__action"
         type="button"
         onClick={() => onOpenSettings(notice.actionSection)}
       >
-        {notice.actionLabel}
+        {t(notice.actionLabelKey)}
       </button>
     </div>
   );

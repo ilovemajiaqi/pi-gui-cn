@@ -3,6 +3,7 @@ import type { WorkspaceRecord, WorktreeRecord } from "../../../contracts/desktop
 import type { PiDesktopApi, WorkspaceFilePreview } from "../../../contracts/ipc";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useI18n, type Translate } from "../../i18n";
 import { CloseIcon, CopyIcon, WorktreeIcon } from "../../ui/icons";
 import { HighlightedLine } from "../../ui/highlighted-line";
 import { MAX_HIGHLIGHTED_LINES, extensionToLanguage } from "../../ui/syntax-highlight";
@@ -38,9 +39,16 @@ const FILE_MARKDOWN_COMPONENTS = {
       <table>{children}</table>
     </div>
   ),
-  img: ({ alt }: { alt?: string }) => (
-    <span className="file-editor__blocked-image">{alt ? `[image: ${alt}]` : "[image]"}</span>
-  ),
+  img: ({ alt }: { alt?: string }) => {
+    const { t } = useI18n();
+    return (
+      <span className="file-editor__blocked-image">
+        {alt
+          ? t("workbench.editor.imageFallback", { alt })
+          : t("workbench.editor.imageFallbackEmpty")}
+      </span>
+    );
+  },
 };
 
 const FILE_MARKDOWN_PLUGINS = [remarkGfm];
@@ -53,6 +61,7 @@ export function FileEditorPane({
   onActivate,
   onClose,
 }: FileEditorPaneProps) {
+  const { t } = useI18n();
   const activePath = tabs.active;
   const lineMark = tabs.line;
   const [preview, setPreview] = useState<WorkspaceFilePreview | null>(null);
@@ -107,7 +116,11 @@ export function FileEditorPane({
   const showSource = !markdown || sourceMode;
 
   return (
-    <section className="file-editor" data-testid="file-editor" aria-label="Open file">
+    <section
+      className="file-editor"
+      data-testid="file-editor"
+      aria-label={t("workbench.editor.openSection")}
+    >
       <div className="file-editor__tab-strip">
         {worktreeLabel ? (
           <span className="file-editor__worktree-chip" data-testid="file-editor-worktree-chip">
@@ -133,7 +146,9 @@ export function FileEditorPane({
                   {fileNameFromPath(path)}
                 </button>
                 <button
-                  aria-label={`Close ${fileNameFromPath(path)}`}
+                  aria-label={t("workbench.editor.closeFile", {
+                    file: fileNameFromPath(path),
+                  })}
                   className="file-editor__tab-close"
                   type="button"
                   onClick={() => onClose(path)}
@@ -157,11 +172,11 @@ export function FileEditorPane({
                 type="button"
                 onClick={() => setSourceMode((current) => !current)}
               >
-                View source
+                {t("workbench.editor.viewSource")}
               </button>
             ) : null}
             <button
-              aria-label="Copy file"
+              aria-label={t("workbench.editor.copyFile")}
               className="icon-button"
               disabled={!preview || preview.binary || Boolean(viewerError)}
               type="button"
@@ -185,14 +200,14 @@ export function FileEditorPane({
                 });
               }}
             >
-              Open
+              {t("workbench.editor.open")}
             </button>
           </div>
         ) : null}
       </div>
       {activePath ? (
         <nav
-          aria-label="File path"
+          aria-label={t("workbench.editor.filePath")}
           className="file-editor__breadcrumb"
           data-testid="file-editor-breadcrumb"
         >
@@ -213,6 +228,7 @@ export function FileEditorPane({
           markdown,
           preview,
           showSource,
+          t,
           viewerError,
           viewerLoading,
         })}
@@ -227,6 +243,7 @@ function renderEditorBody({
   markdown,
   preview,
   showSource,
+  t,
   viewerError,
   viewerLoading,
 }: {
@@ -235,23 +252,24 @@ function renderEditorBody({
   readonly markdown: boolean;
   readonly preview: WorkspaceFilePreview | null;
   readonly showSource: boolean;
+  readonly t: Translate;
   readonly viewerError: string | null;
   readonly viewerLoading: boolean;
 }): ReactNode {
   if (!activePath) {
-    return <div className="diff-panel__empty">Select a file from the explorer.</div>;
+    return <div className="diff-panel__empty">{t("workbench.editor.selectFile")}</div>;
   }
   if (viewerLoading) {
-    return <div className="diff-panel__empty">Loading file...</div>;
+    return <div className="diff-panel__empty">{t("workbench.editor.loading")}</div>;
   }
   if (viewerError) {
     return <div className="diff-panel__empty">{viewerError}</div>;
   }
   if (!preview) {
-    return <div className="diff-panel__empty">No preview available.</div>;
+    return <div className="diff-panel__empty">{t("workbench.editor.noPreview")}</div>;
   }
   if (preview.binary) {
-    return <div className="diff-panel__empty">Binary or directory preview is not available.</div>;
+    return <div className="diff-panel__empty">{t("workbench.editor.noBinaryPreview")}</div>;
   }
   return (
     <>
@@ -262,7 +280,7 @@ function renderEditorBody({
       )}
       {preview.truncated ? (
         <div className="file-editor__truncated" role="status">
-          Preview truncated
+          {t("workbench.editor.previewTruncated")}
         </div>
       ) : null}
     </>

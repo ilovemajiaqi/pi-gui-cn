@@ -1,3 +1,4 @@
+import type { MessageKey } from "../../i18n";
 import type { PaletteFilter, PaletteItem, PaletteSection } from "./command-palette";
 import { rankByFuzzy, type RankedMatch } from "./fuzzy-match";
 
@@ -7,10 +8,10 @@ export type PaletteCandidate = Omit<PaletteItem, "titleMatches" | "detailMatches
 export type CommandFilter = "all" | "chats" | "workspaces" | "actions";
 
 export const COMMAND_FILTERS: readonly PaletteFilter<CommandFilter>[] = [
-  { id: "all", label: "All" },
-  { id: "chats", label: "Chats" },
-  { id: "workspaces", label: "Workspaces" },
-  { id: "actions", label: "Actions" },
+  { id: "all", label: "palette.filter.all" },
+  { id: "chats", label: "palette.filter.chats" },
+  { id: "workspaces", label: "palette.filter.workspaces" },
+  { id: "actions", label: "palette.filter.actions" },
 ];
 
 const RECENT_CHAT_COUNT = 5;
@@ -20,7 +21,7 @@ export const FILE_RESULT_LIMIT = 60;
 
 function rankedSection(
   id: string,
-  label: string,
+  label: MessageKey,
   candidates: readonly PaletteCandidate[],
   query: string,
   limit: number,
@@ -53,24 +54,34 @@ export function buildCommandSections(input: {
   if (query.trim() === "") {
     switch (filter) {
       case "chats":
-        return [{ id: "chats", label: "Chats", items: chats.slice(0, SINGLE_FILTER_LIMIT) }];
+        return [
+          {
+            id: "chats",
+            label: "palette.section.chats",
+            items: chats.slice(0, SINGLE_FILTER_LIMIT),
+          },
+        ];
       case "workspaces":
-        return [{ id: "workspaces", label: "Workspaces", items: workspaces }];
+        return [{ id: "workspaces", label: "palette.section.workspaces", items: workspaces }];
       case "actions":
-        return [{ id: "actions", label: "Actions", items: actions }];
+        return [{ id: "actions", label: "palette.section.actions", items: actions }];
       case "all":
         return [
-          { id: "recents", label: "Recents", items: chats.slice(0, RECENT_CHAT_COUNT) },
-          { id: "actions", label: "Actions", items: actions },
+          {
+            id: "recents",
+            label: "palette.section.recents",
+            items: chats.slice(0, RECENT_CHAT_COUNT),
+          },
+          { id: "actions", label: "palette.section.actions", items: actions },
         ];
     }
   }
 
   const single = filter !== "all";
   const kinds = [
-    { id: "chats", label: "Chats", candidates: chats },
-    { id: "workspaces", label: "Workspaces", candidates: workspaces },
-    { id: "actions", label: "Actions", candidates: actions },
+    { id: "chats", label: "palette.section.chats", candidates: chats },
+    { id: "workspaces", label: "palette.section.workspaces", candidates: workspaces },
+    { id: "actions", label: "palette.section.actions", candidates: actions },
   ] as const;
   return kinds
     .filter((kind) => !single || kind.id === filter)
@@ -110,7 +121,7 @@ export function buildFileSections(input: {
     return [
       {
         id: "open-files",
-        label: "Open files",
+        label: "palette.section.openFiles",
         items: [...openTabs].reverse().map(toCandidate),
       },
     ];
@@ -126,12 +137,12 @@ export function buildFileSections(input: {
       detailMatches: match.positions.filter((position) => position < directory.length),
     };
   });
-  return [{ id: "files", label: "Files", items }];
+  return [{ id: "files", label: "palette.section.files", items }];
 }
 
 export function buildListSection(input: {
   readonly id: string;
-  readonly label: string;
+  readonly label: MessageKey;
   readonly query: string;
   readonly candidates: readonly PaletteCandidate[];
 }): readonly PaletteSection[] {

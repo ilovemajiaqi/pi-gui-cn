@@ -29,6 +29,7 @@ import {
 } from "../../conversation/composer-attachments";
 import { buildModelOptions, parseTreeComposerCommand } from "../../conversation/composer-commands";
 import type { PiDesktopApi } from "../../../../contracts/ipc";
+import { useTranslation } from "../../../i18n";
 import { deriveModelOnboardingState } from "../../settings/model-onboarding";
 import { getEffectiveModelRuntime } from "../../settings/model-settings";
 import type { SettingsSection } from "../../settings/settings-view";
@@ -60,6 +61,7 @@ export function useNewThreadController(params: UseNewThreadControllerParams) {
     openSettings,
     flushComposerDraft,
   } = params;
+  const { t } = useTranslation();
 
   const [pendingWorkspaceId, setPendingWorkspaceId] = useState("");
   const [rootWorkspaceId, setRootWorkspaceId] = useState("");
@@ -295,7 +297,7 @@ export function useNewThreadController(params: UseNewThreadControllerParams) {
     if (modelOnboarding.requiresModelSelection) {
       return;
     }
-    const treeCommand = parseTreeComposerCommand(prompt);
+    const treeCommand = parseTreeComposerCommand(prompt, t);
     if (treeCommand?.type === "error") {
       setComposerError(treeCommand.message);
       return;

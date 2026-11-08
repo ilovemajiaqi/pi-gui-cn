@@ -17,7 +17,6 @@ import type { MentionOption } from "../conversation/hooks/use-mention-menu";
 import { ArrowUpIcon, PiLogoMark, PlusIcon } from "../../ui/icons";
 import { useTranslation } from "../../i18n";
 import {
-  MODEL_OPTIONS_EMPTY_TITLE,
   type ComposerSlashCommand,
   type ComposerSlashCommandSection,
   type ComposerSlashOption,
@@ -316,9 +315,9 @@ function NewThreadComposerFooter({
               thinkingLevel={thinkingLevel}
               dropdownPlacement="below"
               showEmptyModelControl
-              unselectedModelLabel={modelOnboarding.unselectedModelLabel}
-              emptyModelLabel={MODEL_OPTIONS_EMPTY_TITLE}
-              emptyModelTitle={modelOnboarding.emptyModelTitle}
+              unselectedModelLabel={t(modelOnboarding.unselectedModelKey)}
+              emptyModelLabel={t("conversation.commands.noModels")}
+              emptyModelTitle={t(modelOnboarding.emptyModelTitleKey)}
               onSetModel={onSetModel}
               onSetThinking={onSetThinking}
             />

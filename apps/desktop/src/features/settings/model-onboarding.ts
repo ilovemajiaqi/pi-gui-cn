@@ -1,21 +1,24 @@
 import type { RuntimeSnapshot } from "@pi-gui/session-driver/runtime-types";
+import type { MessageKey, TranslateParams } from "../../i18n/translate";
 import { buildModelOptions } from "../conversation/composer-commands";
 
 export type ModelOnboardingSettingsSection = "models" | "providers";
 
 export interface ModelOnboardingNotice {
-  readonly title: string;
-  readonly description: string;
-  readonly actionLabel: string;
+  readonly titleKey: MessageKey;
+  readonly descriptionKey: MessageKey;
+  /** Values substituted into the description's `{name}` placeholders. */
+  readonly descriptionParams?: TranslateParams;
+  readonly actionLabelKey: MessageKey;
   readonly actionSection: ModelOnboardingSettingsSection;
 }
 
 export interface ModelOnboardingState {
   readonly hasSelectableModels: boolean;
   readonly requiresModelSelection: boolean;
-  readonly unselectedModelLabel: string;
-  readonly emptyModelTitle: string;
-  readonly emptyModelDescription: string;
+  readonly unselectedModelKey: MessageKey;
+  readonly emptyModelTitleKey: MessageKey;
+  readonly emptyModelDescriptionKey: MessageKey;
   readonly notice?: ModelOnboardingNotice;
 }
 
@@ -48,26 +51,24 @@ export function deriveModelOnboardingState(
     return {
       hasSelectableModels: false,
       requiresModelSelection: true,
-      unselectedModelLabel: "No models available",
-      emptyModelTitle: "No models available",
-      emptyModelDescription:
+      unselectedModelKey: "conversation.onboarding.noModels",
+      emptyModelTitleKey: "conversation.onboarding.noModels",
+      emptyModelDescriptionKey:
         connectedProviderCount > 0
-          ? "Open Settings > Models to enable models."
-          : "Open Settings > Providers to connect a provider and make models available.",
+          ? "conversation.onboarding.noticeNoModelsHint"
+          : "conversation.onboarding.noticeNoProvidersDescription",
       notice:
         connectedProviderCount > 0
           ? {
-              title: "No models available",
-              description:
-                "All available models are currently disabled. Open Settings > Models to enable models.",
-              actionLabel: "Open Settings > Models",
+              titleKey: "conversation.onboarding.noticeNoModelsTitle",
+              descriptionKey: "conversation.onboarding.noticeNoModelsDescription",
+              actionLabelKey: "conversation.onboarding.openSettingsModels",
               actionSection: "models",
             }
           : {
-              title: "No models available",
-              description:
-                "Connect a provider in Settings > Providers before choosing a model or setting a default.",
-              actionLabel: "Open Settings > Providers",
+              titleKey: "conversation.onboarding.noticeNoProvidersTitle",
+              descriptionKey: "conversation.onboarding.noticeNoProvidersDescription",
+              actionLabelKey: "conversation.onboarding.openSettingsProviders",
               actionSection: "providers",
             },
     };
@@ -77,15 +78,15 @@ export function deriveModelOnboardingState(
     return {
       hasSelectableModels: true,
       requiresModelSelection: true,
-      unselectedModelLabel: "Pick a model",
-      emptyModelTitle: "No models available",
-      emptyModelDescription: "Pick a model.",
+      unselectedModelKey: "conversation.onboarding.pickModel",
+      emptyModelTitleKey: "conversation.onboarding.noModels",
+      emptyModelDescriptionKey: "conversation.onboarding.pickModelHint",
       notice: {
-        title: "Selected model unavailable",
-        description: hasDefaultModel
-          ? "The model selected for this thread is no longer available. Choose another model, then open Settings > Models to update the default."
-          : "The model selected for this thread is no longer available. Choose another model, then open Settings > Models to choose the app default.",
-        actionLabel: "Open Settings > Models",
+        titleKey: "conversation.onboarding.noticeUnavailableTitle",
+        descriptionKey: hasDefaultModel
+          ? "conversation.onboarding.noticeUnavailableDefaultDescription"
+          : "conversation.onboarding.noticeUnavailableSessionDescription",
+        actionLabelKey: "conversation.onboarding.openSettingsModels",
         actionSection: "models",
       },
     };
@@ -95,15 +96,15 @@ export function deriveModelOnboardingState(
     return {
       hasSelectableModels: true,
       requiresModelSelection: !currentSelectionUsable,
-      unselectedModelLabel: "Pick a model",
-      emptyModelTitle: "No default model set",
-      emptyModelDescription: "Pick a model.",
+      unselectedModelKey: "conversation.onboarding.pickModel",
+      emptyModelTitleKey: "conversation.onboarding.noticeDefaultTitle",
+      emptyModelDescriptionKey: "conversation.onboarding.pickModelHint",
       notice: currentSelectionUsable
         ? undefined
         : {
-            title: "No default model set",
-            description: "Set a default model in Settings > Models.",
-            actionLabel: "Open Settings > Models",
+            titleKey: "conversation.onboarding.noticeNoDefaultTitle",
+            descriptionKey: "conversation.onboarding.noticeNoDefaultDescription",
+            actionLabelKey: "conversation.onboarding.openSettingsModels",
             actionSection: "models",
           },
     };
@@ -114,15 +115,16 @@ export function deriveModelOnboardingState(
     return {
       hasSelectableModels: true,
       requiresModelSelection: !currentSelectionUsable,
-      unselectedModelLabel: "Pick a model",
-      emptyModelTitle: "Default model unavailable",
-      emptyModelDescription: "Pick a model.",
+      unselectedModelKey: "conversation.onboarding.pickModel",
+      emptyModelTitleKey: "conversation.onboarding.noticeStaleTitle",
+      emptyModelDescriptionKey: "conversation.onboarding.pickModelHint",
       notice: {
-        title: "Default model unavailable",
-        description: currentSelectionUsable
-          ? `Your saved default (${defaultLabel}) is no longer available. Open Settings > Models to update it.`
-          : `Your saved default (${defaultLabel}) is no longer available. Choose a model for this thread, then open Settings > Models to update it.`,
-        actionLabel: "Open Settings > Models",
+        titleKey: "conversation.onboarding.noticeStaleTitle",
+        descriptionKey: currentSelectionUsable
+          ? "conversation.onboarding.noticeStaleDescription"
+          : "conversation.onboarding.noticeStaleSessionDescription",
+        descriptionParams: { default: defaultLabel },
+        actionLabelKey: "conversation.onboarding.openSettingsModels",
         actionSection: "models",
       },
     };
@@ -131,9 +133,9 @@ export function deriveModelOnboardingState(
   return {
     hasSelectableModels: true,
     requiresModelSelection: false,
-    unselectedModelLabel: "Pick a model",
-    emptyModelTitle: "No models available",
-    emptyModelDescription: "Pick a model.",
+    unselectedModelKey: "conversation.onboarding.pickModel",
+    emptyModelTitleKey: "conversation.onboarding.noModels",
+    emptyModelDescriptionKey: "conversation.onboarding.pickModelHint",
   };
 }
 

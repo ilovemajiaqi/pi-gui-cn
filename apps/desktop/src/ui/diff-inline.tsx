@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation, type Translate } from "../i18n";
 import { HighlightedLine } from "./highlighted-line";
 import { MAX_HIGHLIGHTED_LINES } from "./syntax-highlight";
 
@@ -18,7 +19,8 @@ export function InlineDiff({
   /** Replace hunk headers with "N unmodified lines" rows for the new-file lines they skip. */
   readonly unmodifiedGaps?: boolean;
 }) {
-  const lines = useMemo(() => parseDiff(diff, unmodifiedGaps), [diff, unmodifiedGaps]);
+  const { t } = useTranslation();
+  const lines = useMemo(() => parseDiff(diff, unmodifiedGaps, t), [diff, t, unmodifiedGaps]);
   const highlightActive = language !== undefined && lines.length <= MAX_HIGHLIGHTED_LINES;
 
   if (lines.length === 0) {
@@ -47,7 +49,7 @@ export function InlineDiff({
   );
 }
 
-function parseDiff(diff: string, unmodifiedGaps: boolean): DiffLine[] {
+function parseDiff(diff: string, unmodifiedGaps: boolean, t: Translate): DiffLine[] {
   const lines = diff.split("\n");
   // A patch ends with a newline; that final empty piece is not a blank context line.
   if (lines.at(-1) === "") lines.pop();
@@ -77,7 +79,7 @@ function parseDiff(diff: string, unmodifiedGaps: boolean): DiffLine[] {
       if (skipped > 0)
         result.push({
           type: "unmodified",
-          content: `${skipped} unmodified ${skipped === 1 ? "line" : "lines"}`,
+          content: t("ui.diff.unmodifiedLines", { count: skipped }),
         });
       if (deletesOnly) lineNumber += 1;
       nextUnshown = lineNumber;

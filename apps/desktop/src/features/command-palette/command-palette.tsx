@@ -7,6 +7,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from "react";
+import { useTranslation, type MessageKey } from "../../i18n";
 import { SearchIcon } from "../../ui/icons";
 
 export interface PaletteItem {
@@ -22,13 +23,15 @@ export interface PaletteItem {
 
 export interface PaletteSection {
   readonly id: string;
-  readonly label: string;
+  /** Catalog key; the palette renders it through `t` in the chosen language. */
+  readonly label: MessageKey;
   readonly items: readonly PaletteItem[];
 }
 
 export interface PaletteFilter<F extends string> {
   readonly id: F;
-  readonly label: string;
+  /** Catalog key; the palette renders it through `t` in the chosen language. */
+  readonly label: MessageKey;
 }
 
 interface CommandPaletteProps<F extends string> {
@@ -63,6 +66,7 @@ export function CommandPalette<F extends string>({
   onBack,
   onClose,
 }: CommandPaletteProps<F>) {
+  const { t } = useTranslation();
   const listId = useId();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -202,7 +206,7 @@ export function CommandPalette<F extends string>({
             onChange={(event) => onQueryChange(event.target.value)}
           />
           <button
-            aria-label="Close"
+            aria-label={t("palette.common.close")}
             className="command-palette__close"
             type="button"
             onClick={onClose}
@@ -212,7 +216,7 @@ export function CommandPalette<F extends string>({
         </div>
 
         {filters && filters.length > 0 ? (
-          <div aria-label="Filters" className="command-palette__filters" role="tablist">
+          <div aria-label={t("palette.filters")} className="command-palette__filters" role="tablist">
             {filters.map((filter) => (
               <button
                 key={filter.id}
@@ -224,7 +228,7 @@ export function CommandPalette<F extends string>({
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => onFilterChange?.(filter.id)}
               >
-                {filter.label}
+                {t(filter.label)}
               </button>
             ))}
           </div>
@@ -248,7 +252,7 @@ export function CommandPalette<F extends string>({
                     className="command-palette__section-label"
                     id={`${listId}-section-${section.id}`}
                   >
-                    {section.label}
+                    {t(section.label)}
                   </div>
                   {section.items.map((item) => {
                     itemIndex += 1;
@@ -295,23 +299,23 @@ export function CommandPalette<F extends string>({
         <div className="command-palette__footer" aria-hidden="true">
           <span>
             <kbd>↑</kbd>
-            <kbd>↓</kbd> Navigate
+            <kbd>↓</kbd> {t("palette.hintNavigate")}
           </span>
           <span>
-            <kbd>↵</kbd> Open
+            <kbd>↵</kbd> {t("palette.hintOpen")}
           </span>
           {filters && filters.length > 0 ? (
             <span>
-              <kbd>Tab</kbd> Filters
+              <kbd>Tab</kbd> {t("palette.hintFilters")}
             </span>
           ) : null}
           {onBack ? (
             <span>
-              <kbd>⌫</kbd> Back
+              <kbd>⌫</kbd> {t("palette.hintBack")}
             </span>
           ) : null}
           <span>
-            <kbd>Esc</kbd> Close
+            <kbd>Esc</kbd> {t("palette.hintClose")}
           </span>
         </div>
       </div>

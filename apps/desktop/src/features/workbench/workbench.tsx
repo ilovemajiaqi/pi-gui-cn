@@ -4,12 +4,35 @@ import {
   getSidePanelTabShortcutLabel,
   SIDE_PANEL_TAB_SHORTCUT_SLOT_COUNT,
 } from "../../../contracts/ipc";
-import { toolRefId, type TaskWorkbenchTemplate, type ToolRef } from "../../../contracts/workbench";
+import {
+  MAX_WORKBENCH_FILE_TABS,
+  toolRefId,
+  type BuiltinToolKind,
+  type TaskWorkbenchTemplate,
+  type ToolRef,
+} from "../../../contracts/workbench";
 import type { DesktopExtensionViewInfo } from "../../../contracts/extension-views";
+import { translate, useI18n, type MessageKey, type Translate } from "../../i18n";
 import { CloseIcon, ExtensionIcon, PlusIcon, SidePanelIcon } from "../../ui/icons";
 import { BUILTIN_TOOL_ENTRIES, BUILTIN_TOOLS } from "./builtin-tools";
 import { WorkbenchResizeHandle } from "./workbench-resize-handle";
 import { activeWorkbenchTool } from "./workbench-state";
+
+/**
+ * BUILTIN_TOOLS keeps its English labels as data, so the render points translate
+ * through these id → key maps instead.
+ */
+const TOOL_LABEL_KEYS: Record<BuiltinToolKind, MessageKey> = {
+  files: "workbench.tool.files",
+  changes: "workbench.tool.review",
+  terminal: "workbench.tool.terminal",
+};
+
+const TOOL_DESC_KEYS: Record<BuiltinToolKind, MessageKey> = {
+  files: "workbench.tool.filesDescription",
+  changes: "workbench.tool.reviewDescription",
+  terminal: "workbench.tool.terminalDescription",
+};
 
 interface WorkbenchProps {
   readonly view: TaskWorkbenchTemplate;
@@ -32,8 +55,8 @@ interface WorkbenchProps {
   readonly onReloadExtensionViews?: () => void;
 }
 
-export function workbenchToolLabel(tool: ToolRef): string {
-  return tool.kind === "extension" ? tool.viewId : BUILTIN_TOOLS[tool.kind].label;
+export function workbenchToolLabel(tool: ToolRef, t: Translate = translate): string {
+  return tool.kind === "extension" ? tool.viewId : t(TOOL_LABEL_KEYS[tool.kind]);
 }
 
 function ToolIcon({ tool }: { readonly tool: ToolRef }) {
@@ -61,6 +84,7 @@ export function Workbench({
   extensionViewsError = "",
   onReloadExtensionViews,
 }: WorkbenchProps) {
+  const { t } = useI18n();
   const panelId = useId();
   const addRef = useRef<HTMLButtonElement | null>(null);
   const tabRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -129,22 +153,22 @@ export function Workbench({
 
   return (
     <aside
-      aria-label="Side workspace"
+      aria-label={t("workbench.sideWorkspace")}
       className="workbench side-panel"
       data-testid="workbench"
       id="task-workbench"
     >
       <WorkbenchResizeHandle onResize={onResize} />
       <div className="workbench__tabbar">
-        <div aria-label="Workspace tools" className="workbench__tabs" role="tablist">
+        <div aria-label={t("workbench.workspaceTools")} className="workbench__tabs" role="tablist">
           {view.tools.map((tool, index) => {
             const toolId = toolRefId(tool);
             const label =
               tool.kind === "extension"
                 ? (extensionViews.find(
                     (entry) => entry.extensionId === tool.extensionId && entry.id === tool.viewId,
-                  )?.title ?? workbenchToolLabel(tool))
-                : workbenchToolLabel(tool);
+                  )?.title ?? workbenchToolLabel(tool, t))
+                : workbenchToolLabel(tool, t);
             const selected = view.selection.kind === "tool" && view.selection.toolId === toolId;
             const slot = index < SIDE_PANEL_TAB_SHORTCUT_SLOT_COUNT ? index + 1 : undefined;
             const shortcut = slot ? getSidePanelTabShortcutLabel(platform, slot) : undefined;
@@ -170,7 +194,7 @@ export function Workbench({
                   }}
                   role="tab"
                   tabIndex={selected || (view.selection.kind === "chooser" && index === 0) ? 0 : -1}
-                  title={shortcut ? `${label} (${shortcut})` : label}
+                  title={shortcut ? t("workbench.tabWithShortcut", { label, shortcut }) : label}
                   type="button"
                 >
                   {tabHintsVisible && shortcut ? (
@@ -183,12 +207,12 @@ export function Workbench({
                   <span>{label}</span>
                 </button>
                 <button
-                  aria-label={`Close ${label} tab`}
+                  aria-label={t("workbench.closeTabAria", { label })}
                   className="workbench__tab-close icon-button"
                   disabled={loading}
                   onClick={() => closeAndFocus(toolId)}
                   tabIndex={-1}
-                  title={`Close ${label} tab`}
+                  title={t("workbench.closeTabAria", { label })}
                   type="button"
                 >
                   <CloseIcon />
@@ -199,25 +223,25 @@ export function Workbench({
         </div>
         <button
           aria-keyshortcuts={`${platform === "darwin" ? "Meta" : "Control"}+T`}
-          aria-label="Add tab"
+          aria-label={t("workbench.addTab")}
           className="workbench__add icon-button"
           data-testid="workbench-add-tab"
           disabled={loading}
           onClick={onShowChooser}
           ref={addRef}
-          title={`Add tab (${formatShortcut(platform, "T")})`}
+          title={t("workbench.addTabTitle", { shortcut: formatShortcut(platform, "T") })}
           type="button"
         >
           <PlusIcon />
         </button>
         <button
-          aria-label="Toggle side panel"
+          aria-label={t("workbench.toggleSidePanel")}
           aria-pressed="true"
           aria-controls="task-workbench"
           data-testid="toggle-side-panel"
           className="workbench__add icon-button"
           onClick={onTogglePanel}
-          title="Hide side panel"
+          title={t("workbench.hideSidePanel")}
           type="button"
         >
           <SidePanelIcon />
@@ -225,10 +249,12 @@ export function Workbench({
       </div>
       {error ? (
         <div className="workbench__error" role="status">
-          <p>{error}</p>
+          {/* Workbench errors are message keys (plus the extension host's own error
+              strings, which `t` passes through untouched); the tab-limit key counts. */}
+          <p>{t(error as MessageKey, { count: MAX_WORKBENCH_FILE_TABS })}</p>
           {loading && onRetryRestore ? (
             <button className="button" onClick={onRetryRestore} type="button">
-              Retry restoring tabs
+              {t("workbench.retryRestoringTabs")}
             </button>
           ) : null}
         </div>
@@ -241,22 +267,20 @@ export function Workbench({
       >
         {loading ? (
           <p className="workbench__loading" role="status">
-            {error
-              ? "Saved tabs are unavailable until restoration succeeds."
-              : "Restoring tool tabs…"}
+            {error ? t("workbench.savedTabsUnavailable") : t("workbench.restoringTabs")}
           </p>
         ) : view.selection.kind === "chooser" ? (
           <div className="workbench__chooser" data-testid="workbench-chooser">
-            <h2>Open a tool</h2>
-            <p>Keep the tools you need alongside your conversation.</p>
-            {BUILTIN_TOOL_ENTRIES.map(({ kind, label, description, Icon, shortcutKey }) => (
+            <h2>{t("workbench.openToolTitle")}</h2>
+            <p>{t("workbench.openToolHint")}</p>
+            {BUILTIN_TOOL_ENTRIES.map(({ kind, Icon, shortcutKey }) => (
               <button
                 aria-keyshortcuts={
                   shortcutKey
                     ? `${platform === "darwin" ? "Meta" : "Control"}+${shortcutKey}`
                     : undefined
                 }
-                aria-label={label}
+                aria-label={t(TOOL_LABEL_KEYS[kind])}
                 className="workbench__choice"
                 key={kind}
                 onClick={() => onOpenTool({ kind })}
@@ -266,8 +290,8 @@ export function Workbench({
                   <Icon />
                 </span>
                 <span className="workbench__choice-copy">
-                  <strong>{label}</strong>
-                  <span>{description}</span>
+                  <strong>{t(TOOL_LABEL_KEYS[kind])}</strong>
+                  <span>{t(TOOL_DESC_KEYS[kind])}</span>
                 </span>
                 {shortcutKey ? (
                   <kbd className="workbench__choice-shortcut">
@@ -276,14 +300,16 @@ export function Workbench({
                 ) : null}
               </button>
             ))}
-            <h3 className="workbench__extension-heading">Extension views</h3>
-            {extensionViewsLoading ? <p role="status">Loading extension views…</p> : null}
+            <h3 className="workbench__extension-heading">{t("workbench.extensionViews")}</h3>
+            {extensionViewsLoading ? (
+              <p role="status">{t("workbench.loadingExtensionViews")}</p>
+            ) : null}
             {extensionViewsError ? (
               <div role="status">
                 <p>{extensionViewsError}</p>
                 {onReloadExtensionViews ? (
                   <button className="button" type="button" onClick={onReloadExtensionViews}>
-                    Refresh views
+                    {t("workbench.refreshViews")}
                   </button>
                 ) : null}
               </div>
@@ -312,13 +338,13 @@ export function Workbench({
                 <span className="workbench__choice-copy">
                   <strong>{extension.title}</strong>
                   {extension.state === "error" ? (
-                    <span>{extension.error ?? "View unavailable"}</span>
+                    <span>{extension.error ?? t("workbench.viewUnavailable")}</span>
                   ) : null}
                 </span>
               </button>
             ))}
             {!extensionViewsLoading && !extensionViewsError && extensionViews.length === 0 ? (
-              <p>Installed extensions can provide additional views here.</p>
+              <p>{t("workbench.extensionViewsHint")}</p>
             ) : null}
           </div>
         ) : activeTool?.kind === "extension" && activeExtension?.state !== "ready" ? (
@@ -326,17 +352,17 @@ export function Workbench({
             <ExtensionIcon />
             <h2>
               {extensionViewsLoading
-                ? "Finding this extension view…"
-                : "This extension view is unavailable"}
+                ? t("workbench.findingView")
+                : t("workbench.viewUnavailableTitle")}
             </h2>
             <p>
               {activeExtension?.error ||
                 extensionViewsError ||
-                "Your saved tab is retained. Extension commands can still be used when installed."}
+                t("workbench.savedTabRetained")}
             </p>
             {!extensionViewsLoading && onReloadExtensionViews ? (
               <button className="button" type="button" onClick={onReloadExtensionViews}>
-                Refresh views
+                {t("workbench.refreshViews")}
               </button>
             ) : null}
             <button
@@ -344,7 +370,7 @@ export function Workbench({
               onClick={() => closeAndFocus(toolRefId(activeTool))}
               type="button"
             >
-              Close tab
+              {t("workbench.closeTab")}
             </button>
           </div>
         ) : (

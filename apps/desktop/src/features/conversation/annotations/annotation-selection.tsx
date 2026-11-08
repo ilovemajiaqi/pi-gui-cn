@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { CloseIcon } from "../../../ui/icons";
+import { useTranslation } from "../../../i18n";
 import { ANNOTATION_ROOT_ATTRIBUTE, type OpenAnnotation } from "./annotation-markers";
 import { rangeToOffsets } from "./text-offsets";
 import type { TranscriptAnnotations } from "./use-transcript-annotations";
@@ -294,6 +295,7 @@ function SelectionActions({
   readonly quote: string;
   readonly onAdd: () => void;
 }) {
+  const { t } = useTranslation();
   // Bumped on each successful copy, so a repeat copy restarts the confirmation.
   const [copyCount, setCopyCount] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -332,7 +334,7 @@ function SelectionActions({
         type="button"
         onClick={copy}
       >
-        <span>{copied ? "Copied" : "Copy"}</span>
+        <span>{copied ? t("conversation.annotations.copied") : t("conversation.annotations.copy")}</span>
         <ShortcutKeys keys={shortcutKeys(platform, "C")} />
       </button>
       <span className="annotation-add__divider" aria-hidden="true" />
@@ -342,7 +344,7 @@ function SelectionActions({
         type="button"
         onClick={onAdd}
       >
-        <span>Add to Chat</span>
+        <span>{t("conversation.annotations.addToChat")}</span>
         <ShortcutKeys keys={addToChatShortcutKeys(platform)} />
       </button>
     </div>
@@ -372,6 +374,7 @@ function AnnotationEditor({
   readonly onRemove: () => void;
   readonly onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const [value, setValue] = useState(note);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const closingRef = useRef(false);
@@ -400,9 +403,9 @@ function AnnotationEditor({
       style={{ top: popoverTop(anchor, 44), left: Math.max(POPOVER_GAP, anchor.left - 24) }}
     >
       <input
-        aria-label="Annotation comment"
+        aria-label={t("conversation.annotations.commentLabel")}
         className="annotation-editor__input"
-        placeholder="Add an optional comment…"
+        placeholder={t("conversation.annotations.commentPlaceholder")}
         ref={inputRef}
         value={value}
         onBlur={() => finish(true)}
@@ -419,10 +422,10 @@ function AnnotationEditor({
         }}
       />
       <button
-        aria-label="Remove annotation"
+        aria-label={t("conversation.annotations.remove")}
         className="annotation-editor__remove"
         data-testid="annotation-remove"
-        title="Remove annotation"
+        title={t("conversation.annotations.remove")}
         type="button"
         onMouseDown={(event) => event.preventDefault()}
         onClick={() => {

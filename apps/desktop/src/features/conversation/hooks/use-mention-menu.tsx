@@ -10,6 +10,8 @@ import {
 import type { RuntimeExtensionRecord, RuntimeSnapshot } from "@pi-gui/session-driver/runtime-types";
 import { extensionSourceSummary } from "../../extensions/extension-display";
 import type { PiDesktopApi } from "../../../../contracts/ipc";
+import { useTranslation } from "../../../i18n";
+import type { Translate } from "../../../i18n/translate";
 import { nextMenuIndex } from "./use-slash-menu";
 
 export type MentionOption =
@@ -70,6 +72,7 @@ export function useMentionMenu({
   api,
   onEnableExtension,
 }: UseMentionMenuParams): MentionMenuState {
+  const { t } = useTranslation();
   const [allFiles, setAllFiles] = useState<readonly string[]>([]);
   const [pendingEnablePaths, setPendingEnablePaths] = useState<ReadonlySet<string>>(
     () => new Set(),
@@ -134,6 +137,7 @@ export function useMentionMenu({
       runtime?.extensions ?? [],
       lowerQuery,
       pendingEnablePaths,
+      t,
     );
     const fileOptions = allFiles
       .filter((file) => file.toLowerCase().includes(lowerQuery))
@@ -145,7 +149,7 @@ export function useMentionMenu({
         filePath,
       }));
     return [...extensionOptions, ...fileOptions];
-  }, [allFiles, mentionMatch, pendingEnablePaths, runtime?.extensions]);
+  }, [allFiles, mentionMatch, pendingEnablePaths, runtime?.extensions, t]);
 
   const showMentionMenu = mentionOptions.length > 0;
 
@@ -278,12 +282,13 @@ function buildExtensionMentionOptions(
   extensions: readonly RuntimeExtensionRecord[],
   lowerQuery: string,
   pendingEnablePaths: ReadonlySet<string>,
+  t: Translate,
 ): MentionOption[] {
   return extensions
     .map((extension) => ({
       extension,
       insertText: extensionMentionText(extension),
-      description: describeExtension(extension),
+      description: describeExtension(extension, t),
       enabling: pendingEnablePaths.has(extension.path),
     }))
     .filter((option) => {
@@ -294,7 +299,7 @@ function buildExtensionMentionOptions(
         option.extension.displayName,
         option.insertText,
         option.extension.sourceInfo.source,
-        extensionSourceSummary(option.extension),
+        extensionSourceSummary(option.extension, t),
       ].some((value) => value.toLowerCase().includes(lowerQuery));
     })
     .slice(0, 8)
@@ -310,21 +315,23 @@ function buildExtensionMentionOptions(
     }));
 }
 
-function describeExtension(extension: RuntimeExtensionRecord): string {
+function describeExtension(extension: RuntimeExtensionRecord, t: Translate): string {
   if (extension.description) {
     return extension.description;
   }
 
   const contributionParts = [
     extension.commands.length > 0
-      ? pluralizeContribution(extension.commands.length, "command")
+      ? t("conversation.mention.commandCount", { count: extension.commands.length })
       : undefined,
-    extension.tools.length > 0 ? pluralizeContribution(extension.tools.length, "tool") : undefined,
+    extension.tools.length > 0
+      ? t("conversation.mention.toolCount", { count: extension.tools.length })
+      : undefined,
   ].filter(Boolean);
   if (contributionParts.length > 0) {
     return contributionParts.join(" · ");
   }
-  return extensionSourceSummary(extension);
+  return extensionSourceSummary(extension, t);
 }
 
 function extensionMentionText(extension: RuntimeExtensionRecord): string {
@@ -375,8 +382,4 @@ function normalizeMentionText(value: string): string {
     .replace(/^@+/, "")
     .replace(/[/\\]+/g, "-")
     .replace(/\s+/g, "-");
-}
-
-function pluralizeContribution(count: number, label: string): string {
-  return `${count} ${label}${count === 1 ? "" : "s"}`;
 }

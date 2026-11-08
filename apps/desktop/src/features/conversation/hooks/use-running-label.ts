@@ -1,38 +1,43 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "../../../i18n";
+import type { Translate } from "../../../i18n/translate";
 
 export function useRunningLabel(startedAt: string | undefined) {
-  const [label, setLabel] = useState(() => formatRunningLabel(startedAt));
+  const { t } = useTranslation();
+  const [label, setLabel] = useState(() => formatRunningLabel(startedAt, t));
 
   useEffect(() => {
-    setLabel(formatRunningLabel(startedAt));
+    setLabel(formatRunningLabel(startedAt, t));
     if (!startedAt) {
       return undefined;
     }
 
     const interval = window.setInterval(() => {
-      setLabel(formatRunningLabel(startedAt));
+      setLabel(formatRunningLabel(startedAt, t));
     }, 1000);
 
     return () => {
       window.clearInterval(interval);
     };
-  }, [startedAt]);
+  }, [startedAt, t]);
 
   return label;
 }
 
-function formatRunningLabel(startedAt: string | undefined): string {
+function formatRunningLabel(startedAt: string | undefined, t: Translate): string {
   if (!startedAt) {
-    return "Working…";
+    return t("conversation.running.idle");
   }
 
   const diffMs = Math.max(0, Date.now() - Date.parse(startedAt));
   const seconds = Math.max(1, Math.floor(diffMs / 1000));
   if (seconds < 60) {
-    return `Working for ${seconds}s`;
+    return t("conversation.running.secs", { seconds });
   }
 
   const minutes = Math.floor(seconds / 60);
   const remaining = seconds % 60;
-  return remaining === 0 ? `Working for ${minutes}m` : `Working for ${minutes}m ${remaining}s`;
+  return remaining === 0
+    ? t("conversation.running.mins", { minutes })
+    : t("conversation.running.minsSecs", { minutes, seconds: remaining });
 }

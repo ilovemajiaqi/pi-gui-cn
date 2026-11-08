@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SessionRef } from "@pi-gui/session-driver/types";
 import type { PiDesktopApi } from "../../../contracts/ipc";
+import { useTranslation } from "../../i18n";
 import type { useWorkbench } from "../workbench/use-workbench";
 
 /**
@@ -18,6 +19,7 @@ export function useExtensionHostActions({
   readonly workbench: ReturnType<typeof useWorkbench>;
   readonly flushComposerDraftAsync: (target: SessionRef) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [fileError, setFileError] = useState<{
     readonly target: SessionRef;
     readonly message: string;
@@ -34,11 +36,11 @@ export function useExtensionHostActions({
   const beforePrepareTaskDraft = useCallback(async () => {
     const draftTarget = target;
     if (!draftTarget || targetRef.current !== draftTarget)
-      throw new Error("Return to the extension's task to create a task draft.");
+      throw new Error(t("extensions.host.returnToTask"));
     await flushComposerDraftAsync(draftTarget);
     if (targetRef.current !== draftTarget)
-      throw new Error("The task changed before its draft could be saved.");
-  }, [flushComposerDraftAsync, target]);
+      throw new Error(t("extensions.host.taskChanged"));
+  }, [flushComposerDraftAsync, t, target]);
   const handlePrepareTaskDraftPendingChange = useCallback(
     (pending: boolean, requestKey: string) => {
       setPreparingDrafts((current) => {
@@ -72,7 +74,11 @@ export function useExtensionHostActions({
             if (targetRef.current !== current || fileRequestRef.current !== request) return;
             setFileError({
               target: current,
-              message: `Couldn't open ${event.path}. ${error instanceof Error ? error.message : "Try opening the file again."}`,
+              message: t("extensions.host.openFailed", {
+                path: event.path,
+                fallback:
+                  error instanceof Error ? error.message : t("extensions.host.openFailedFallback"),
+              }),
             });
           });
       }),

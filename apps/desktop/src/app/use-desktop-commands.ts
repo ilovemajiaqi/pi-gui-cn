@@ -8,6 +8,7 @@ import {
   type SetStateAction,
 } from "react";
 import { flushSync } from "react-dom";
+import { useTranslation } from "../i18n";
 import type {
   AppView,
   DesktopAppState,
@@ -93,6 +94,7 @@ interface DesktopCommandsInput {
  * command palette. Every command has one handler; palette entries call the same actions.
  */
 export function useDesktopCommands(input: DesktopCommandsInput) {
+  const { t } = useTranslation();
   const {
     api,
     snapshot,

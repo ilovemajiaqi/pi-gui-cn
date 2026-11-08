@@ -19,6 +19,7 @@ import {
   type ComposerSlashOption,
 } from "../composer-commands";
 import type { PiDesktopApi } from "../../../../contracts/ipc";
+import { useTranslation } from "../../../i18n";
 import { deriveModelOnboardingState } from "../../settings/model-onboarding";
 import type { SettingsSection } from "../../settings/settings-view";
 
@@ -136,6 +137,7 @@ export function useSlashMenu(params: UseSlashMenuParams): SlashMenuState {
   const [slashOptionIndex, setSlashOptionIndex] = useState(0);
   const [activeSlashFlow, setActiveSlashFlow] = useState<ActiveSlashFlow | undefined>();
   const [slashMenuSuppressedDraft, setSlashMenuSuppressedDraft] = useState("");
+  const { t } = useTranslation();
 
   const activeSlashQuery = extractActiveSlashQuery(composerDraft);
   const slashQuery = activeSlashQuery?.query ?? "";
@@ -148,6 +150,7 @@ export function useSlashMenu(params: UseSlashMenuParams): SlashMenuState {
         {
           allowTreeCommand,
         },
+        t,
       )
     : [];
   const slashSuggestions = flattenSlashSections(slashSections);
@@ -167,10 +170,11 @@ export function useSlashMenu(params: UseSlashMenuParams): SlashMenuState {
   const slashOptions =
     activeSlashOptionCommand?.kind === "model"
       ? buildModelOptions(selectedModelRuntime)
-      : slashOptionsForCommand(activeSlashOptionCommand, selectedRuntime);
+      : slashOptionsForCommand(activeSlashOptionCommand, selectedRuntime, t);
   const activeSlashOptionEmptyState = slashOptionEmptyState(
     activeSlashOptionCommand,
     activeSlashOptionCommand?.kind === "model" ? undefined : selectedRuntime,
+    t,
   );
   const modelSlashEmptyState =
     activeSlashOptionCommand?.kind === "model" && slashOptions.length === 0
@@ -180,8 +184,8 @@ export function useSlashMenu(params: UseSlashMenuParams): SlashMenuState {
             modelId: undefined,
           });
           return {
-            title: state.emptyModelTitle,
-            description: state.emptyModelDescription,
+            title: t(state.emptyModelTitleKey),
+            description: t(state.emptyModelDescriptionKey),
           };
         })()
       : undefined;

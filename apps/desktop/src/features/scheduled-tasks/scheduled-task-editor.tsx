@@ -19,7 +19,19 @@ import {
   WEEKDAY_NAMES,
   type Weekday,
 } from "../../../contracts/scheduled-tasks";
+import { useTranslation, type MessageKey } from "../../i18n";
 import { trapDialogFocus } from "../../ui/dialog-focus";
+
+/** Short weekday labels by `Weekday` index; the contract exports the English names. */
+const DAY_KEYS: Readonly<Record<Weekday, MessageKey>> = {
+  0: "scheduledTasks.day.sun",
+  1: "scheduledTasks.day.mon",
+  2: "scheduledTasks.day.tue",
+  3: "scheduledTasks.day.wed",
+  4: "scheduledTasks.day.thu",
+  5: "scheduledTasks.day.fri",
+  6: "scheduledTasks.day.sat",
+};
 
 export type ScheduledEditorState =
   | { readonly mode: "create"; readonly prefill?: Partial<CreateScheduledTaskInput> }
@@ -84,6 +96,7 @@ export function ScheduledTaskEditor({
   onSubmit,
   onOpenChat,
 }: ScheduledTaskEditorProps) {
+  const { t } = useTranslation();
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const source = editor.mode === "edit" ? task : undefined;
   const prefill = editor.mode === "create" ? editor.prefill : undefined;
@@ -225,35 +238,42 @@ export function ScheduledTaskEditor({
       >
         <header className="scheduled-editor__header">
           <h2 id="scheduled-editor-title">
-            {editor.mode === "edit" ? "Edit scheduled task" : "Set up scheduled task"}
+            {editor.mode === "edit"
+              ? t("scheduledTasks.editor.edit")
+              : t("scheduledTasks.editor.setUp")}
           </h2>
-          <button className="icon-button" type="button" aria-label="Close" onClick={onClose}>
+          <button
+            className="icon-button"
+            type="button"
+            aria-label={t("scheduledTasks.editor.common.close")}
+            onClick={onClose}
+          >
             ×
           </button>
         </header>
 
         <label className="scheduled-editor__field">
-          <span>Title</span>
+          <span>{t("scheduledTasks.editor.title")}</span>
           <input
             data-testid="scheduled-task-title"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Weekly status"
+            placeholder={t("scheduledTasks.editor.titlePlaceholder")}
           />
         </label>
         <label className="scheduled-editor__field">
-          <span>Instructions</span>
+          <span>{t("scheduledTasks.editor.instructions")}</span>
           <textarea
             data-testid="scheduled-task-instruction"
             value={instruction}
             onChange={(event) => setInstruction(event.target.value)}
-            placeholder="What should pi do when this runs?"
+            placeholder={t("scheduledTasks.editor.instructionsPlaceholder")}
             rows={5}
           />
         </label>
 
         <label className="scheduled-editor__field">
-          <span>Workspace</span>
+          <span>{t("scheduledTasks.editor.workspace")}</span>
           <select
             data-testid="scheduled-task-workspace"
             value={workspaceId}
@@ -271,7 +291,7 @@ export function ScheduledTaskEditor({
         </label>
 
         <fieldset className="scheduled-editor__field">
-          <legend>Runs in</legend>
+          <legend>{t("scheduledTasks.editor.runsIn")}</legend>
           <label className="scheduled-editor__choice">
             <input
               type="radio"
@@ -279,7 +299,7 @@ export function ScheduledTaskEditor({
               checked={targetKind === "new-thread"}
               onChange={() => setTargetKind("new-thread")}
             />
-            New thread for this task
+            {t("scheduledTasks.editor.newThread")}
           </label>
           <label className="scheduled-editor__choice">
             <input
@@ -288,7 +308,7 @@ export function ScheduledTaskEditor({
               checked={targetKind === "existing-thread"}
               onChange={() => setTargetKind("existing-thread")}
             />
-            Existing thread
+            {t("scheduledTasks.editor.existingThread")}
           </label>
           {targetKind === "existing-thread" ? (
             <select
@@ -296,7 +316,7 @@ export function ScheduledTaskEditor({
               value={sessionId}
               onChange={(event) => setSessionId(event.target.value)}
             >
-              <option value="">Select a thread</option>
+              <option value="">{t("scheduledTasks.editor.selectThread")}</option>
               {sessions.map((session) => (
                 <option key={session.id} value={session.id}>
                   {session.title}
@@ -307,22 +327,22 @@ export function ScheduledTaskEditor({
         </fieldset>
 
         <label className="scheduled-editor__field">
-          <span>Frequency</span>
+          <span>{t("scheduledTasks.editor.frequency")}</span>
           <select
             data-testid="scheduled-task-frequency"
             value={frequency}
             onChange={(event) => setFrequency(event.target.value as FrequencyKind)}
           >
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="interval">Interval</option>
-            <option value="once">Once</option>
+            <option value="daily">{t("scheduledTasks.editor.daily")}</option>
+            <option value="weekly">{t("scheduledTasks.editor.weekly")}</option>
+            <option value="interval">{t("scheduledTasks.editor.interval")}</option>
+            <option value="once">{t("scheduledTasks.editor.once")}</option>
           </select>
         </label>
 
         {frequency === "once" ? (
           <label className="scheduled-editor__field">
-            <span>Run at</span>
+            <span>{t("scheduledTasks.editor.runAt")}</span>
             <input
               data-testid="scheduled-task-once-at"
               type="datetime-local"
@@ -333,7 +353,7 @@ export function ScheduledTaskEditor({
         ) : null}
         {frequency === "daily" || frequency === "weekly" ? (
           <label className="scheduled-editor__field">
-            <span>Time</span>
+            <span>{t("scheduledTasks.editor.time")}</span>
             <input
               data-testid="scheduled-task-time"
               type="time"
@@ -344,7 +364,7 @@ export function ScheduledTaskEditor({
         ) : null}
         {frequency === "weekly" ? (
           <fieldset className="scheduled-editor__field">
-            <legend>Days</legend>
+            <legend>{t("scheduledTasks.editor.days")}</legend>
             <div className="scheduled-editor__days">
               {WEEKDAY_NAMES.map((name, index) => {
                 const day = index as Weekday;
@@ -363,7 +383,7 @@ export function ScheduledTaskEditor({
                       )
                     }
                   >
-                    {name.slice(0, 3)}
+                    {t(DAY_KEYS[day])}
                   </button>
                 );
               })}
@@ -372,7 +392,7 @@ export function ScheduledTaskEditor({
         ) : null}
         {frequency === "interval" ? (
           <label className="scheduled-editor__field">
-            <span>Every (minutes)</span>
+            <span>{t("scheduledTasks.editor.everyMinutes")}</span>
             <input
               data-testid="scheduled-task-interval"
               type="number"
@@ -393,11 +413,11 @@ export function ScheduledTaskEditor({
               type="button"
               onClick={() => onOpenChat(openChatTarget)}
             >
-              Open chat
+              {t("scheduledTasks.editor.openChat")}
             </button>
           ) : null}
           <button className="button button--secondary" type="button" onClick={onClose}>
-            Cancel
+            {t("scheduledTasks.editor.common.cancel")}
           </button>
           <button
             className="button button--primary"
@@ -418,7 +438,9 @@ export function ScheduledTaskEditor({
               });
             }}
           >
-            {editor.mode === "edit" ? "Save" : "Create"}
+            {editor.mode === "edit"
+              ? t("scheduledTasks.editor.common.save")
+              : t("scheduledTasks.editor.common.create")}
           </button>
         </div>
       </div>

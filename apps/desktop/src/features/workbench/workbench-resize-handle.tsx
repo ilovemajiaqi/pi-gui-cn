@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n";
 import { PaneResizeHandle, type PaneWidthBounds } from "../../ui/pane-resize-handle";
 
 function workbenchBounds(_panel: HTMLElement, main: HTMLElement): PaneWidthBounds {
@@ -10,10 +11,11 @@ export function WorkbenchResizeHandle({
 }: {
   readonly onResize: (width: number) => void;
 }) {
+  const { t } = useI18n();
   return (
     <PaneResizeHandle
       className="workbench__resize-handle"
-      label="Side panel width"
+      label={t("workbench.sidePanelWidth")}
       controls="task-workbench"
       edge="left"
       bounds={workbenchBounds}

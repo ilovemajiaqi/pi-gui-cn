@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type SetStateAction } from "r
 import type { SessionRef } from "@pi-gui/session-driver/types";
 import type { PiDesktopApi } from "../../../contracts/ipc";
 import type { TaskWorkbenchTemplate, ToolRef } from "../../../contracts/workbench";
+import type { MessageKey } from "../../i18n";
 import type { FileWorkbenchTabs } from "./file-workbench-state";
 import {
   activeWorkbenchTool,
@@ -27,7 +28,9 @@ interface UseWorkbenchOptions {
 }
 
 let saveSequence = 0;
-const SAVE_ERROR = "Couldn't save tool tabs. They are kept in this window.";
+/** Stored keys, translated where the workbench error banner renders. */
+const SAVE_ERROR: MessageKey = "workbench.saveTabsError";
+const RESTORE_ERROR: MessageKey = "workbench.restoreTabsError";
 
 function targetKey(target: SessionRef): string {
   return JSON.stringify([target.workspaceId, target.sessionId]);
@@ -124,7 +127,7 @@ export function useWorkbench({ api, target }: UseWorkbenchOptions) {
         },
         () => {
           entry.restore = "failed";
-          entry.error = "Couldn't restore saved tool tabs. Your current tabs are still available.";
+          entry.error = RESTORE_ERROR;
           pendingRestores.current.delete(key);
           publish();
         },

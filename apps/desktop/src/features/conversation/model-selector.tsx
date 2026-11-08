@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { RuntimeSnapshot } from "@pi-gui/session-driver/runtime-types";
+import { useTranslation } from "../../i18n";
 import {
   buildModelOptions,
-  MODEL_OPTIONS_EMPTY_TITLE,
-  THINKING_OPTIONS,
+  buildThinkingOptions,
   type ComposerModelOption,
 } from "./composer-commands";
 
@@ -32,12 +32,13 @@ export function ModelSelector({
   disabled,
   dropdownPlacement = "above",
   showEmptyModelControl = false,
-  unselectedModelLabel = "Choose model",
-  emptyModelLabel = "Choose model",
-  emptyModelTitle = MODEL_OPTIONS_EMPTY_TITLE,
+  unselectedModelLabel,
+  emptyModelLabel,
+  emptyModelTitle,
   onSetModel,
   onSetThinking,
 }: ModelSelectorProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState<OpenDropdown>("none");
   const [modelFilter, setModelFilter] = useState("");
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -62,8 +63,8 @@ export function ModelSelector({
     provider && modelId
       ? `${provider}:${modelId}`
       : hasAvailableModelOptions
-        ? unselectedModelLabel
-        : emptyModelLabel;
+        ? (unselectedModelLabel ?? t("conversation.model.choose"))
+        : (emptyModelLabel ?? t("conversation.model.choose"));
   const noMatchingModels =
     hasAvailableModelOptions && modelFilter.trim().length > 0 && groupedModels.length === 0;
 
@@ -117,7 +118,7 @@ export function ModelSelector({
               <div className="model-selector__filter">
                 <input
                   className="model-selector__filter-input"
-                  placeholder="Filter models..."
+                  placeholder={t("conversation.model.filterPlaceholder")}
                   value={modelFilter}
                   onChange={(e) => setModelFilter(e.target.value)}
                   autoFocus
@@ -142,7 +143,9 @@ export function ModelSelector({
                       >
                         <span className="model-selector__item-label">{option.label}</span>
                         {isActive ? (
-                          <span className="model-selector__item-meta">active</span>
+                          <span className="model-selector__item-meta">
+                            {t("conversation.model.active")}
+                          </span>
                         ) : null}
                       </button>
                     );
@@ -152,10 +155,14 @@ export function ModelSelector({
               {groupedModels.length === 0 ? (
                 <>
                   <div className="model-selector__group-title">
-                    {noMatchingModels ? "No matching models" : emptyModelTitle}
+                    {noMatchingModels
+                      ? t("conversation.model.noMatching")
+                      : (emptyModelTitle ?? t("conversation.commands.noModels"))}
                   </div>
                   {noMatchingModels ? (
-                    <div className="model-selector__empty">Try a different filter.</div>
+                    <div className="model-selector__empty">
+                      {t("conversation.model.tryOtherFilter")}
+                    </div>
                   ) : null}
                 </>
               ) : null}
@@ -178,8 +185,10 @@ export function ModelSelector({
               className={`model-selector__dropdown ${dropdownPlacement === "below" ? "model-selector__dropdown--below" : ""}`}
               onWheel={(event) => event.stopPropagation()}
             >
-              <div className="model-selector__group-title">Thinking Level</div>
-              {THINKING_OPTIONS.map((option) => {
+              <div className="model-selector__group-title">
+                {t("conversation.model.thinkingLevel")}
+              </div>
+              {buildThinkingOptions(t).map((option) => {
                 const isActive = option.value === thinkingLevel;
                 return (
                   <button

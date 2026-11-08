@@ -11,6 +11,10 @@ const technicalCopy = new Set([
   "docs",
   "npx",
   "pi-gui",
+  "Tab",
+  "Esc",
+  "&#x25BC;",
+  "pi-gui",
   "ollama-local",
   "model-id",
   "http://localhost:11434/v1",
@@ -41,6 +45,11 @@ const sourceRoot = resolve(__dirname, "../../src");
 const translatedSurfaces = [
   "features/settings",
   "features/threads",
+  "features/conversation",
+  "features/workbench",
+  "features/extensions",
+  "features/scheduled-tasks",
+  "features/command-palette",
   "app",
 ];
 

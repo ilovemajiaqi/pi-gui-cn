@@ -24,6 +24,7 @@ import { TimelineItem } from "./timeline-item";
 import { sameRowContent, type TimelineRow } from "./timeline-layout";
 import type { OpenTurnChange } from "./turn-changes-card";
 import type { WorkspaceFileLine } from "./workspace-file-line";
+import { useTranslation } from "../../i18n";
 import { SparkIcon } from "../../ui/icons";
 
 interface ThreadSearchModel {
@@ -76,6 +77,7 @@ export function ConversationTimeline({
   annotations,
   platform,
 }: ConversationTimelineProps) {
+  const { t } = useTranslation();
   const surfaceRef = useRef<HTMLDivElement | null>(null);
   const annotationSelection = useAnnotationSelection({
     paneRef: surfaceRef,
@@ -204,7 +206,7 @@ export function ConversationTimeline({
                 type="button"
                 onClick={viewport.jumpToLatest}
               >
-                New activity below
+                {t("conversation.timeline.newActivity")}
               </button>
             ) : null}
           </div>
@@ -216,6 +218,7 @@ export function ConversationTimeline({
 }
 
 function TranscriptSkeleton() {
+  const { t } = useTranslation();
   return (
     <div className="transcript-skeleton" data-testid="transcript-skeleton" aria-hidden="true">
       <div className="transcript-skeleton__row transcript-skeleton__row--user">
@@ -233,7 +236,7 @@ function TranscriptSkeleton() {
         <span className="skeleton-line" style={{ width: "80%" }} />
         <span className="skeleton-line" style={{ width: "72%" }} />
       </div>
-      <span className="sr-only">Loading transcript…</span>
+      <span className="sr-only">{t("conversation.timeline.loading")}</span>
     </div>
   );
 }
@@ -245,10 +248,11 @@ function TranscriptHydrateError({
   readonly retrying: boolean;
   readonly onRetry?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="transcript-hydrate-error" data-testid="transcript-hydrate-error">
-      <h2>Couldn't load this thread</h2>
-      <p>The selected conversation couldn't be restored. Retry to try again.</p>
+      <h2>{t("conversation.timeline.loadFailed")}</h2>
+      <p>{t("conversation.timeline.loadFailedHint")}</p>
       <div className="transcript-hydrate-error__actions">
         <button
           className="button button--primary"
@@ -257,7 +261,7 @@ function TranscriptHydrateError({
           disabled={retrying || !onRetry}
           onClick={onRetry}
         >
-          {retrying ? "Retrying…" : "Retry"}
+          {retrying ? t("conversation.timeline.retrying") : t("conversation.timeline.retry")}
         </button>
       </div>
     </div>
@@ -265,13 +269,14 @@ function TranscriptHydrateError({
 }
 
 function TranscriptEmptyState() {
+  const { t } = useTranslation();
   return (
     <div className="transcript-empty" data-testid="transcript-empty">
       <span className="transcript-empty__glyph" aria-hidden="true">
         <SparkIcon />
       </span>
-      <p className="transcript-empty__title">Start the conversation</p>
-      <p className="transcript-empty__hint">Send a prompt below to begin this session.</p>
+      <p className="transcript-empty__title">{t("conversation.timeline.startTitle")}</p>
+      <p className="transcript-empty__hint">{t("conversation.timeline.startHint")}</p>
     </div>
   );
 }

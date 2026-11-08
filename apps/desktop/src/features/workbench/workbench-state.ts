@@ -5,6 +5,7 @@ import {
   type TaskWorkbenchTemplate,
   type ToolRef,
 } from "../../../contracts/workbench";
+import type { MessageKey } from "../../i18n";
 import { EMPTY_FILE_TABS, openFile, openFileAtLine } from "./file-workbench-state";
 
 export interface WorkspaceFileReference {
@@ -47,11 +48,18 @@ export function restoreWorkbenchView(
   fallback: TaskWorkbenchTemplate,
   saved: TaskWorkbenchTemplate | null,
   pendingActions: readonly WorkbenchAction[],
-): { readonly view: TaskWorkbenchTemplate; readonly error: string } {
+): { readonly view: TaskWorkbenchTemplate; readonly error: MessageKey | "" } {
   return applyWorkbenchActions(saved ?? fallback, pendingActions);
 }
 
-function actionLimitError(view: TaskWorkbenchTemplate, action: WorkbenchAction): string {
+/**
+ * Limit violations come back as message keys; the renderer translates them,
+ * passing the file-tab cap as `count` for the tab-limit message.
+ */
+function actionLimitError(
+  view: TaskWorkbenchTemplate,
+  action: WorkbenchAction,
+): MessageKey | "" {
   if (
     (action.type === "set-files" && action.files.tabs.tabs.length > MAX_WORKBENCH_FILE_TABS) ||
     (action.type === "open-file" &&
@@ -59,14 +67,14 @@ function actionLimitError(view: TaskWorkbenchTemplate, action: WorkbenchAction):
       view.files.tabs.tabs.length >= MAX_WORKBENCH_FILE_TABS &&
       !view.files.tabs.tabs.includes(action.file.path))
   ) {
-    return `You have ${MAX_WORKBENCH_FILE_TABS} file tabs open. Close a file tab before opening another.`;
+    return "workbench.tooManyFileTabs";
   }
   if (
     action.type === "open-tool" &&
     view.tools.length >= MAX_WORKBENCH_TOOLS &&
     !view.tools.some((tool) => toolRefId(tool) === toolRefId(action.tool))
   ) {
-    return "Close a tool tab before opening another.";
+    return "workbench.closeToolTabFirst";
   }
   return "";
 }
@@ -74,9 +82,9 @@ function actionLimitError(view: TaskWorkbenchTemplate, action: WorkbenchAction):
 export function applyWorkbenchActions(
   initial: TaskWorkbenchTemplate,
   actions: readonly WorkbenchAction[],
-): { readonly view: TaskWorkbenchTemplate; readonly error: string } {
+): { readonly view: TaskWorkbenchTemplate; readonly error: MessageKey | "" } {
   let view = initial;
-  let error = "";
+  let error: MessageKey | "" = "";
   for (const action of actions) {
     const limitError = actionLimitError(view, action);
     if (limitError) error = limitError;

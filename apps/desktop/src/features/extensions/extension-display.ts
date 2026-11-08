@@ -2,13 +2,18 @@ import type {
   RuntimeExtensionRecord,
   RuntimeSourceScope,
 } from "@pi-gui/session-driver/runtime-types";
+import { translate, type MessageKey, type Translate } from "../../i18n";
 
-export function extensionSourceSummary(extension: RuntimeExtensionRecord): string {
-  return `${extensionScopeLabel(extension)} · ${extension.sourceInfo.origin}`;
+/** Catalog keys for the labels pi-gui and pi's own add-ons go by; callers translate them. */
+export const PI_GUI_TOOLS_LABEL_KEY: MessageKey = "extensions.piGuiTools";
+export const PI_ADDONS_LABEL_KEY: MessageKey = "extensions.builtIntoPi";
+
+export function extensionSourceSummary(
+  extension: RuntimeExtensionRecord,
+  t: Translate = translate,
+): string {
+  return `${extensionScopeLabel(extension, t)} · ${extension.sourceInfo.origin}`;
 }
-
-export const PI_GUI_TOOLS_LABEL = "pi-gui tools";
-export const PI_ADDONS_LABEL = "Built into pi";
 
 /** Extensions pi-gui itself adds to every session; switched on and off app-wide. */
 export function isPiGuiBuiltinExtension(extension: RuntimeExtensionRecord): boolean {
@@ -27,26 +32,42 @@ export function isPiAddonExtension(extension: RuntimeExtensionRecord): boolean {
   return extension.sourceInfo.source === "builtin" && extension.path.startsWith("builtin:");
 }
 
-export function extensionScopeLabel(extension: RuntimeExtensionRecord): string {
-  if (isPiGuiBuiltinExtension(extension)) return PI_GUI_TOOLS_LABEL;
-  if (isPiAddonExtension(extension)) return PI_ADDONS_LABEL;
+export function extensionScopeLabel(
+  extension: RuntimeExtensionRecord,
+  t: Translate = translate,
+): string {
+  if (isPiGuiBuiltinExtension(extension)) return t(PI_GUI_TOOLS_LABEL_KEY);
+  if (isPiAddonExtension(extension)) return t(PI_ADDONS_LABEL_KEY);
   return extension.sourceInfo.scope;
 }
 
-/** Group heading for where a skill or extension was discovered. */
-export function sourceScopeGroupLabel(scope: RuntimeSourceScope): string {
+/** Grouping key for where a skill or extension was discovered. */
+export function sourceScopeGroupKey(scope: RuntimeSourceScope): MessageKey {
   switch (scope) {
     case "project":
-      return "Workspace";
+      return "extensions.group.workspace";
     case "user":
-      return "User";
+      return "extensions.group.user";
     case "temporary":
-      return "This session";
+      return "extensions.group.session";
   }
 }
 
-export function extensionGroupLabel(extension: RuntimeExtensionRecord): string {
-  if (isPiGuiBuiltinExtension(extension)) return PI_GUI_TOOLS_LABEL;
-  if (isPiAddonExtension(extension)) return PI_ADDONS_LABEL;
-  return sourceScopeGroupLabel(extension.sourceInfo.scope);
+/** Group heading for where a skill or extension was discovered. */
+export function sourceScopeGroupLabel(scope: RuntimeSourceScope, t: Translate = translate): string {
+  return t(sourceScopeGroupKey(scope));
+}
+
+/** Grouping key for an extension: pi-gui's own tools, pi's add-ons, else where it was found. */
+export function extensionGroupKey(extension: RuntimeExtensionRecord): MessageKey {
+  if (isPiGuiBuiltinExtension(extension)) return PI_GUI_TOOLS_LABEL_KEY;
+  if (isPiAddonExtension(extension)) return PI_ADDONS_LABEL_KEY;
+  return sourceScopeGroupKey(extension.sourceInfo.scope);
+}
+
+export function extensionGroupLabel(
+  extension: RuntimeExtensionRecord,
+  t: Translate = translate,
+): string {
+  return t(extensionGroupKey(extension));
 }
