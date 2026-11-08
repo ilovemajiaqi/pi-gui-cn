@@ -95,6 +95,26 @@ export function I18nProvider({
     };
   }, []);
 
+  // Main cannot read this profile's localStorage, so the resolved locale is
+  // pushed over IPC whenever it changes: on mount, on a preference change, and
+  // on an OS language change. Main uses it for native menus, dialogs and
+  // notifications, and persists it for the next launch.
+  useEffect(() => {
+    window.piApp?.setLocale(locale)?.catch(() => {});
+  }, [locale]);
+
+  useEffect(() => {
+    // Main broadcasts every accepted change to all windows; adopting an equal
+    // value would loop, so a pushed locale that matches what this window
+    // already resolved is ignored.
+    const unsubscribe = window.piApp?.onLocaleChanged?.((next) => {
+      setPreferenceState((current) =>
+        resolveLocale(current, systemLanguages) === next ? current : next,
+      );
+    });
+    return () => unsubscribe?.();
+  }, [systemLanguages]);
+
   const setPreference = useCallback((next: LocalePreference) => {
     writeStoredLocale(next);
     setPreferenceState(next);

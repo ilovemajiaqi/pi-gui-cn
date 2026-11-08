@@ -55,6 +55,14 @@ import type {
 export type DesktopNotificationPermissionStatus =
   "granted" | "denied" | "default" | "unsupported" | "unknown";
 
+/** Languages the main process can localize its native menus, dialogs and notifications into. */
+export const DESKTOP_LOCALES = ["en", "zh-CN"] as const;
+export type DesktopLocale = (typeof DESKTOP_LOCALES)[number];
+
+export function isDesktopLocale(value: unknown): value is DesktopLocale {
+  return typeof value === "string" && (DESKTOP_LOCALES as readonly string[]).includes(value);
+}
+
 export interface CustomProviderModelConfig {
   readonly id: string;
   readonly contextWindow?: number;
@@ -240,6 +248,9 @@ export const desktopIpc = {
   setThemeMode: "pi-gui:set-theme-mode",
   setThemePresetId: "pi-gui:set-theme-preset-id",
   themeChanged: "pi-gui:theme-changed",
+  getLocale: "pi-gui:get-locale",
+  setLocale: "pi-gui:set-locale",
+  localeChanged: "pi-gui:locale-changed",
   windowFocused: "pi-gui:window-focused",
   ping: "app:ping",
   openExternal: "app:open-external",
@@ -936,6 +947,9 @@ export interface PiDesktopApi {
   getResolvedTheme(): Promise<"light" | "dark">;
   setThemeMode(mode: "system" | "light" | "dark"): Promise<DesktopAppState>;
   onThemeChanged(callback: (theme: "light" | "dark") => void): () => void;
+  getLocale(): Promise<DesktopLocale>;
+  setLocale(locale: DesktopLocale): Promise<void>;
+  onLocaleChanged(callback: (locale: DesktopLocale) => void): () => void;
   /** The window came back to the foreground, so outside changes (edits, git) may need rereading. */
   onWindowFocused(listener: () => void): () => void;
   relaunchApplication(): Promise<void>;

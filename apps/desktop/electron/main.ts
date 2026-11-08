@@ -56,6 +56,8 @@ import { NotificationManager } from "./platform/notification-manager";
 import { NotificationPermissionService } from "./platform/notification-permission";
 import { checkForUpdate, initUpdateChecker, openReleasesPage } from "./platform/update-checker";
 import { ThemeManager } from "./platform/theme-manager";
+import { LocaleManager } from "./platform/locale-manager";
+import { createMainTranslator } from "./platform/main-messages";
 import { EditorService } from "./platform/editors/editor-service";
 import { windowBackgroundFor } from "../contracts/theme";
 import { TerminalService } from "./platform/terminal-service";
@@ -70,6 +72,7 @@ import {
   platformShortcutModifier,
   type CustomProviderProbeInput,
   type CustomProviderProbeResult,
+  type DesktopLocale,
 } from "../contracts/ipc";
 import {
   assertComposerImageBytes,
@@ -104,6 +107,13 @@ let store: DesktopAppStore;
 let extensionViewOwner: DesktopExtensionViewOwner | undefined;
 let windowOwner: WindowOwner;
 const themeManager = new ThemeManager();
+// Starts English; the persisted choice is applied once the store is initialized
+// below, and every renderer window pushes its resolved locale on mount.
+const localeManager = new LocaleManager("en", {
+  persist: async (locale) => {
+    await store.setLocale(locale);
+  },
+});
 const editorService = new EditorService();
 let mainWindow: BrowserWindow | null = null;
 let notificationManager: NotificationManager | undefined;
@@ -351,6 +361,7 @@ function openExternalWebUrl(url: string): boolean {
 
 /** MCP sign-in pages: any https URL, or http only on this machine (a local OAuth server). */
 function openMcpSignInUrl(url: string): void {
+  const t = createMainTranslator(localeManager.getLocale());
   const parsed = parseExternalWebUrl(url);
   const loopback =
     parsed?.protocol === "http:" &&
@@ -360,24 +371,25 @@ function openMcpSignInUrl(url: string): void {
     console.error(
       `Refusing to open an MCP sign-in URL${parsed ? ` on ${parsed.origin}` : " that is not http or https"}`,
     );
-    showMcpSignInUrl(url, "pi-gui opens only https links, or http links on this computer.");
+    showMcpSignInUrl(url, t("main.mcpSignInOnlyHttps"));
     return;
   }
   shell.openExternal(parsed.toString()).catch((error: unknown) => {
     console.error(`Failed to open an MCP sign-in URL on ${parsed.origin}`, error);
-    showMcpSignInUrl(parsed.toString(), "pi-gui could not open your browser.");
+    showMcpSignInUrl(parsed.toString(), t("main.mcpSignInCouldNotOpenBrowser"));
   });
 }
 
 /** When the browser cannot be opened, the link is shown so the person can copy it. */
 function showMcpSignInUrl(url: string, reason: string): void {
+  const t = createMainTranslator(localeManager.getLocale());
   const window = mainWindow && canPublishToWindow(mainWindow) ? mainWindow : undefined;
   const options: MessageBoxOptions = {
     type: "warning",
     title: "pi-gui",
-    message: "Open this MCP sign-in link yourself",
-    detail: `${reason} Check the link before you open it:\n\n${url}`,
-    buttons: ["Copy link", "Close"],
+    message: t("main.mcpSignInTitle"),
+    detail: `${reason} ${t("main.mcpSignInCheckLink")}\n\n${url}`,
+    buttons: [t("main.common.copyLink"), t("main.common.close")],
     defaultId: 0,
     cancelId: 1,
   };
@@ -678,6 +690,7 @@ function createAppWindow(sourceView?: DesktopAppViewState): BrowserWindow {
   const webContentsId = window.webContents.id;
   windowOwner.add(window, sourceView);
   themeManager.trackWindow(window);
+  localeManager.trackWindow(window);
 
   window.once("closed", () => {
     windowOwner.remove(window);
@@ -730,15 +743,16 @@ function runWindowScopedForWindow(
 async function pickWorkspacePathViaDialog(
   parentWindow?: BrowserWindow | null,
 ): Promise<string | undefined> {
+  const t = createMainTranslator(localeManager.getLocale());
   const window = resolveDialogWindow(parentWindow);
   const result = window
     ? await dialog.showOpenDialog(window, {
         properties: ["openDirectory"],
-        title: "Open workspace folder",
+        title: t("main.openWorkspaceFolder"),
       })
     : await dialog.showOpenDialog({
         properties: ["openDirectory"],
-        title: "Open workspace folder",
+        title: t("main.openWorkspaceFolder"),
       });
   if (result.canceled || result.filePaths.length === 0) {
     return undefined;
@@ -774,12 +788,13 @@ async function pickWorkspaceViaDialog(
 }
 
 async function runManualUpdateCheck(): Promise<void> {
+  const t = createMainTranslator(localeManager.getLocale());
   const window = mainWindow && canPublishToWindow(mainWindow) ? mainWindow : undefined;
   const showDialog = (options: MessageBoxOptions) =>
     window ? dialog.showMessageBox(window, options) : dialog.showMessageBox(options);
 
   try {
-    const result = await checkForUpdate();
+    const result = await checkForUpdate(t);
 
     if (result.status === "update-available") {
       // The manual menu path always confirms with a dialog — a notification may
@@ -787,9 +802,9 @@ async function runManualUpdateCheck(): Promise<void> {
       const choice = await showDialog({
         type: "info",
         title: "pi-gui",
-        message: `Version ${result.latestVersion} is available.`,
-        detail: `You have ${result.currentVersion}.`,
-        buttons: ["Download", "Later"],
+        message: t("main.update.availableMessage", { latest: result.latestVersion }),
+        detail: t("main.update.youHave", { version: result.currentVersion }),
+        buttons: [t("main.update.download"), t("main.update.later")],
         defaultId: 0,
         cancelId: 1,
       });
@@ -803,8 +818,8 @@ async function runManualUpdateCheck(): Promise<void> {
       await showDialog({
         type: "info",
         title: "pi-gui",
-        message: `You're up to date on version ${result.currentVersion}.`,
-        buttons: ["OK"],
+        message: t("main.update.upToDate", { version: result.currentVersion }),
+        buttons: [t("main.common.ok")],
       });
       return;
     }
@@ -812,26 +827,27 @@ async function runManualUpdateCheck(): Promise<void> {
     await showDialog({
       type: "warning",
       title: "pi-gui",
-      message: "Could not check for updates right now.",
+      message: t("main.update.checkFailed"),
       detail: result.message,
-      buttons: ["OK"],
+      buttons: [t("main.common.ok")],
     });
   } catch (error) {
     console.error("pi-gui: manual update check failed:", error);
     await showDialog({
       type: "warning",
       title: "pi-gui",
-      message: "Could not check for updates right now.",
+      message: t("main.update.checkFailed"),
       detail: error instanceof Error ? error.message : String(error),
-      buttons: ["OK"],
+      buttons: [t("main.common.ok")],
     }).catch(() => undefined);
   }
 }
 
-function installApplicationMenu(): void {
+function installApplicationMenu(locale: DesktopLocale): void {
   if (process.platform !== "darwin") {
     return;
   }
+  const t = createMainTranslator(locale);
 
   const template: MenuItemConstructorOptions[] = [
     {
@@ -841,7 +857,7 @@ function installApplicationMenu(): void {
         { type: "separator" },
         {
           id: CHECK_FOR_UPDATES_MENU_ITEM_ID,
-          label: "Check for Updates…",
+          label: t("main.menu.checkForUpdates"),
           click: () => {
             void runManualUpdateCheck().catch((error: unknown) => {
               console.error("[main] runManualUpdateCheck failed", error);
@@ -859,10 +875,10 @@ function installApplicationMenu(): void {
       ],
     },
     {
-      label: "File",
+      label: t("main.menu.file"),
       submenu: [
         {
-          label: "New Thread",
+          label: t("main.menu.newThread"),
           accelerator: "CommandOrControl+N",
           click: () => {
             const window = BrowserWindow.getFocusedWindow() ?? mainWindow;
@@ -871,7 +887,7 @@ function installApplicationMenu(): void {
         },
         {
           id: NEW_WINDOW_MENU_ITEM_ID,
-          label: "New Window",
+          label: t("main.menu.newWindow"),
           accelerator: "CommandOrControl+Shift+N",
           click: () => {
             createAppWindow(windowOwner.foregroundView());
@@ -880,7 +896,7 @@ function installApplicationMenu(): void {
         { type: "separator" },
         {
           id: OPEN_FOLDER_MENU_ITEM_ID,
-          label: "Open Folder…",
+          label: t("main.menu.openFolder"),
           accelerator: "Command+O",
           click: () => {
             void pickWorkspaceViaDialog(mainWindow).catch((error: unknown) => {
@@ -894,16 +910,16 @@ function installApplicationMenu(): void {
     },
     { role: "editMenu" },
     {
-      label: "View",
+      label: t("main.menu.view"),
       submenu: [
         // Cmd+R toggles Review and Shift+Cmd+R renames the thread, so neither
         // reload has a shortcut.
         {
-          label: "Reload",
+          label: t("main.menu.reload"),
           click: () => BrowserWindow.getFocusedWindow()?.webContents.reload(),
         },
         {
-          label: "Force Reload",
+          label: t("main.menu.forceReload"),
           click: () => BrowserWindow.getFocusedWindow()?.webContents.reloadIgnoringCache(),
         },
         { role: "toggleDevTools" },
@@ -1066,6 +1082,13 @@ app
     });
     await store.initialize();
     themeManager.setMode(store.snapshot().themeMode);
+    // Restore the persisted language before anything renders main-side copy.
+    // MenuItem labels cannot be edited in place, so every locale change rebuilds
+    // the whole application menu.
+    localeManager.onChange((locale) => {
+      installApplicationMenu(locale);
+    });
+    await localeManager.setLocale(store.snapshot().locale, { persist: false });
     integratedTerminalShell = (await store.getState()).integratedTerminalShell;
     nativeTheme.on("updated", refreshWindowBackgrounds);
     let windowBackgroundPresetId = store.snapshot().themePresetId;
@@ -1082,7 +1105,7 @@ app
         terminalService?.retainWorkspacePaths(workspacePaths);
       }
     });
-    installApplicationMenu();
+    installApplicationMenu(localeManager.getLocale());
     if (process.env.PI_APP_TEST_MODE) {
       Object.assign(globalThis, {
         __PI_APP_TEST_HOOKS: {
@@ -1144,10 +1167,11 @@ app
           forceActiveWindow: true,
         });
       },
+      () => createMainTranslator(localeManager.getLocale()),
     );
     stopNotifications = notificationManager.start();
     if (!isDev) {
-      stopUpdateChecker = initUpdateChecker();
+      stopUpdateChecker = initUpdateChecker(() => createMainTranslator(localeManager.getLocale()));
     }
 
     registerDesktopIpc({
@@ -1182,6 +1206,7 @@ app
             ? `pi desktop ready:${MAIN_DEV_RELOAD_MARKER}`
             : "pi desktop ready",
         theme: themeManager,
+        locale: localeManager,
         editors: editorService,
         openExternal: openExternalLink,
         pickWorkspace: (window) => pickWorkspaceViaDialog(window),
@@ -1215,15 +1240,16 @@ app
           }
         },
         pickComposerAttachments: async (window, existing = []) => {
+          const t = createMainTranslator(localeManager.getLocale());
           const parent = resolveDialogWindow(window);
           const result = parent
             ? await dialog.showOpenDialog(parent, {
                 properties: ["openFile", "multiSelections"],
-                title: "Attach files",
+                title: t("main.attachFiles"),
               })
             : await dialog.showOpenDialog({
                 properties: ["openFile", "multiSelections"],
-                title: "Attach files",
+                title: t("main.attachFiles"),
               });
           if (result.canceled || result.filePaths.length === 0) {
             return undefined;
@@ -1555,6 +1581,7 @@ async function promptForText(
 }
 
 function promptDataUrl(message: string, placeholder: string): string {
+  const t = createMainTranslator(localeManager.getLocale());
   const html = `<!doctype html><html><head><meta charset="utf-8" />
 <style>
   :root { color-scheme: light dark; }
@@ -1575,8 +1602,8 @@ function promptDataUrl(message: string, placeholder: string): string {
   <div class="msg">${escapeHtml(message)}</div>
   <input id="pi-prompt-input" type="text" placeholder="${escapeHtml(placeholder)}" autofocus />
   <div class="row">
-    <button id="pi-prompt-cancel" type="button">Cancel</button>
-    <button id="pi-prompt-ok" type="button">OK</button>
+    <button id="pi-prompt-cancel" type="button">${escapeHtml(t("main.common.cancel"))}</button>
+    <button id="pi-prompt-ok" type="button">${escapeHtml(t("main.common.ok"))}</button>
   </div>
   <script>
     (function () {

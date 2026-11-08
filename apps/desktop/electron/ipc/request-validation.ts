@@ -26,12 +26,14 @@ import {
   type WorkspaceSessionTarget,
   isThreadGrouping,
 } from "../../contracts/desktop-state";
-import type {
-  CustomProviderConfig,
-  CustomProviderProbeInput,
-  McpServerScope,
-  NewMcpServerInput,
-  TerminalSize,
+import {
+  isDesktopLocale,
+  type CustomProviderConfig,
+  type CustomProviderProbeInput,
+  type DesktopLocale,
+  type McpServerScope,
+  type NewMcpServerInput,
+  type TerminalSize,
 } from "../../contracts/ipc";
 import {
   assertScheduledTaskSchedule,
@@ -163,6 +165,13 @@ export function expectThemeMode(value: unknown, name = "mode"): ThemeMode {
 export function expectThemePresetId(value: unknown, name = "presetId"): ThemePresetId {
   if (!isThemePresetId(value)) {
     throw new TypeError(`${name} must be a supported theme preset`);
+  }
+  return value;
+}
+
+export function expectLocale(value: unknown, name = "locale"): DesktopLocale {
+  if (!isDesktopLocale(value)) {
+    throw new TypeError(`${name} must be a supported locale`);
   }
   return value;
 }

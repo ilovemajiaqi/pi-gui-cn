@@ -21,6 +21,7 @@ for (const invalid of [
   { version: 19, extensionFlagsByWorkspace: { ws: { retries: 3 } } },
   { version: 19, extensionFlagsBySession: { "ws:sess": ["plan"] } },
   { version: 19, collapsedWorkspaceIds: ["alpha", 42] },
+  { version: 20, locale: "fr" },
   [],
 ]) {
   test(`preserves invalid UI state ${JSON.stringify(invalid)}`, async () => {
@@ -49,7 +50,7 @@ test("reads v15 ui-state without lastInteractedAt and writes v18", async () => {
     version: number;
     lastInteractedAtBySession: Record<string, string>;
   };
-  expect(written.version).toBe(19);
+  expect(written.version).toBe(20);
   expect(written.lastInteractedAtBySession).toEqual({ "ws:sess": "2026-09-21T12:00:00.000Z" });
 });
 
@@ -67,8 +68,25 @@ test("reads v16 ui-state without threadGrouping and writes the saved choice as v
     version: number;
     threadGrouping: string;
   };
-  expect(written.version).toBe(19);
+  expect(written.version).toBe(20);
   expect(written.threadGrouping).toBe("workspace");
+});
+
+test("reads v19 ui-state without a locale and writes the saved locale as v20", async () => {
+  const path = join(await mkdtemp(join(tmpdir(), "ui-state-locale-")), "ui-state.json");
+  await writeFile(path, JSON.stringify({ version: 19, composerDraft: "kept" }));
+  const decoded = await readPersistedUiState(path);
+  expect(decoded.version).toBe(19);
+  // Pre-v20 files have no locale; main falls back to its default.
+  expect(decoded.locale).toBeUndefined();
+  await writePersistedUiState(path, { composerDraft: "kept", locale: "zh-CN" });
+  const written = JSON.parse(await readFile(path, "utf8")) as {
+    version: number;
+    locale?: string;
+  };
+  expect(written.version).toBe(20);
+  expect(written.locale).toBe("zh-CN");
+  expect((await readPersistedUiState(path)).locale).toBe("zh-CN");
 });
 
 test("extension flag defaults and per-thread flags round-trip through ui-state", async () => {
@@ -93,7 +111,7 @@ test("reads ui-state without folded folders and writes the collapsed ids", async
     version: number;
     collapsedWorkspaceIds: readonly string[];
   };
-  expect(written.version).toBe(19);
+  expect(written.version).toBe(20);
   expect(written.collapsedWorkspaceIds).toEqual(["alpha"]);
   expect((await readPersistedUiState(path)).collapsedWorkspaceIds).toEqual(["alpha"]);
 });

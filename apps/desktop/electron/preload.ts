@@ -13,6 +13,7 @@ import {
   desktopIpc,
   drawWindowControlsArgument,
   type PiDesktopApi,
+  type DesktopLocale,
   type CustomProviderConfig,
   type CustomProviderProbeInput,
   type CustomProviderProbeResult,
@@ -632,6 +633,16 @@ contextBridge.exposeInMainWorld("piApp", {
     ipcRenderer.on(desktopIpc.themeChanged, handler);
     return () => {
       ipcRenderer.removeListener(desktopIpc.themeChanged, handler);
+    };
+  },
+  getLocale: () => ipcRenderer.invoke(desktopIpc.getLocale) as Promise<DesktopLocale>,
+  setLocale: (locale: DesktopLocale) =>
+    ipcRenderer.invoke(desktopIpc.setLocale, locale) as Promise<void>,
+  onLocaleChanged: (callback: (locale: DesktopLocale) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, locale: DesktopLocale) => callback(locale);
+    ipcRenderer.on(desktopIpc.localeChanged, handler);
+    return () => {
+      ipcRenderer.removeListener(desktopIpc.localeChanged, handler);
     };
   },
   relaunchApplication: () => ipcRenderer.invoke(desktopIpc.relaunchApplication) as Promise<void>,

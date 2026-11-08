@@ -11,6 +11,7 @@ import type {
   ThemePresetId,
   ThreadGrouping,
 } from "../../contracts/desktop-state";
+import { isDesktopLocale, type DesktopLocale } from "../../contracts/ipc";
 import { isThemeMode, isThemePresetId, isThreadGrouping } from "../../contracts/desktop-state";
 import type { ExtensionFlagValues } from "@pi-gui/session-driver";
 import type { ModelSettingsSnapshot } from "@pi-gui/session-driver/runtime-types";
@@ -22,7 +23,7 @@ import { decodeTaskWorkbenchTemplate, type TaskWorkbenchTemplate } from "../../c
 
 export interface PersistedUiState {
   readonly version?:
-    2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19;
+    2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20;
   readonly taskWorkbenchTemplatesBySession?: Record<string, TaskWorkbenchTemplate>;
   readonly selectedWorkspaceId?: string;
   readonly selectedSessionId?: string;
@@ -55,6 +56,8 @@ export interface PersistedUiState {
   readonly enableTransparency?: boolean;
   readonly themeMode?: ThemeMode;
   readonly themePresetId?: ThemePresetId;
+  /** Language main uses for native menus, dialogs and notifications; absent in pre-v20 files. */
+  readonly locale?: DesktopLocale;
   readonly orchestrationChildren?: readonly OrchestrationChildThread[];
 }
 
@@ -133,6 +136,7 @@ export function decodePersistedUiState(parsed: unknown): LegacyPersistedUiState 
       typeof candidate.enableTransparency === "boolean" ? candidate.enableTransparency : undefined,
     themeMode: toThemeMode(candidate.themeMode),
     themePresetId: toThemePresetId(candidate.themePresetId),
+    locale: toDesktopLocale(candidate.locale),
     orchestrationChildren: toPersistedOrchestrationChildren(candidate.orchestrationChildren),
     composerAttachmentsBySession: toObjectArrayRecord(candidate.composerAttachmentsBySession),
     transcripts: toObjectArrayRecord(candidate.transcripts),
@@ -146,7 +150,7 @@ export async function writePersistedUiState(
   const serialized = `${JSON.stringify(
     {
       ...payload,
-      version: 19,
+      version: 20,
     } satisfies PersistedUiState,
     null,
     2,
@@ -155,7 +159,7 @@ export async function writePersistedUiState(
   await writeFileAtomicQueued(uiStateFilePath, serialized, decodePersistedUiState, {
     preserveExistingAs: (validated) => {
       const existing = validated as LegacyPersistedUiState;
-      if (existing.version === 19) return undefined;
+      if (existing.version === 20) return undefined;
       return join(
         dirname(uiStateFilePath),
         `${basename(uiStateFilePath, ".json")}.pre-workbench-v${existing.version ?? "legacy"}.${randomUUID()}.json`,
@@ -227,6 +231,7 @@ function validateUiState(value: unknown): Record<string, unknown> {
       "enableTransparency",
       "themeMode",
       "themePresetId",
+      "locale",
       "orchestrationChildren",
       "composerAttachmentsBySession",
       "transcripts",
@@ -282,6 +287,7 @@ function validateUiState(value: unknown): Record<string, unknown> {
   optional(root, "threadGrouping", isThreadGrouping);
   optional(root, "themeMode", isThemeMode);
   optional(root, "themePresetId", isThemePresetId);
+  optional(root, "locale", isDesktopLocale);
   optional(root, "modelSettingsScopeMode", (v) => v === "per-repo" || v === "app-global");
   if (root.notificationPreferences !== undefined) {
     const preferences =
@@ -521,6 +527,10 @@ function toThemePresetId(value: unknown): ThemePresetId | undefined {
   return isThemePresetId(value) ? value : undefined;
 }
 
+function toDesktopLocale(value: unknown): DesktopLocale | undefined {
+  return isDesktopLocale(value) ? value : undefined;
+}
+
 function toAppView(value: unknown): AppView | undefined {
   return value === "threads" ||
     value === "new-thread" ||
@@ -533,7 +543,7 @@ function toAppView(value: unknown): AppView | undefined {
 }
 
 function toPersistedVersion(value: unknown): NonNullable<PersistedUiState["version"]> | undefined {
-  return typeof value === "number" && Number.isInteger(value) && value >= 2 && value <= 19
+  return typeof value === "number" && Number.isInteger(value) && value >= 2 && value <= 20
     ? (value as NonNullable<PersistedUiState["version"]>)
     : undefined;
 }

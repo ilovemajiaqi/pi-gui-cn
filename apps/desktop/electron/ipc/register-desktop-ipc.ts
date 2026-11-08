@@ -21,6 +21,7 @@ import type { NotificationPermissionService } from "../platform/notification-per
 import type { EditorService } from "../platform/editors/editor-service";
 import type { TerminalService } from "../platform/terminal-service";
 import type { ThemeManager } from "../platform/theme-manager";
+import type { LocaleManager } from "../platform/locale-manager";
 import type { WindowOwner } from "../windows/window-owner";
 import type { PendingComposerDraftFlusher } from "../windows/pending-draft-flush";
 import { WorkbenchRequests, type WorkbenchOwner } from "./workbench-requests";
@@ -57,6 +58,7 @@ import {
   expectStartThreadInput,
   expectCreateScheduledTaskInput,
   expectUpdateScheduledTaskInput,
+  expectLocale,
   expectString,
   expectStringArray,
   expectTerminalSize,
@@ -184,6 +186,7 @@ export interface DesktopIpcOwners {
 export interface DesktopIpcCapabilities {
   readonly ping: () => string;
   readonly theme: ThemeManager;
+  readonly locale: LocaleManager;
   readonly editors: EditorService;
   readonly openExternal: (url: string) => Promise<void>;
   readonly pickWorkspace: (window: BrowserWindow) => Promise<DesktopAppState>;
@@ -312,6 +315,16 @@ export function registerDesktopIpc({
   ipcMain.handle(desktopIpc.setThemePresetId, (event, rawPresetId: unknown) => {
     const presetId = expectThemePresetId(rawPresetId);
     return run(event, () => owners.state.setThemePresetId(presetId));
+  });
+  ipcMain.handle(desktopIpc.getLocale, (event) => {
+    windows.windowForSender(event.sender);
+    return capabilities.locale.getLocale();
+  });
+  // The manager persists through the store and broadcasts; no state snapshot is returned.
+  ipcMain.handle(desktopIpc.setLocale, (event, rawLocale: unknown) => {
+    windows.windowForSender(event.sender);
+    const locale = expectLocale(rawLocale);
+    return capabilities.locale.setLocale(locale);
   });
   ipcMain.handle(desktopIpc.openExternal, (event, rawUrl: unknown) => {
     windows.windowForSender(event.sender);

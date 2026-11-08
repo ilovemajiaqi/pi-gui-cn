@@ -91,12 +91,12 @@ test("command palette shows recents and actions until a query", () => {
   expect(
     titles(buildCommandSections({ query: "", filter: "all", chats, workspaces, actions })),
   ).toEqual([
-    ["Recents", ["One", "Two", "Three", "Four", "Five"]],
-    ["Actions", ["Settings", "New thread"]],
+    ["palette.section.recents", ["One", "Two", "Three", "Four", "Five"]],
+    ["palette.section.actions", ["Settings", "New thread"]],
   ]);
   expect(
     titles(buildCommandSections({ query: "", filter: "workspaces", chats, workspaces, actions })),
-  ).toEqual([["Workspaces", ["pi-gui"]]]);
+  ).toEqual([["palette.section.workspaces", ["pi-gui"]]]);
 });
 
 test("a query puts the strongest kind first and drops empty kinds", () => {
@@ -110,7 +110,7 @@ test("a query puts the strongest kind first and drops empty kinds", () => {
     workspaces,
     actions,
   });
-  expect(sections.map((section) => section.label)).toEqual(["Actions", "Chats"]);
+  expect(sections.map((section) => section.label)).toEqual(["palette.section.actions", "palette.section.chats"]);
   expect(sections[0]?.items[0]?.titleMatches).toEqual([0, 1, 2, 4, 5, 6, 7, 8, 9]);
 
   expect(

@@ -2,6 +2,7 @@ import { Notification, type BrowserWindow } from "electron";
 import { appendFile, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import type { DesktopAppStore } from "../application/app-store";
+import { createMainTranslator, type MainTranslator } from "./main-messages";
 import type { NotificationPermissionService } from "./notification-permission";
 import type { DesktopAppState } from "../../contracts/desktop-state";
 import { sessionKey } from "@pi-gui/session-driver";
@@ -29,6 +30,11 @@ export class NotificationManager {
     private readonly getWindow: () => BrowserWindow | null,
     private readonly notificationPermissionService: NotificationPermissionService,
     private readonly selectSessionInWindow?: (sessionRef: SessionRef) => Promise<void>,
+    /**
+     * Resolved per notification, so a language switch mid-session applies to
+     * the next OS notification without recreating the manager.
+     */
+    private readonly getTranslator: () => MainTranslator = () => createMainTranslator("en"),
   ) {}
 
   start(): () => void {
@@ -150,7 +156,7 @@ export class NotificationManager {
       await this.showNotification(
         event.sessionRef,
         event.snapshot.title,
-        "Agent finished responding",
+        this.getTranslator()("main.notify.agentFinished"),
       );
       return;
     }
@@ -171,7 +177,7 @@ export class NotificationManager {
       await this.showNotification(
         event.sessionRef,
         this.titleForSession(event.sessionRef),
-        hostUiBody(event),
+        hostUiBody(event, this.getTranslator()),
       );
     }
   }
@@ -422,7 +428,10 @@ export class NotificationManager {
   }
 
   private titleForSession(sessionRef: SessionRef): string {
-    return this.sessionFromLatestState(sessionRef)?.title ?? "pi session";
+    return (
+      this.sessionFromLatestState(sessionRef)?.title ??
+      this.getTranslator()("main.notify.sessionFallback")
+    );
   }
 }
 
@@ -437,9 +446,16 @@ function requiresAttention(event: Extract<SessionDriverEvent, { type: "hostUiReq
   );
 }
 
-function hostUiBody(event: Extract<SessionDriverEvent, { type: "hostUiRequest" }>): string {
+function hostUiBody(
+  event: Extract<SessionDriverEvent, { type: "hostUiRequest" }>,
+  t: MainTranslator,
+): string {
   if (event.request.kind === "notify") {
-    return `${event.request.level === "error" ? "Error" : "Warning"}: ${event.request.message}`;
+    return `${
+      event.request.level === "error"
+        ? t("main.notify.errorPrefix")
+        : t("main.notify.warningPrefix")
+    } ${event.request.message}`;
   }
   if (
     event.request.kind === "confirm" ||
@@ -448,7 +464,7 @@ function hostUiBody(event: Extract<SessionDriverEvent, { type: "hostUiRequest" }
   ) {
     return event.request.title;
   }
-  return "Needs your input";
+  return t("main.notify.needsInput");
 }
 
 function sameSessionRef(left: SessionRef | undefined, right: SessionRef | undefined): boolean {

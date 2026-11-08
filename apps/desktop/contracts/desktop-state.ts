@@ -15,6 +15,7 @@ export type SessionStatus = "idle" | "running" | "failed";
 export type { SessionRole, TimelineToolCall, TranscriptMessage } from "./timeline-types";
 import type { TranscriptMessage } from "./timeline-types";
 import type { ScheduledTaskRecord } from "./scheduled-tasks";
+import type { DesktopLocale } from "./ipc";
 export type {
   CreateScheduledTaskInput,
   ScheduledTaskFilter,
@@ -509,6 +510,8 @@ export interface DesktopAppState {
   readonly globalModelSettings: ModelSettingsSnapshot;
   readonly themeMode: ThemeMode;
   readonly themePresetId: ThemePresetId;
+  /** Language the main process uses for native menus, dialogs and notifications. */
+  readonly locale: DesktopLocale;
   readonly sidebarCollapsed: boolean;
   readonly threadGrouping: ThreadGrouping;
   /** Folder groups the user collapsed in the sidebar, by workspace id. */
@@ -568,6 +571,7 @@ export function createEmptyDesktopAppState(): DesktopAppState {
     },
     themeMode: "system",
     themePresetId: "default",
+    locale: "en",
     sidebarCollapsed: false,
     threadGrouping: "time",
     collapsedWorkspaceIds: [],

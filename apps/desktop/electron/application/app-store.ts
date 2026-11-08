@@ -74,6 +74,7 @@ import {
   type ScheduledTaskRecord,
   type UpdateScheduledTaskInput,
 } from "../../contracts/desktop-state";
+import { isDesktopLocale, type DesktopLocale } from "../../contracts/ipc";
 import {
   applyTimelineEvent,
   appendAssistantDelta,
@@ -1484,6 +1485,25 @@ export class DesktopAppStore {
     return this.emit();
   }
 
+  /** The language main renders native menus, dialogs and notifications in. */
+  async setLocale(locale: DesktopLocale): Promise<DesktopAppState> {
+    await this.initialize();
+    if (!isDesktopLocale(locale)) {
+      throw new Error(`Unsupported locale: ${String(locale)}`);
+    }
+    if (this.state.locale === locale) {
+      return structuredClone(this.state);
+    }
+    this.state = {
+      ...this.state,
+      locale,
+      lastError: undefined,
+      revision: this.state.revision + 1,
+    };
+    await this.persistUiState();
+    return this.emit();
+  }
+
   async setThemePresetId(themePresetId: ThemePresetId): Promise<DesktopAppState> {
     await this.initialize();
     if (!isThemePresetId(themePresetId)) {
@@ -2277,6 +2297,7 @@ export class DesktopAppStore {
       workspaceOrder: persisted.workspaceOrder ?? [],
       themeMode: persisted.themeMode ?? this.state.themeMode,
       themePresetId: persisted.themePresetId ?? this.state.themePresetId,
+      locale: persisted.locale ?? this.state.locale,
       sidebarCollapsed: persisted.sidebarCollapsed ?? this.state.sidebarCollapsed,
       threadGrouping: persisted.threadGrouping ?? "time",
       collapsedWorkspaceIds: persisted.collapsedWorkspaceIds ?? [],
@@ -4139,6 +4160,7 @@ export class DesktopAppStore {
         : undefined,
       themeMode: this.state.themeMode,
       themePresetId: this.state.themePresetId,
+      locale: this.state.locale,
       sidebarCollapsed: this.state.sidebarCollapsed || undefined,
       threadGrouping: this.state.threadGrouping,
       collapsedWorkspaceIds:

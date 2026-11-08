@@ -1,4 +1,5 @@
 import { app, net, Notification, shell } from "electron";
+import { createMainTranslator, type MainTranslator } from "./main-messages";
 
 // /releases/latest skips drafts and prereleases, so stable installs are only
 // told about stable releases.
@@ -32,13 +33,14 @@ export function showUpdateNotification(
   currentVersion: string,
   latestVersion: string,
   releaseUrl: string,
+  t: MainTranslator = createMainTranslator("en"),
 ): void {
   if (!Notification.isSupported()) {
     return;
   }
   const notification = new Notification({
-    title: "pi-gui Release Available",
-    body: `Version ${latestVersion} is available (you have ${currentVersion}). Click to view the release.`,
+    title: t("main.update.availableTitle"),
+    body: t("main.update.availableBody", { latest: latestVersion, current: currentVersion }),
   });
   notification.on("click", () => {
     void openReleasesPage(releaseUrl).catch((error: unknown) => {
@@ -51,9 +53,12 @@ export function showUpdateNotification(
 /**
  * Pure update check — performs the network request and version comparison but
  * never shows UI. Callers decide how to surface the result (auto path shows a
- * deduped notification, the manual menu path shows a dialog).
+ * deduped notification, the manual menu path shows a dialog). The translator
+ * renders the fixed error copy; callers pass the active locale's translator.
  */
-export async function checkForUpdate(): Promise<UpdateCheckResult> {
+export async function checkForUpdate(
+  t: MainTranslator = createMainTranslator("en"),
+): Promise<UpdateCheckResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   let res: Response;
@@ -65,22 +70,22 @@ export async function checkForUpdate(): Promise<UpdateCheckResult> {
   } catch (error) {
     const message =
       error instanceof Error && error.name === "AbortError"
-        ? "The update check timed out."
+        ? t("main.update.timeout")
         : error instanceof Error
           ? error.message
-          : "The update check could not reach GitHub.";
+          : t("main.update.unreachable");
     return { status: "error", message };
   } finally {
     clearTimeout(timeout);
   }
 
   if (res.status === 404) {
-    return { status: "error", message: "No stable pi-gui release has been published yet." };
+    return { status: "error", message: t("main.update.noStableRelease") };
   }
   if (!res.ok) {
     return {
       status: "error",
-      message: `GitHub Releases returned ${res.status}.`,
+      message: t("main.update.httpStatus", { status: res.status }),
     };
   }
 
@@ -88,13 +93,13 @@ export async function checkForUpdate(): Promise<UpdateCheckResult> {
   try {
     release = (await res.json()) as GitHubRelease;
   } catch {
-    return { status: "error", message: "GitHub Releases returned an unreadable response." };
+    return { status: "error", message: t("main.update.unreadableResponse") };
   }
 
   if (!release?.tag_name) {
     return {
       status: "error",
-      message: "GitHub Releases did not return any published versions.",
+      message: t("main.update.noVersions"),
     };
   }
 
@@ -119,19 +124,22 @@ export async function checkForUpdate(): Promise<UpdateCheckResult> {
   };
 }
 
-export function initUpdateChecker(): () => void {
+export function initUpdateChecker(
+  getTranslator: () => MainTranslator = () => createMainTranslator("en"),
+): () => void {
   // Dedupe notifications per version so a still-unactioned update doesn't
   // re-notify on every 4-hour poll.
   let lastNotifiedVersion: string | undefined;
   const runAutoCheck = async () => {
-    const result = await checkForUpdate();
+    const t = getTranslator();
+    const result = await checkForUpdate(t);
     if (result.status === "error") {
       console.warn("Update check failed:", result.message);
       return;
     }
     if (result.status === "update-available" && result.latestVersion !== lastNotifiedVersion) {
       lastNotifiedVersion = result.latestVersion;
-      showUpdateNotification(result.currentVersion, result.latestVersion, result.releaseUrl);
+      showUpdateNotification(result.currentVersion, result.latestVersion, result.releaseUrl, t);
     }
   };
 
