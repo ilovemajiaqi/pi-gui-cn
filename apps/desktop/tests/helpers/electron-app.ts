@@ -135,6 +135,10 @@ function normalizeLaunchOptions(
 
 function electronCliArgs(entry?: string): string[] {
   const args = entry ? [entry] : [];
+  // Specs assert against the English copy: pin the Chromium UI language so the
+  // app renders English regardless of the host OS, mirroring the English CI
+  // environment the suite was written against.
+  args.push("--lang=en-US");
   if (process.platform === "linux") {
     // A never-shown X11 window draws ~1.5 frames/s, which starves rAF-driven layout
     // and native wheel scrolling in background test mode.

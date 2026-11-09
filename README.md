@@ -1,6 +1,6 @@
 # pi-gui
 
-The desktop app for the [pi](https://github.com/earendil-works/pi) coding agent.
+The desktop app for the [pi](https://github.com/earendil-works/pi) coding agent. [简体中文说明](README.zh-CN.md)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/minghinmatthewlam/pi-gui?include_prereleases&label=release)](https://github.com/minghinmatthewlam/pi-gui/releases)
