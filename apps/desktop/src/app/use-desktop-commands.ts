@@ -480,7 +480,7 @@ export function useDesktopCommands(input: DesktopCommandsInput) {
             }),
           findInThread: threadSearch.open,
           openPaletteMode: setPaletteMode,
-        })
+        }, t)
       : [];
 
   return {
