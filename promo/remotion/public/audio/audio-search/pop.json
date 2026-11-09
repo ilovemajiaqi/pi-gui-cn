@@ -1,0 +1,34 @@
+{
+  "provider": "freesound",
+  "query": "ui pop click short",
+  "license_policy": "cc0",
+  "ordering": "relevance; popularity is supporting evidence only",
+  "results": [
+    {
+      "id": "fs:220208",
+      "title": "Click Pop - two part",
+      "author": "GameAudio",
+      "duration_seconds": 0.500317,
+      "preview_url": "https://cdn.freesound.org/previews/220/220208_4100837-hq.mp3",
+      "downloads": 1775,
+      "page_url": "https://freesound.org/people/GameAudio/sounds/220208/",
+      "license_label": "Creative Commons 0",
+      "description": "nifty, two-part click with casual feel",
+      "rating": 4.6,
+      "rating_count": 10
+    },
+    {
+      "id": "fs:878251",
+      "title": "UI Panel Slide Out",
+      "author": "Qvantor",
+      "duration_seconds": 0.262188,
+      "preview_url": "https://cdn.freesound.org/previews/878/878251_19512113-hq.mp3",
+      "downloads": 1,
+      "page_url": "https://freesound.org/people/Qvantor/sounds/878251/",
+      "license_label": "Creative Commons 0",
+      "description": "A panel sliding away: a short falling swish moving a little right to left, for closing drawers and panels. Open its preset in Chisper, a free browser synth, and tweak it to your needs: https://chisper.qvantor.org/?preset=6afb5ae9-45b5-4fd7-a2ec-489d47778cf2",
+      "rating": null,
+      "rating_count": null
+    }
+  ]
+}

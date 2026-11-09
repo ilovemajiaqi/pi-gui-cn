@@ -1,0 +1,21 @@
+{
+  "provider": "freesound",
+  "query": "keyboard key tap single",
+  "license_policy": "cc0",
+  "ordering": "relevance; popularity is supporting evidence only",
+  "results": [
+    {
+      "id": "fs:570754",
+      "title": "Keyboard - Press down",
+      "author": "Foxfire-",
+      "duration_seconds": 0.359909,
+      "preview_url": "https://cdn.freesound.org/previews/570/570754_12873144-hq.mp3",
+      "downloads": 606,
+      "page_url": "https://freesound.org/people/Foxfire-/sounds/570754/",
+      "license_label": "Creative Commons 0",
+      "description": "A clear tap of a single key on my keyboard, I do not release the key in this recording. Mechanical switch, Cherry MX Browns.",
+      "rating": 4.9,
+      "rating_count": 16
+    }
+  ]
+}

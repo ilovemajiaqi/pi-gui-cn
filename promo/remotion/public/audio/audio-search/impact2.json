@@ -1,0 +1,73 @@
+{
+  "provider": "freesound",
+  "query": "cinematic impact hit",
+  "license_policy": "cc0",
+  "ordering": "relevance; popularity is supporting evidence only",
+  "results": [
+    {
+      "id": "fs:645898",
+      "title": "Impact sfx 027.wav",
+      "author": "AudioPapkin",
+      "duration_seconds": 1.82555,
+      "preview_url": "https://cdn.freesound.org/previews/645/645898_8698658-hq.mp3",
+      "downloads": 439,
+      "page_url": "https://freesound.org/people/AudioPapkin/sounds/645898/",
+      "license_label": "Creative Commons 0",
+      "description": "Support me buy me coffee : https://buymeacoffee.com/audiopapkin Impact effect,is perfect for cinematic uses,video games. Effects recorded from the field. Recording gear-Zoom h6 and Microphone - RØDE NTG5 REAPER DAW - audio processing",
+      "rating": 4.4,
+      "rating_count": 7
+    },
+    {
+      "id": "fs:812750",
+      "title": "Sound Design Elements Impact SFX PS 084",
+      "author": "AudioPapkin",
+      "duration_seconds": 1.76,
+      "preview_url": "https://cdn.freesound.org/previews/812/812750_8698658-hq.mp3",
+      "downloads": 163,
+      "page_url": "https://freesound.org/people/AudioPapkin/sounds/812750/",
+      "license_label": "Creative Commons 0",
+      "description": "Support me buy me coffee : https://ko-fi.com/audiopapkin Support me buy me coffee : https://buymeacoffee.com/audiopapkin Sound Design Elements Impact SFX ,is perfect for cinematic uses,video games. Effects recorded from the field. Recording gear-Tascam Portacapture x8 and Microphone - RØDE NTG5 Native Instruments Kontakt 8 REAPER DAW - audio processing My YouTube channel: https://www.youtube.com/channel/UC3LZ6GTrLwgmpXbLLQnS0lw",
+      "rating": 5.0,
+      "rating_count": 6
+    },
+    {
+      "id": "fs:812749",
+      "title": "Sound Design Elements Impact SFX PS 083",
+      "author": "AudioPapkin",
+      "duration_seconds": 1.72532,
+      "preview_url": "https://cdn.freesound.org/previews/812/812749_8698658-hq.mp3",
+      "downloads": 145,
+      "page_url": "https://freesound.org/people/AudioPapkin/sounds/812749/",
+      "license_label": "Creative Commons 0",
+      "description": "Support me buy me coffee : https://ko-fi.com/audiopapkin Support me buy me coffee : https://buymeacoffee.com/audiopapkin Sound Design Elements Impact SFX ,is perfect for cinematic uses,video games. Effects recorded from the field. Recording gear-Tascam Portacapture x8 and Microphone - RØDE NTG5 Native Instruments Kontakt 8 REAPER DAW - audio processing My YouTube channel: https://www.youtube.com/channel/UC3LZ6GTrLwgmpXbLLQnS0lw",
+      "rating": null,
+      "rating_count": null
+    },
+    {
+      "id": "fs:812747",
+      "title": "Sound Design Elements Impact SFX PS 081",
+      "author": "AudioPapkin",
+      "duration_seconds": 1.928,
+      "preview_url": "https://cdn.freesound.org/previews/812/812747_8698658-hq.mp3",
+      "downloads": 141,
+      "page_url": "https://freesound.org/people/AudioPapkin/sounds/812747/",
+      "license_label": "Creative Commons 0",
+      "description": "Support me buy me coffee : https://ko-fi.com/audiopapkin Support me buy me coffee : https://buymeacoffee.com/audiopapkin Sound Design Elements Impact SFX ,is perfect for cinematic uses,video games. Effects recorded from the field. Recording gear-Tascam Portacapture x8 and Microphone - RØDE NTG5 Native Instruments Kontakt 8 REAPER DAW - audio processing My YouTube channel: https://www.youtube.com/channel/UC3LZ6GTrLwgmpXbLLQnS0lw",
+      "rating": 4.8,
+      "rating_count": 5
+    },
+    {
+      "id": "fs:645511",
+      "title": "Riser Hit sfx 032.wav",
+      "author": "AudioPapkin",
+      "duration_seconds": 2.9685,
+      "preview_url": "https://cdn.freesound.org/previews/645/645511_8698658-hq.mp3",
+      "downloads": 291,
+      "page_url": "https://freesound.org/people/AudioPapkin/sounds/645511/",
+      "license_label": "Creative Commons 0",
+      "description": "Support me buy me coffee : https://buymeacoffee.com/audiopapkin Riser Hit effect,is perfect for cinematic uses,video games. Effects recorded from the field. Recording gear-Zoom h6 and Microphone - RØDE NTG5 REAPER DAW - audio processing",
+      "rating": 4.2,
+      "rating_count": 6
+    }
+  ]
+}

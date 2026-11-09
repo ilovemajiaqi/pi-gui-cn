@@ -1,0 +1,60 @@
+{
+  "provider": "freesound",
+  "query": "deep impact boom",
+  "license_policy": "cc0",
+  "ordering": "relevance; popularity is supporting evidence only",
+  "results": [
+    {
+      "id": "fs:825966",
+      "title": "OBSCURE RATTLING BURIED EXPLOSION",
+      "author": "ROHHSADOTCOM",
+      "duration_seconds": 2.69664,
+      "preview_url": "https://cdn.freesound.org/previews/825/825966_13332713-hq.mp3",
+      "downloads": 13,
+      "page_url": "https://freesound.org/people/ROHHSADOTCOM/sounds/825966/",
+      "license_label": "Creative Commons 0",
+      "description": "From low end impacts volume one Created entirely by me using only vsts and effects Hybrid reverb for the boom Use as you wish Crediting is not necessary but certainly welcomed You can find this and all of my sounds at rohhsa.com New sound pack half off every week Any support gets our biggest appreciation",
+      "rating": null,
+      "rating_count": null
+    },
+    {
+      "id": "fs:660456",
+      "title": "They Shot First Vox/ SFX",
+      "author": "adh.dreaming",
+      "duration_seconds": 1.18705,
+      "preview_url": "https://cdn.freesound.org/previews/660/660456_12672694-hq.mp3",
+      "downloads": 48,
+      "page_url": "https://freesound.org/people/adh.dreaming/sounds/660456/",
+      "license_label": "Creative Commons 0",
+      "description": "Deep voice, boom noise.",
+      "rating": null,
+      "rating_count": null
+    },
+    {
+      "id": "fs:812593",
+      "title": "Collision",
+      "author": "qubodup",
+      "duration_seconds": 1.5,
+      "preview_url": "https://cdn.freesound.org/previews/812/812593_71257-hq.mp3",
+      "downloads": 347,
+      "page_url": "https://freesound.org/people/qubodup/sounds/812593/",
+      "license_label": "Creative Commons 0",
+      "description": "Booming collision edit. Duplicated my Clang (qubodup/sounds/812592) and halved sample rate multiple times, moved around a little, split the longest tracks and deleted or also layered the right piece, normalized, levelled, faded in/out in Audacity.",
+      "rating": 4.3,
+      "rating_count": 7
+    },
+    {
+      "id": "fs:648732",
+      "title": "Cinematic Woosh SFX-011.wav",
+      "author": "AudioPapkin",
+      "duration_seconds": 2.30666,
+      "preview_url": "https://cdn.freesound.org/previews/648/648732_8698658-hq.mp3",
+      "downloads": 597,
+      "page_url": "https://freesound.org/people/AudioPapkin/sounds/648732/",
+      "license_label": "Creative Commons 0",
+      "description": "Support me buy me coffee : https://buymeacoffee.com/audiopapkin Cinematic Woosh effect,is perfect for cinematic uses,video games. Effects recorded from the field. Recording gear-Zoom h6 and Microphone - RØDE NTG5 REAPER DAW - audio processing",
+      "rating": 4.8,
+      "rating_count": 8
+    }
+  ]
+}

@@ -5,6 +5,15 @@ plans/
 dist/
 build/
 out/
+# Promo deliverables (README links the mp4 renders and capture textures stay versioned
+# so the video project can be re-rendered from a clean checkout).
+!promo/remotion/out/
+!promo/remotion/out/**
+# QA stills / review evidence are local artifacts, not deliverables.
+promo/remotion/out/qa/
+promo/remotion/out/recheck/
+promo/remotion/qa/
+promo/remotion/_qa_review/
 release/
 release-*/
 .cache/

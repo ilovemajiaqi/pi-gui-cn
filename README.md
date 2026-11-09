@@ -23,8 +23,28 @@ pi-gui 是 pi 编码代理(Codex 风格)的桌面图形客户端。本仓库在�
 - **随时切换**：Settings → Appearance → Language（外观 → 语言）在中英文之间即时切换，所有界面立即生效，缺失词条自动回退英文。
 - **跨进程一致**：除渲染进程界面外，原生菜单（macOS）、更新对话框、系统通知也通过 locale IPC 通道跟随当前语言。
 
+## 🎬 宣传片
+
+[![pi-gui-zh 宣传片](./promo/assets/readme/shot-brand.jpg)](./promo/remotion/out/promo.mp4)
+
+50 秒全中文界面实录：并行会话、命令面板、变更审查、内置终端与定时任务，以及全片高潮——**语言切换即时生效**。
+
+- [带 BGM 版](./promo/remotion/out/promo.mp4) · [无 BGM 版（保留音效，方便自配音乐）](./promo/remotion/out/promo-nobgm.mp4)
+- 画面全部来自真实运行的桌面 app；演示项目「星尘笔记」为虚构数据，不含任何真实会话。
+- 工程在 [`promo/remotion`](./promo/remotion)（Remotion + [video-shotcraft](https://github.com/Vincentwei1021/video-shotcraft)），从产品检查、分镜、BGM 卡拍到终检的全过程记录在 [`promo/DESIGN-SPEC.md`](./promo/DESIGN-SPEC.md)。
+
+## 🖼️ 界面预览
+
+| 会话时间线（并行线程） | 变更审查（行级 diff） |
+| --- | --- |
+| ![会话时间线](./promo/assets/readme/shot-threads.jpg) | ![变更审查](./promo/assets/readme/shot-review.jpg) |
+| **命令面板（Ctrl+K）** | **语言切换即时生效** |
+| ![命令面板](./promo/assets/readme/shot-palette.jpg) | ![语言切换](./promo/assets/readme/shot-hero.jpg) |
+
 ## 📚 目录
 
+- [🎬 宣传片](#-宣传片)
+- [🖼️ 界面预览](#️-界面预览)
 - [✨ 功能特性](#-功能特性)
 - [📦 安装](#-安装)
 - [🚀 使用](#-使用)

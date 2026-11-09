@@ -1,0 +1,34 @@
+{
+  "provider": "freesound",
+  "query": "cinematic whoosh transition short",
+  "license_policy": "cc0",
+  "ordering": "relevance; popularity is supporting evidence only",
+  "results": [
+    {
+      "id": "fs:179780",
+      "title": "wipe1.wav",
+      "author": "Sclolex",
+      "duration_seconds": 1.5144,
+      "preview_url": "https://cdn.freesound.org/previews/179/179780_985466-hq.mp3",
+      "downloads": 1270,
+      "page_url": "https://freesound.org/people/Sclolex/sounds/179780/",
+      "license_label": "Creative Commons 0",
+      "description": "A short whoosh sound that can be used to set off a crossfade between scenes etc. Created with audacity.",
+      "rating": 4.6,
+      "rating_count": 28
+    },
+    {
+      "id": "fs:786514",
+      "title": "swoosh_v2",
+      "author": "migoreng1",
+      "duration_seconds": 0.3,
+      "preview_url": "https://cdn.freesound.org/previews/786/786514_16837477-hq.mp3",
+      "downloads": 341,
+      "page_url": "https://freesound.org/people/migoreng1/sounds/786514/",
+      "license_label": "Creative Commons 0",
+      "description": "This swoosh sound is a short, descending-frequency effect designed to create a smooth and dynamic auditory cue. Built using a sine wave, ensuring a smooth, clean, and natural tonal quality without harsh or mechanical artifacts. Purpose and Feel: - The descending pitch creates a sense of completion, transition, or closure. - It can evoke a sense of speed or movement, making it ideal for UI animations (e.g., swiping, dismissing, or transitioning elements), sports visuals, or cinematic sound effects.",
+      "rating": 5.0,
+      "rating_count": 7
+    }
+  ]
+}

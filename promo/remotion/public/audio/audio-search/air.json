@@ -1,0 +1,60 @@
+{
+  "provider": "freesound",
+  "query": "swoosh air short",
+  "license_policy": "cc0",
+  "ordering": "relevance; popularity is supporting evidence only",
+  "results": [
+    {
+      "id": "fs:877976",
+      "title": "Swish Swipe Short",
+      "author": "Qvantor",
+      "duration_seconds": 0.871104,
+      "preview_url": "https://cdn.freesound.org/previews/877/877976_19512113-hq.mp3",
+      "downloads": 7,
+      "page_url": "https://freesound.org/people/Qvantor/sounds/877976/",
+      "license_label": "Creative Commons 0",
+      "description": "Short bright swish, like a swung stick or blade, for swings, swipes, sword moves and quick UI motion. Open its preset in Chisper, a free browser synth, and tweak it to your needs: https://chisper.qvantor.org/?preset=327f145a-e164-40da-89aa-131543130e5b",
+      "rating": null,
+      "rating_count": null
+    },
+    {
+      "id": "fs:878248",
+      "title": "UI Hover Micro Swish",
+      "author": "Qvantor",
+      "duration_seconds": 0.215938,
+      "preview_url": "https://cdn.freesound.org/previews/878/878248_19512113-hq.mp3",
+      "downloads": 7,
+      "page_url": "https://freesound.org/people/Qvantor/sounds/878248/",
+      "license_label": "Creative Commons 0",
+      "description": "Very short airy swish moving a little from left to right, for hovers, swipes and cards. Open its preset in Chisper, a free browser synth, and tweak it to your needs: https://chisper.qvantor.org/?preset=aca36d0d-f69c-454d-8b71-16704878c201",
+      "rating": null,
+      "rating_count": null
+    },
+    {
+      "id": "fs:419341",
+      "title": "Swoosh.ogg",
+      "author": "WizardOZ",
+      "duration_seconds": 1.0,
+      "preview_url": "https://cdn.freesound.org/previews/419/419341_5368073-hq.mp3",
+      "downloads": 8935,
+      "page_url": "https://freesound.org/people/WizardOZ/sounds/419341/",
+      "license_label": "Creative Commons 0",
+      "description": "A short Swoosh sound made by Synth1.",
+      "rating": 4.6,
+      "rating_count": 58
+    },
+    {
+      "id": "fs:427823",
+      "title": "Whoosh #1",
+      "author": "Kinoton",
+      "duration_seconds": 0.8,
+      "preview_url": "https://cdn.freesound.org/previews/427/427823_2247456-hq.mp3",
+      "downloads": 5892,
+      "page_url": "https://freesound.org/people/Kinoton/sounds/427823/",
+      "license_label": "Creative Commons 0",
+      "description": "Short whoosh made by swinging a bamboo stick. Can be used as a transition effect or in combination with incoming blades, clubs, bullets, arrows and fists. (Different versions available in transitions pack) Recorder: MixPre-6; Microphone: Mk 012, cardioid; Processing: compressor, denoiser",
+      "rating": 4.4,
+      "rating_count": 52
+    }
+  ]
+}

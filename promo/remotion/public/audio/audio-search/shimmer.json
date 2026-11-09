@@ -1,0 +1,21 @@
+{
+  "provider": "freesound",
+  "query": "soft sparkle shimmer",
+  "license_policy": "cc0",
+  "ordering": "relevance; popularity is supporting evidence only",
+  "results": [
+    {
+      "id": "fs:878247",
+      "title": "UI Hover Glass Ping",
+      "author": "Qvantor",
+      "duration_seconds": 0.404646,
+      "preview_url": "https://cdn.freesound.org/previews/878/878247_19512113-hq.mp3",
+      "downloads": 2,
+      "page_url": "https://freesound.org/people/Qvantor/sounds/878247/",
+      "license_label": "Creative Commons 0",
+      "description": "Tiny high glass ping, for hovers, sparkles and selection highlights. Open its preset in Chisper, a free browser synth, and tweak it to your needs: https://chisper.qvantor.org/?preset=d2a6297b-14de-469e-bacd-dc7cc7944579",
+      "rating": null,
+      "rating_count": null
+    }
+  ]
+}
