@@ -1,211 +1,119 @@
-# pi-gui
+<div align="center">
 
-The desktop app for the [pi](https://github.com/earendil-works/pi) coding agent. [简体中文说明](README.zh-CN.md)
+# pi-gui-zh
+
+**[pi coding agent](https://github.com/earendil-works/pi) 桌面客户端 pi-gui 的完整简体中文版**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Latest release](https://img.shields.io/github/v/release/minghinmatthewlam/pi-gui?include_prereleases&label=release)](https://github.com/minghinmatthewlam/pi-gui/releases)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)](#install)
+[![Upstream](https://img.shields.io/badge/upstream-pi--gui-0969da)](https://github.com/minghinmatthewlam/pi-gui)
+[![简体中文](https://img.shields.io/badge/语言-简体中文-c01d2f)](#-功能特性)
+![平台](https://img.shields.io/badge/平台-Windows%20%7C%20macOS%20%7C%20Linux-bfc7d7)
 
-Run agents in parallel threads, each in its own git worktree if you want one. Review every
-change, run the tests in a real terminal, and ship without leaving the window. pi-gui is a
-desktop shell around [`@earendil-works/pi-coding-agent`](https://www.npmjs.com/package/@earendil-works/pi-coding-agent),
-not a separate agent: sessions, models, auth and tools all run through pi itself, so anything
-you set up with the pi CLI carries over.
+*基于上游 [minghinmatthewlam/pi-gui](https://github.com/minghinmatthewlam/pi-gui) · 英文说明见上游 README*
 
-[![An agent in pi-gui fixing a bug, running the tests, then the change open in the review tab](./apps/website/public/media/hero.gif)](./apps/website/public/media/hero.mp4)
+</div>
 
-<sub>A real run: the agent fixes a bug, adds a test and runs it, then the change opens for review. ([Watch in full quality](./apps/website/public/media/hero.mp4))</sub>
+---
 
-## Features
+## 📖 简介
 
-### Run agents side by side
+pi-gui 是 pi 编码代理(Codex 风格)的桌面图形客户端。本仓库在上游架构内完成了**全界面、真切换**的简体中文本地化:
 
-Every task gets its own thread. Start it in your checkout or in a fresh git worktree, then
-start the next one while it works. The sidebar shows what is running, what finished and what
-needs you. Pin threads, group them by time or workspace, and archive the ones you are done with.
+- **不是运行时补丁，也不是机器翻译挂件**——全部文案走上游自研的 locale catalog（`apps/desktop/src/i18n/`），源码级接入，约 770 条词条，覆盖率 100%。
+- **随时切换**：Settings → Appearance → Language（外观 → 语言）在中英文之间即时切换，所有界面立即生效，缺失词条自动回退英文。
+- **跨进程一致**：除渲染进程界面外，原生菜单（macOS）、更新对话框、系统通知也通过 locale IPC 通道跟随当前语言。
 
-<img src="./apps/website/public/media/threads.webp" alt="pi-gui running an agent thread while two other threads work in the sidebar" width="720">
+## 📚 目录
 
-### Review every change before it lands
+- [✨ 功能特性](#-功能特性)
+- [📦 安装](#-安装)
+- [🚀 使用](#-使用)
+- [🔧 实现要点](#-实现要点)
+- [🗺️ 路线图](#️-路线图)
+- [🤝 参与贡献](#-参与贡献)
+- [🙏 致谢](#-致谢)
+- [📄 许可证](#-许可证)
 
-The Review tab shows exactly what the agent touched. Compare uncommitted work, a branch
-against its base, or a single turn, and stage or unstage it file by file.
+## ✨ 功能特性
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./apps/website/public/media/review-dark.webp">
-  <img src="./apps/website/public/media/review-light.webp" alt="The Review tab showing the diff an agent made to src/price.js" width="720">
-</picture>
+pi-gui 本体功能（并行会话线程、git worktree 隔离、变更审查、内置终端、定时任务、技能/扩展管理等）见[上游 README](https://github.com/minghinmatthewlam/pi-gui#readme)。本仓库新增：
 
-### Terminal and files in the same window
+- **全界面中文**——侧边栏、新建对话页、会话时间线、命令面板（Cmd/Ctrl+K）、分支树与派生、模型/思考深度选择器、上下文用量面板、文件浏览器、差异审查、集成终端、技能与扩展、定时任务编辑器、设置全部分区、启动/故障恢复页，以及 MCP 登录等原生对话框与后台完成/失败系统通知。
+- **语言切换真实生效**——切换后整个应用（含主进程对话框与通知）即时变更；多窗口同步；跟随系统语言自动选择。
+- **翻译防回退门禁**——`renderer-copy.spec.ts` 以 TypeScript AST 检查全部已翻译界面的 JSX，硬编码英文一律构建失败，词条永不漂移。
+- **翻译质量**——按桌面应用语境统一术语（会话/工作树/审查/上下文窗口/思考深度…），保留 Git 与技术专名。
 
-The workbench beside the conversation holds a real terminal, a file explorer and editor,
-the review tab, your worktrees, and tabs from desktop extensions. Each task keeps its own layout.
+## 📦 安装
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./apps/website/public/media/terminal-dark.webp">
-  <img src="./apps/website/public/media/terminal-light.webp" alt="The integrated terminal running the test suite next to the thread" width="720">
-</picture>
+### 方式一：下载安装包（推荐）
 
-### Everything is a keystroke away
+前往 [Releases](../../releases) 下载对应平台安装包：
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./apps/website/public/media/palette-dark.webp">
-  <img src="./apps/website/public/media/palette-light.webp" alt="The command palette listing recent chats and actions" width="720">
-</picture>
+| 平台 | 文件 | 说明 |
+| --- | --- | --- |
+| Windows x64 | `pi-gui-x-x64-setup.exe` | NSIS 安装器（推荐） |
+| Windows x64 | `pi-gui-x-x64-portable.exe` | 免安装便携版 |
+| macOS / Linux | 见上游 Releases | 本分支发布流水线沿用上游配置 |
 
-| Shortcut (macOS; use Ctrl on Linux and Windows)    | Does                                  |
-| -------------------------------------------------- | ------------------------------------- |
-| <kbd>⌘</kbd> <kbd>K</kbd>                          | Search chats, workspaces and actions  |
-| <kbd>⌘</kbd> <kbd>P</kbd>                          | Open any file in the current checkout |
-| <kbd>Ctrl</kbd> <kbd>Tab</kbd>                     | Switch between recent threads         |
-| <kbd>⌘</kbd> <kbd>1</kbd> to <kbd>9</kbd>          | Jump to a thread in the sidebar       |
-| <kbd>⌘</kbd> <kbd>J</kbd>                          | Toggle the terminal                   |
-| <kbd>⌘</kbd> <kbd>R</kbd>                          | Toggle the Review tab                 |
-| <kbd>⌘</kbd> <kbd>⌥</kbd> <kbd>B</kbd>             | Show or hide the workbench            |
-| <kbd>Enter</kbd> while a run is going              | Queue a follow-up                     |
-| <kbd>⌘</kbd> <kbd>Enter</kbd> while a run is going | Steer the current run                 |
+> 安装包未做代码签名，首次运行如遇 SmartScreen 提示，选择“更多信息 → 仍要运行”。
 
-### And the rest
+### 方式二：从源码构建
 
-- **Scheduled tasks.** Have pi rerun a prompt on a schedule, such as a weekly dependency
-  check, while the app is open.
-- **Skills and extensions.** Turn pi skills and extensions on and off, try them from the
-  composer, and give desktop extensions their own workbench tabs.
-- **Any provider.** Sign in with OAuth, paste an API key, or point at a custom endpoint.
-  Pick the model and thinking level per thread.
-- **Fork and rewind.** Fork a thread from any message into the same checkout or a new
-  worktree, and move around the session tree with `/tree`.
-- **Composer.** `@`-mention files, and paste or drop images into the prompt.
-- **Threads that run threads.** An agent can start, read and message other threads, which
-  show up in the sidebar like any other.
-- **Notifications.** Get told when a background thread finishes, fails or needs you.
-- **Themes.** Light and dark, plus presets like Catppuccin, Tokyo Night, Nord, Dracula,
-  Gruvbox and GitHub.
+依赖：Node.js 20+ 与 pnpm（corepack 管理）。
 
-## Install
-
-pi-gui runs on macOS (Apple Silicon), Linux (x64) and Windows (x64).
-
-Download the latest `.dmg` (macOS), `.AppImage` or `.deb` (Linux), or `.exe` (Windows) from the
-[Releases page](https://github.com/minghinmatthewlam/pi-gui/releases).
-
-- **macOS:** drag `pi-gui.app` into Applications. Releases are signed and notarized.
-- **Linux:** make the AppImage executable and run it, or install the `.deb`.
-- **Windows:** run the setup `.exe`, or use the portable `.exe`. Builds are not code-signed
-  yet, so SmartScreen may ask you to confirm.
-
-On macOS you can also use Homebrew:
-
-```bash
-brew tap minghinmatthewlam/tap
-brew trust minghinmatthewlam/tap
-brew install --cask pi-gui
-```
-
-Homebrew refuses to load casks from untrusted third-party taps, so the
-`brew trust` step is required on first install.
-
-Update with `brew upgrade --cask pi-gui`. A Homebrew upgrade may ask you to
-re-confirm macOS permissions or Dock placement. Other installs tell you when a new release is
-out and update from the Releases page.
-
-Building from source is for contributors; see [Development](#development).
-
-## Quickstart
-
-1. Install pi-gui and open it.
-2. Open **Settings → Providers** and connect a model provider (OAuth or API key).
-3. Add a workspace: a local project folder.
-4. Click **New thread**, choose **Local** or **Worktree**, and send your first prompt.
-
-pi-gui reads and writes pi's own session files and settings, so threads, credentials and
-skills are shared with the pi CLI.
-
-## Architecture
-
-pi-gui is an Electron app with a tight main, preload and renderer boundary, on top of the pi
-runtime:
-
-- **Renderer** (`apps/desktop/src`): the React UI, including the timeline, composer,
-  workbench and settings. It talks to the main process only through a typed IPC surface.
-- **Preload** (`apps/desktop/electron/preload.ts`): the narrow bridge that exposes that IPC
-  surface. The renderer gets no broad Node access.
-- **Main** (`apps/desktop/electron`): windows, session supervision, worktrees, terminal PTYs,
-  scheduled tasks, notifications and persistence.
-- **`packages/pi-sdk-driver`**: a thin adapter over `@earendil-works/pi-coding-agent`. It stays
-  close to upstream pi and does not fork or reimplement runtime behavior.
-- **Session files are the source of truth.** pi stores each session as a JSONL transcript on
-  disk, and pi-gui reads those files rather than keeping its own copy.
-
-See [docs/architecture.md](docs/architecture.md) for ownership and boundaries.
-
-## Development
-
-Requires Node 22.19 or newer (CI runs Node 22) and [pnpm](https://pnpm.io) through `corepack`.
-`pnpm-lock.yaml` is the authoritative lockfile.
-
-```bash
+```sh
 corepack enable
-pnpm install
+pnpm install --frozen-lockfile
+pnpm package:win      # Windows，产物在 apps/desktop/release/
 ```
 
-Common commands, from the repo root:
+其他平台命令见上游 README（`package` / `package:linux` 等）。
 
-```bash
-pnpm dev            # run the desktop app with hot reload
-pnpm check          # CI baseline: format, lint, renderer boundaries, types, guard and driver tests
-pnpm build          # build the desktop app and the website
-pnpm typecheck      # type-check all workspaces
-pnpm lint           # correctness rules plus typed promise and unsafe-any checks
-pnpm format         # apply the shared formatter
-pnpm test           # each workspace's tests (desktop runs the core E2E lane)
-pnpm marketing:media  # re-record the README and website media from a real agent run
-```
+> 🇨🇳 国内网络建议为 electron-builder 配置镜像，并处理两个已知构建坑：
+>
+> ```sh
+> export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
+> export ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/
+> ```
+> 若 winCodeSign 因符号链接权限失败，以 `-c.toolsets.winCodeSign=1.1.0` 走新版工具集。
 
-`pnpm check` is the shared local and CI baseline. It does not launch Electron or replace the
-desktop, website-build and package CI jobs; see [docs/ci-baseline.md](docs/ci-baseline.md).
+## 🚀 使用
 
-Desktop end-to-end tests drive the real Electron app with Playwright, in lanes. `pnpm test`
-runs the `core` lane; to run everything:
+1. 安装后首次启动，若系统语言为简体中文则自动进入中文界面；也可手动切换：**Settings（设置）→ Appearance（外观）→ Language（语言）→ 简体中文**。
+2. 语言偏好即时生效并跨窗口同步；更新对话框与系统通知同样跟随。
+3. 会话数据与上游/官方版完全兼容（存储于 `~/.pi`），可放心交替使用。
 
-```bash
-pnpm --filter @pi-gui/desktop run test:e2e:all   # core + live + native
-```
+## 🔧 实现要点
 
-See [`apps/desktop/README.md`](./apps/desktop/README.md) for the lanes, packaging on each
-platform, and how the product media is recorded.
+| 机制 | 说明 |
+| --- | --- |
+| locale catalog | 英文 `messages/en.ts` 为键源与回退，其他语言是 `Partial<Messages>`；插值、CLDR 复数、RTL 一应俱全（详见 `apps/desktop/src/i18n/AGENTS.md`） |
+| 防回退门禁 | `tests/unit/renderer-copy.spec.ts` 用 TS AST 扫描 8 个已翻译界面的 JSX，残留硬编码英文即失败 |
+| main 进程通道 | `getLocale` / `setLocale` / `localeChanged` 三条窄 IPC + `LocaleManager`（仿 theme-manager），偏好持久化于 `ui-state.json`（schema v20），macOS 菜单随语言整体重建 |
+| e2e 稳定性 | 测试启动固定 `--lang=en-US`，断言英文界面，与上游 CI 环境一致，不受开发机系统语言影响 |
 
-## Repository layout
+## 🗺️ 路线图
 
-- `apps/desktop`: the Electron app (renderer, main and preload).
-- `apps/website`: [pi-gui.com](https://www.pi-gui.com).
-- `packages/pi-sdk-driver`: the adapter over `@earendil-works/pi-coding-agent`.
-- `packages/session-driver`: shared session driver types.
-- `packages/catalogs`: workspace and session catalog state.
-- `packages/extension-ui`: helpers for building desktop extension views.
-- `examples/desktop-extensions`: example extensions with their own workbench tabs.
-- `video`: the Remotion showcase video.
-- `docs`: architecture, CI and design notes.
-- `.agents/skills`: checked-in agent skills, including desktop verification.
+- [ ] 将三个 i18n 提交拆分回馈上游（`threads/app` → `其余 renderer 面` → `main locale 通道`）
+- [ ] 繁体中文（`zh-Hant`）语言包（catalog 已支持 script 级匹配）
+- [ ] 补全 e2e 对双语界面的兼容策略
+- [ ] 跟随上游版本节奏同步新增界面词条
 
-## Contributing
+## 🤝 参与贡献
 
-Contributions are welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, verification
-expectations and the desktop test lanes. Desktop changes should be verified on the real
-Electron app, not only by unit tests.
+欢迎纠错与补充翻译！
 
-## Computer use
+1. 查看 [`CONTRIBUTING.md`](./CONTRIBUTING.md) 与上游贡献规范；
+2. 词条位于 `apps/desktop/src/i18n/messages/en.ts`（键源）与 `messages/zh-CN.ts`（中文）；
+3. 检查工具：`pnpm i18n:check zh-CN` 列出缺失或仍为英文的词条；
+4. 提交前请通过 `pnpm check`（格式化、lint、架构守卫、类型、单元测试）。
 
-Native computer use is not built into pi-gui. Desktop and browser control is available
-separately through the standalone
-[`computer-use-mcp`](https://github.com/minghinmatthewlam/computer-use-mcp) server, which any
-MCP-capable agent can use.
+## 🙏 致谢
 
-## Acknowledgements
+- [Matthew Lam（minghinmatthewlam）](https://github.com/minghinmatthewlam) 与 pi-gui 的全体贡献者——本仓库的全部价值都建立在这个优秀的项目之上，上游内置的 i18n 框架为中文版铺平了道路；
+- [pi coding agent](https://github.com/earendil-works/pi) 及 [pi-mono](https://github.com/badlogic/pi-mono) 生态；
+- 一并感谢上游为剩余界面国际化预留的设计与文档。
 
-Built on [`@earendil-works/pi-coding-agent`](https://www.npmjs.com/package/@earendil-works/pi-coding-agent)
-and the [pi](https://github.com/earendil-works/pi) runtime and ecosystem.
+## 📄 许可证
 
-## License
-
-[MIT](./LICENSE) © Matthew Lam
+[MIT](./LICENSE) © Matthew Lam 及上游贡献者 · 本仓库的翻译与本地化改动在同等 MIT 协议下提供。
