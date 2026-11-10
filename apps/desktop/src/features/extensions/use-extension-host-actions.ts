@@ -38,8 +38,7 @@ export function useExtensionHostActions({
     if (!draftTarget || targetRef.current !== draftTarget)
       throw new Error(t("extensions.host.returnToTask"));
     await flushComposerDraftAsync(draftTarget);
-    if (targetRef.current !== draftTarget)
-      throw new Error(t("extensions.host.taskChanged"));
+    if (targetRef.current !== draftTarget) throw new Error(t("extensions.host.taskChanged"));
   }, [flushComposerDraftAsync, t, target]);
   const handlePrepareTaskDraftPendingChange = useCallback(
     (pending: boolean, requestKey: string) => {

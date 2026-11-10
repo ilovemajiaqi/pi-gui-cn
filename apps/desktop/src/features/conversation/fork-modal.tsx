@@ -142,9 +142,7 @@ export function ForkModal({
                 type="button"
                 onClick={() => onSubmit(environment)}
               >
-                {submitting
-                  ? t("conversation.fork.submitting")
-                  : t("conversation.fork.submit")}
+                {submitting ? t("conversation.fork.submitting") : t("conversation.fork.submit")}
               </button>
             </div>
           </div>

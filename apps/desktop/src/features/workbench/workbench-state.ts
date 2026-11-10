@@ -56,10 +56,7 @@ export function restoreWorkbenchView(
  * Limit violations come back as message keys; the renderer translates them,
  * passing the file-tab cap as `count` for the tab-limit message.
  */
-function actionLimitError(
-  view: TaskWorkbenchTemplate,
-  action: WorkbenchAction,
-): MessageKey | "" {
+function actionLimitError(view: TaskWorkbenchTemplate, action: WorkbenchAction): MessageKey | "" {
   if (
     (action.type === "set-files" && action.files.tabs.tabs.length > MAX_WORKBENCH_FILE_TABS) ||
     (action.type === "open-file" &&

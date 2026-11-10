@@ -334,7 +334,9 @@ function SelectionActions({
         type="button"
         onClick={copy}
       >
-        <span>{copied ? t("conversation.annotations.copied") : t("conversation.annotations.copy")}</span>
+        <span>
+          {copied ? t("conversation.annotations.copied") : t("conversation.annotations.copy")}
+        </span>
         <ShortcutKeys keys={shortcutKeys(platform, "C")} />
       </button>
       <span className="annotation-add__divider" aria-hidden="true" />

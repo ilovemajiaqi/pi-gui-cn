@@ -61,9 +61,7 @@ export function QueuedComposerMessages({
         >
           <div className="queued-composer-message__header">
             {message.text ? (
-              <div className="queued-composer-message__text">
-                {queuedPreview(message.text, t)}
-              </div>
+              <div className="queued-composer-message__text">{queuedPreview(message.text, t)}</div>
             ) : null}
             <div className="queued-composer-message__actions">
               {message.mode !== "steer" ? (

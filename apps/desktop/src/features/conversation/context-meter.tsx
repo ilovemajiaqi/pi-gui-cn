@@ -83,9 +83,7 @@ export function ContextMeter({ usage }: ContextMeterProps) {
               {context.compactAtTokens === undefined
                 ? t("conversation.ctx.compactionOff")
                 : t("conversation.ctx.compactionAt", {
-                    percent: formatPercent(
-                      (context.compactAtTokens / context.contextWindow) * 100,
-                    ),
+                    percent: formatPercent((context.compactAtTokens / context.contextWindow) * 100),
                   })}
             </p>
           </section>
@@ -135,7 +133,9 @@ export function ContextMeter({ usage }: ContextMeterProps) {
             <Row
               label={t("conversation.ctx.cost")}
               value={
-                usage.subscription ? t("conversation.ctx.subscription") : `$${usage.totals.cost.toFixed(2)}`
+                usage.subscription
+                  ? t("conversation.ctx.subscription")
+                  : `$${usage.totals.cost.toFixed(2)}`
               }
             />
           </section>

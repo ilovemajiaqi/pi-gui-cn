@@ -156,10 +156,7 @@ function ExtensionDetail({
           compatibilityRecords={compatibilityRecords}
         />
       ) : null}
-      <ExtensionContributionSection
-        title={t("extensions.detail.flags")}
-        items={selected.flags}
-      />
+      <ExtensionContributionSection title={t("extensions.detail.flags")} items={selected.flags} />
       <ExtensionContributionSection
         title={t("extensions.detail.shortcuts")}
         items={selected.shortcuts}

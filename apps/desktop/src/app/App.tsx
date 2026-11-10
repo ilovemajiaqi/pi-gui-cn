@@ -1155,9 +1155,7 @@ export default function App() {
                       role="status"
                       data-testid="schema-skew-notice"
                     >
-                      <span className="schema-skew-notice__text">
-                        {t("app.schemaSkewNotice")}
-                      </span>
+                      <span className="schema-skew-notice__text">{t("app.schemaSkewNotice")}</span>
                       <button
                         type="button"
                         className="schema-skew-notice__dismiss"

@@ -216,7 +216,11 @@ export function CommandPalette<F extends string>({
         </div>
 
         {filters && filters.length > 0 ? (
-          <div aria-label={t("palette.filters")} className="command-palette__filters" role="tablist">
+          <div
+            aria-label={t("palette.filters")}
+            className="command-palette__filters"
+            role="tablist"
+          >
             {filters.map((filter) => (
               <button
                 key={filter.id}

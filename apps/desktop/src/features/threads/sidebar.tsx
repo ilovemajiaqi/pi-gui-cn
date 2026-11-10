@@ -61,10 +61,7 @@ import { formatRelativeTime } from "../../lib/string-utils";
 import { useTranslation } from "../../i18n";
 import { PaneResizeHandle, type PaneWidthBounds } from "../../ui/pane-resize-handle";
 import { usePersistedPaneWidth } from "../../ui/use-persisted-pane-width";
-import {
-  sessionLastInteractedAt,
-  type RecencyBucketId,
-} from "../../../contracts/thread-recency";
+import { sessionLastInteractedAt, type RecencyBucketId } from "../../../contracts/thread-recency";
 import type { WorkspaceMenuState } from "./hooks/use-workspace-menu";
 import type { ThreadMenuState } from "./hooks/use-thread-actions";
 import { archiveThreadShortcut, ThreadActionsMenu } from "./thread-actions";
@@ -125,10 +122,7 @@ const RECENCY_LABEL_KEYS = {
   "last-7-days": "threads.recency.last7Days",
   "last-30-days": "threads.recency.last30Days",
   older: "threads.recency.older",
-} as const satisfies Record<
-  RecencyBucketId,
-  Parameters<ReturnType<typeof useTranslation>["t"]>[0]
->;
+} as const satisfies Record<RecencyBucketId, Parameters<ReturnType<typeof useTranslation>["t"]>[0]>;
 
 function sidebarWidthBounds(_sidebar: HTMLElement, shell: HTMLElement): PaneWidthBounds {
   return {

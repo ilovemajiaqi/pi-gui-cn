@@ -4,10 +4,7 @@
  * locale-independent (its output also feeds search matching and English-pinned specs),
  * so the translated rewrite lives beside the components that display it.
  */
-import type {
-  ScheduledTaskRecord,
-  ScheduledTaskSchedule,
-} from "../../../contracts/desktop-state";
+import type { ScheduledTaskRecord, ScheduledTaskSchedule } from "../../../contracts/desktop-state";
 import { formatClockTime, type Weekday } from "../../../contracts/scheduled-tasks";
 import type { AppLocale, MessageKey, Translate } from "../../i18n";
 
@@ -23,9 +20,7 @@ const DAY_KEYS: Readonly<Record<Weekday, MessageKey>> = {
 };
 
 function dayList(days: readonly Weekday[], t: Translate): string {
-  const names = [...days]
-    .sort((left, right) => left - right)
-    .map((day) => t(DAY_KEYS[day]));
+  const names = [...days].sort((left, right) => left - right).map((day) => t(DAY_KEYS[day]));
   if (names.length === 0) {
     return "";
   }

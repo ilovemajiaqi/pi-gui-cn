@@ -351,11 +351,7 @@ export function slashOptionsForCommand(
     return buildModelOptions(runtime);
   }
   if (command.kind === "login") {
-    return buildProviderOptions(
-      runtime?.providers ?? [],
-      (provider) => provider.oauthSupported,
-      t,
-    );
+    return buildProviderOptions(runtime?.providers ?? [], (provider) => provider.oauthSupported, t);
   }
   if (command.kind === "logout") {
     return buildProviderOptions(

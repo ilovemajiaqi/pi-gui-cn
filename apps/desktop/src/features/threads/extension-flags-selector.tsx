@@ -70,7 +70,9 @@ export function ExtensionFlagsSelector({
           data-testid="extension-flags-badge"
           onClick={() => setOpen(!open)}
         >
-          {setCount > 0 ? t("threads.flags.badgeCount", { count: setCount }) : t("threads.flags.badge")}
+          {setCount > 0
+            ? t("threads.flags.badgeCount", { count: setCount })
+            : t("threads.flags.badge")}
         </button>
         {open ? (
           <div

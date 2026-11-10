@@ -579,9 +579,7 @@ export function DiffPanel({
                 : t("workbench.diff.noChanges")}
             </div>
           ) : !selectedFile ? (
-            <div className="diff-panel__empty">
-              {t("workbench.diff.fileNotInComparison")}
-            </div>
+            <div className="diff-panel__empty">{t("workbench.diff.fileNotInComparison")}</div>
           ) : (
             <>
               <div className="review-panel__file-header">
@@ -638,9 +636,7 @@ export function DiffPanel({
                         />
                       </section>
                     ) : displayedFileResult.summary ? null : (
-                      <p className="diff-panel__empty">
-                        {t("workbench.diff.noTextDiff")}
-                      </p>
+                      <p className="diff-panel__empty">{t("workbench.diff.noTextDiff")}</p>
                     )}
                   </>
                 ) : displayedFileResult ? (
