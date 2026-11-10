@@ -5,6 +5,24 @@ import { dirname } from "node:path";
 /** Suffix of the transient files writeFileAtomic creates before renaming into place. */
 export const TMP_SUFFIX = ".tmp";
 
+/**
+ * How many times a replace-rename is retried before giving up.
+ *
+ * Windows refuses to rename onto a path another thread, antivirus scan, or
+ * indexer currently holds open, reporting EPERM rather than blocking. That
+ * window is microseconds wide, so a few short retries turn a spurious failure
+ * into a successful write; without them, two concurrent writers race and one
+ * of them throws even though nothing is actually wrong.
+ */
+const RENAME_ATTEMPTS = 5;
+const RENAME_RETRY_DELAY_MS = 2;
+
+/** Errors Windows reports for "the destination is busy right now", not "this is impossible". */
+function isTransientRenameError(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code;
+  return code === "EPERM" || code === "EACCES" || code === "EBUSY" || code === "EEXIST";
+}
+
 let tmpCounter = 0;
 
 /**
@@ -38,13 +56,25 @@ export async function writeFileAtomic(filePath: string, data: string | Uint8Arra
   }
 
   try {
-    await rename(tmpPath, filePath);
+    await renameWithRetry(tmpPath, filePath);
   } catch (error) {
     await rm(tmpPath, { force: true }).catch(() => {});
     throw error;
   }
 
   await syncDirectory(dir);
+}
+
+async function renameWithRetry(src: string, dest: string): Promise<void> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      await rename(src, dest);
+      return;
+    } catch (error) {
+      if (!isTransientRenameError(error) || attempt >= RENAME_ATTEMPTS) throw error;
+      await new Promise((resolve) => setTimeout(resolve, RENAME_RETRY_DELAY_MS));
+    }
+  }
 }
 
 /** Serialize `value` as pretty JSON with a trailing newline and write it atomically. */
