@@ -57,7 +57,24 @@ const translatedSurfaces = [
   "features/scheduled-tasks",
   "features/command-palette",
   "app",
+  // The eight below were left out of the walk because they sit outside the feature
+  // folders the original list enumerated. Every one of them renders to a user:
+  // main.tsx is the mount point, i18n/* is the provider and its rich-text helper,
+  // and ui/* draws the diff, icons and resize handles the features compose.
+  "main.tsx",
+  "i18n",
+  "ui",
 ];
+
+/**
+ * Files where any Latin text is necessarily not prose. Listed one by one with a
+ * reason, so adding a file here is a deliberate decision rather than a regex that
+ * quietly widens over time.
+ */
+const notProse = new Set([
+  // SVG path data and icon geometry; the only strings are `d` attributes.
+  "ui/icons.tsx",
+]);
 
 async function surfaceFiles(): Promise<readonly string[]> {
   const files: string[] = [];
@@ -66,7 +83,7 @@ async function surfaceFiles(): Promise<readonly string[]> {
     for (const entry of entries) {
       const relative = `${directory}/${entry.name}`;
       if (entry.isDirectory()) await walk(relative);
-      else if (entry.name.endsWith(".tsx")) files.push(relative);
+      else if (entry.name.endsWith(".tsx") && !notProse.has(relative)) files.push(relative);
     }
   };
   for (const surface of translatedSurfaces) {
@@ -82,6 +99,19 @@ async function surfaceFiles(): Promise<readonly string[]> {
 test("translated surfaces cannot bypass the locale catalogs", async () => {
   const files = await surfaceFiles();
   expect(files).toContain("features/settings/settings-view.tsx");
+  // Guard the walk itself: these are the files the surface list used to miss, and a
+  // regression there would silently shrink coverage rather than fail.
+  for (const file of [
+    "main.tsx",
+    "i18n/index.tsx",
+    "i18n/rich-text.tsx",
+    "ui/diff-inline.tsx",
+    "ui/highlighted-line.tsx",
+    "ui/pane-resize-handle.tsx",
+  ]) {
+    expect(files, file).toContain(file);
+  }
+  expect(files).not.toContain("ui/icons.tsx");
   const untranslated: string[] = [];
   for (const file of files) {
     const source = await readFile(resolve(sourceRoot, file), "utf8");

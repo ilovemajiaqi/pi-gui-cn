@@ -35,4 +35,21 @@ test("the ellipsis is one character, not three periods", () => {
   assert.deepEqual(zhCopyErrors([{ key: "a.b", value: "正在加载…" }]), []);
 });
 
+test("a sentence period between Chinese characters must be full width", () => {
+  for (const value of ["已完成.", "请稍等. 然后重试"]) {
+    assert.match(zhCopyErrors([{ key: "a.b", value }])[0], /use "。"/, value);
+  }
+});
+
+test("a dot that starts a file extension is not a sentence period", () => {
+  for (const value of [
+    "粘贴的图片.png",
+    "已保存为报告.md",
+    "选择 config.json 后继续。",
+    "版本 1.2.3 保持半角。",
+  ]) {
+    assert.deepEqual(zhCopyErrors([{ key: "a.b", value }]), [], value);
+  }
+});
+
 test("the real Chinese catalog passes", () => assert.deepEqual(checkZhCopy(process.cwd()), []));

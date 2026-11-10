@@ -30,7 +30,15 @@ const HALF_TO_FULL = new Map([
   ["!", "！"],
   ["(", "（"],
   [")", "）"],
+  [".", "。"],
 ]);
+
+/**
+ * A "." that starts a file extension is part of a literal, not a sentence break:
+ * `粘贴的图片.png` keeps its half-width dot. A sentence period is followed by more
+ * Chinese, or ends the value — never by a short ASCII run like an extension.
+ */
+const EXTENSION_TAIL = /^\.[A-Za-z0-9]{1,8}$/;
 
 /** Problems in one Chinese catalog, as `file: key: reason` lines. */
 export function zhCopyErrors(entries, filename = CHINESE) {
@@ -43,6 +51,10 @@ export function zhCopyErrors(entries, filename = CHINESE) {
       const before = value[index - 1] ?? "";
       const after = value[index + 1] ?? "";
       if (!HAN.test(before) && !HAN.test(after)) continue;
+      // "..." is the ellipsis rule's business, not this one.
+      if (char === "." && (before === "." || after === ".")) continue;
+      // `粘贴的图片.png` — the dot belongs to a file name, not a sentence.
+      if (char === "." && EXTENSION_TAIL.test(value.slice(index))) continue;
       const context = value.slice(Math.max(0, index - 10), index + 11);
       errors.push(
         `${filename}: ${key}: "${char}" next to Chinese text reads "${context}"; use "${full}".`,
