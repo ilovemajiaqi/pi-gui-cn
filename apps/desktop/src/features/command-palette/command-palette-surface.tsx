@@ -74,7 +74,7 @@ export function CommandPaletteSurface({
   onOpenFile,
   onSelectModel,
 }: CommandPaletteSurfaceProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<CommandFilter>("all");
   const [listing, setListing] = useState<FileListing>({ status: "loading" });
@@ -116,7 +116,10 @@ export function CommandPaletteSurface({
     return {
       id: `chat:${target.workspaceId}:${target.sessionId}`,
       title: thread.session.title,
-      detail: [thread.contextLabel, formatRelativeTime(sessionLastInteractedAt(thread.session))]
+      detail: [
+        thread.contextLabel,
+        formatRelativeTime(sessionLastInteractedAt(thread.session), locale),
+      ]
         .filter(Boolean)
         .join(" · "),
       icon: <ChatIcon />,

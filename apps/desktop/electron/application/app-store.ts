@@ -3602,6 +3602,7 @@ export class DesktopAppStore {
         pendingAssistantMessageBySession: this.sessionState.pendingAssistantMessageBySession,
         extensionToolLabels: (ref) =>
           extensionToolLabels(this.runtimeByWorkspace.get(ref.workspaceId)),
+        locale: this.state.locale,
       });
       this.state = applySessionEventState(
         this.state,

@@ -1630,7 +1630,7 @@ const ThreadSessionRow = forwardRef<HTMLDivElement, ThreadSessionRowProps>(
     },
     ref,
   ) {
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
     const indicatorVariant = sessionIndicatorVariant(thread);
     const tree = useContext(ThreadListContext);
     const threadKey = sessionThreadKey(thread);
@@ -1745,7 +1745,7 @@ const ThreadSessionRow = forwardRef<HTMLDivElement, ThreadSessionRowProps>(
               </span>
             ) : (
               <span className="session-row__time">
-                {formatRelativeTime(sessionLastInteractedAt(thread.session))}
+                {formatRelativeTime(sessionLastInteractedAt(thread.session), locale)}
               </span>
             )}
             <span className="session-row__action-cluster">

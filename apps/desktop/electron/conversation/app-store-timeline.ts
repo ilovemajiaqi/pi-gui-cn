@@ -1,6 +1,7 @@
 import { isCardEntryItem, sessionKey } from "@pi-gui/session-driver";
 import type { SessionTranscriptItem, SessionTranscriptPin } from "@pi-gui/session-driver";
 import type { SessionDriverEvent, SessionQueuedMessage, SessionRef } from "@pi-gui/session-driver";
+import type { DesktopLocale } from "../../contracts/ipc";
 import type {
   BuiltinToolLabel,
   TimelineMetrics,
@@ -46,6 +47,12 @@ interface TimelineRuntimeState {
   readonly pendingAssistantMessageBySession: Map<string, string>;
   /** Labels of the tools the session's folder extensions registered. */
   readonly extensionToolLabels: (sessionRef: SessionRef) => ExtensionToolLabels;
+  /**
+   * Locale for the timestamps this module formats. Activity rows are built in the
+   * main process, so without this a Chinese timeline shows times formatted for
+   * whatever the OS default happens to be.
+   */
+  readonly locale: DesktopLocale;
 }
 
 export function timelineFromDriverTranscript(
@@ -198,7 +205,7 @@ export function applyTimelineEvent(
       transcript.push(
         makeActivityItem("Resumed session", {
           activity: "resumed",
-          metadata: relativeDetail(event.timestamp),
+          metadata: relativeDetail(event.timestamp, state.locale),
           timestamp: event.timestamp,
         }),
       );
@@ -308,7 +315,7 @@ export function applyTimelineEvent(
           makeSummaryItem("Completed", {
             presentation: "divider",
             summary: "completed",
-            metadata: relativeDetail(event.timestamp),
+            metadata: relativeDetail(event.timestamp, state.locale),
             timestamp: event.timestamp,
           }),
         );
@@ -343,7 +350,7 @@ export function applyTimelineEvent(
       transcript.push(
         makeActivityItem("Stopped", {
           activity: "stopped",
-          metadata: relativeDetail(event.timestamp),
+          metadata: relativeDetail(event.timestamp, state.locale),
           timestamp: event.timestamp,
         }),
       );
@@ -386,7 +393,7 @@ export function applyTimelineEvent(
         transcript.push(
           makeActivityItem(event.request.message, {
             tone: "error",
-            metadata: relativeDetail(event.timestamp),
+            metadata: relativeDetail(event.timestamp, state.locale),
           }),
         );
       }
@@ -608,8 +615,11 @@ function workedForLabel(startedAt: string, endedAt: string): string {
   return `Worked for ${formatElapsedDuration(startedAt, endedAt)}`;
 }
 
-function relativeDetail(timestamp: string): string {
-  return new Date(timestamp).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+function relativeDetail(timestamp: string, locale: DesktopLocale): string {
+  // The desktop locale ids are already BCP 47 tags, so Intl takes them as-is.
+  return new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(
+    new Date(timestamp),
+  );
 }
 
 function summarizeToolDetail(value: string): string {

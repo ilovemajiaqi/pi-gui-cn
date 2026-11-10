@@ -23,11 +23,13 @@ export function ChatHeaderActions({
   threadMenu,
   actions,
 }: ChatHeaderActionsProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   return (
     <>
       <div className="chat-header__status">
-        {session.status === "running" ? runningLabel : formatRelativeTime(session.updatedAt)}
+        {session.status === "running"
+          ? runningLabel
+          : formatRelativeTime(session.updatedAt, locale)}
       </div>
       <div
         className="chat-header__menu-wrap"
