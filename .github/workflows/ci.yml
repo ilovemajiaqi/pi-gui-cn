@@ -24,6 +24,7 @@ jobs:
       - typecheck
       - website-build
       - desktop-core
+      - desktop-locale
       - desktop-package-linux
       - desktop-package-windows
       - windows-guards
@@ -168,6 +169,47 @@ jobs:
           path: apps/desktop/test-results/
           retention-days: 7
           if-no-files-found: error
+
+  # The renderer re-renders itself when the language changes, so the Core shards
+  # covered the easy half of a locale switch. Two surfaces are rebuilt by the main
+  # process instead — the application menu and the OS notification — and both stayed
+  # English in a Chinese window until this job existed. Kept out of the shards
+  # because a locale regression should name itself in the check list rather than
+  # arrive as "shard 3 of 4 failed".
+  desktop-locale:
+    name: Desktop locale
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Linux display dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb openbox libnotify4
+          # See the Core shard job: the runner pipes crashes to systemd-coredump,
+          # which stalls quit while a multi-terabyte sparse address space streams out.
+          sudo sysctl -w kernel.core_pattern=core
+
+      - name: Locale lane
+        env:
+          PI_APP_TEST_WORKERS: "2"
+        # Openbox answers X11 maximize requests, which the window specs depend on.
+        run: >-
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
+          sh -c 'openbox >/dev/null 2>&1 & exec "$@"' sh
+          pnpm --filter @pi-gui/desktop run test:e2e:locale
 
   desktop-package-linux:
     runs-on: ubuntu-latest

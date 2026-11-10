@@ -4,6 +4,7 @@ export const requiredJobs = [
   "typecheck",
   "website-build",
   "desktop-core",
+  "desktop-locale",
   "desktop-package-linux",
   "desktop-package-windows",
   "windows-guards",

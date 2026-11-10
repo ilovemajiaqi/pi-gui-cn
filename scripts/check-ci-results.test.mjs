@@ -74,6 +74,82 @@ test("the guards also run on Windows, not only on Linux and macOS", () => {
   }
 });
 
+function assertDesktopLocale(workflow) {
+  const job = workflow.jobs["desktop-locale"];
+  assert.ok(job, "CI must run the locale lane, so a menu or notification regression names itself");
+  assert.equal(job["runs-on"], "ubuntu-latest");
+  assert.equal(job.if, undefined, "The locale job must run on every CI invocation");
+  const runs = job.steps.filter((step) => typeof step.run === "string").map((step) => step.run);
+  const localeRun = runs.find((run) => run.includes("test:e2e:locale"));
+  assert.ok(
+    localeRun,
+    "The locale job must run the test:e2e:locale lane instead of an ad-hoc spec list",
+  );
+  assert.ok(
+    localeRun.includes("xvfb-run"),
+    "Electron needs a display server on Linux, so the locale lane must run under xvfb",
+  );
+  const install = job.steps.find((step) => step.run === "pnpm install --frozen-lockfile");
+  assert.ok(install, "The locale job must install from the lockfile");
+  const locale = job.steps.find((step) => step.run === localeRun);
+  assert.equal(locale.if, undefined, "The locale lane must not be conditional");
+  assert.ok(
+    locale["continue-on-error"] === undefined || locale["continue-on-error"] === false,
+    "A failing locale lane must fail CI",
+  );
+}
+
+test("the locale lane runs as its own check instead of hiding inside a Core shard", () => {
+  const workflow = parse(
+    readFileSync(new URL("../.github/workflows/ci.yml", import.meta.url), "utf8"),
+  );
+  assertDesktopLocale(workflow);
+  for (const mutate of [
+    (w) => {
+      delete w.jobs["desktop-locale"];
+    },
+    (w) => {
+      w.jobs["desktop-locale"]["runs-on"] = "windows-latest";
+    },
+    (w) => {
+      w.jobs["desktop-locale"].if = "${{ false }}";
+    },
+    (w) => {
+      const step = w.jobs["desktop-locale"].steps.find((item) =>
+        String(item.run).includes("test:e2e:locale"),
+      );
+      step.run = "pnpm --filter @pi-gui/desktop run test:e2e:core";
+    },
+    (w) => {
+      const step = w.jobs["desktop-locale"].steps.find((item) =>
+        String(item.run).includes("test:e2e:locale"),
+      );
+      step.run = step.run.replace("xvfb-run", "--no-xvfb");
+    },
+    (w) => {
+      w.jobs["desktop-locale"].steps = w.jobs["desktop-locale"].steps.filter(
+        (item) => item.run !== "pnpm install --frozen-lockfile",
+      );
+    },
+    (w) => {
+      const step = w.jobs["desktop-locale"].steps.find((item) =>
+        String(item.run).includes("test:e2e:locale"),
+      );
+      step.if = "${{ false }}";
+    },
+    (w) => {
+      const step = w.jobs["desktop-locale"].steps.find((item) =>
+        String(item.run).includes("test:e2e:locale"),
+      );
+      step["continue-on-error"] = true;
+    },
+  ]) {
+    const invalid = structuredClone(workflow);
+    mutate(invalid);
+    assert.throws(() => assertDesktopLocale(invalid));
+  }
+});
+
 test("all required jobs must succeed", () => {
   assert.deepEqual(checkCiResults(passing()), []);
   for (const job of requiredJobs) {
