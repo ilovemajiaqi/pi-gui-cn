@@ -37,6 +37,7 @@ tmp-sample-design.png
 !/packages/**/*.js
 !/packages/**/*.css
 index.html
+!/index.html
 !apps/**/index.html
 
 # Vite hashed build output (anywhere)
