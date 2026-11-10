@@ -118,7 +118,8 @@ async function setTheme(window: Page, presetName: string, variant: ResolvedTheme
   await window
     .getByRole("radio", { name: variant === "light" ? "Light" : "Dark", exact: true })
     .click();
-  await window.getByLabel("Color preset").selectOption({ label: presetName });
+  await window.getByLabel("Color preset").click();
+  await window.getByRole("option", { name: presetName }).click();
   await expect
     .poll(() => window.evaluate(() => document.documentElement.classList.contains("dark")))
     .toBe(variant === "dark");

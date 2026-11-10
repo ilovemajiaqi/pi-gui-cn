@@ -4,6 +4,7 @@ import type { PiSdkDriver } from "@pi-gui/pi-sdk-driver";
 import {
   createNamedThread,
   fireDueScheduledTasks,
+  chooseSelectOption,
   getDesktopState,
   getSelectedTranscript,
   launchDesktop,
@@ -30,7 +31,7 @@ test("manual create, tabs, pause, and restart keep scheduled tasks", async () =>
     await expect(window.getByTestId("scheduled-task-editor")).toBeVisible();
     await window.getByTestId("scheduled-task-title").fill("Standup ping");
     await window.getByTestId("scheduled-task-instruction").fill("Ask for yesterday's work");
-    await window.getByTestId("scheduled-task-frequency").selectOption("interval");
+    await chooseSelectOption(window, window.getByTestId("scheduled-task-frequency"), "interval");
     await window.getByTestId("scheduled-task-interval").fill("10");
     await window.getByTestId("scheduled-task-save").click();
     await expect(window.getByTestId("scheduled-task-editor")).toHaveCount(0);

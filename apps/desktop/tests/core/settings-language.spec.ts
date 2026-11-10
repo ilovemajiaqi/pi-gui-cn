@@ -3,6 +3,7 @@ import { resolveLocale } from "../../src/i18n/preference";
 import { translatorFor } from "../../src/i18n/translate";
 import {
   type DesktopHarness,
+  chooseSelectOption,
   desktopShortcut,
   launchDesktop,
   makeUserDataDir,
@@ -56,12 +57,12 @@ test("Settings switches to Simplified Chinese and back, and the choice survives 
     const surface = await openAppearance(window);
 
     // Until the user picks one, the language follows the OS.
-    await expect(languagePicker(window)).toHaveValue("system");
+    await expect(languagePicker(window)).toHaveAttribute("data-value", "system");
     const systemLanguages = await window.evaluate(() => [...navigator.languages]);
     const systemLocale = resolveLocale("system", systemLanguages);
     await expect(window.locator("html")).toHaveAttribute("lang", systemLocale);
 
-    await languagePicker(window).selectOption("zh-CN");
+    await chooseSelectOption(window, languagePicker(window), "zh-CN");
     await expect(window.locator("html")).toHaveAttribute("lang", "zh-CN");
     // The page re-renders in place: header, navigation and controls, no restart.
     await expect(
@@ -88,11 +89,11 @@ test("Settings switches to Simplified Chinese and back, and the choice survives 
     const window = await secondRun.firstWindow();
     await expect(window.locator("html")).toHaveAttribute("lang", "zh-CN");
     const surface = await openAppearance(window);
-    await expect(languagePicker(window)).toHaveValue("zh-CN");
+    await expect(languagePicker(window)).toHaveAttribute("data-value", "zh-CN");
     await expect(surface).toContainText(chinese("settings.appearance.transparency.title"));
 
     // Back to English: an explicit choice wins over the OS language.
-    await languagePicker(window).selectOption("en");
+    await chooseSelectOption(window, languagePicker(window), "en");
     await expect(window.locator("html")).toHaveAttribute("lang", "en");
     await expect(surface.getByRole("heading", { name: "Appearance" })).toBeVisible();
     await expect(surface).toContainText("Window transparency");
@@ -111,11 +112,11 @@ test("a language picked in one window applies to the other open windows", async 
     const first = await harness.firstWindow();
     const second = await openSecondWindow(harness);
     await openAppearance(first);
-    await languagePicker(first).selectOption("zh-CN");
+    await chooseSelectOption(first, languagePicker(first), "zh-CN");
     await expect(first.locator("html")).toHaveAttribute("lang", "zh-CN");
     await expect(second.locator("html")).toHaveAttribute("lang", "zh-CN");
     const secondSurface = await openAppearance(second);
-    await expect(languagePicker(second)).toHaveValue("zh-CN");
+    await expect(languagePicker(second)).toHaveAttribute("data-value", "zh-CN");
     await expect(secondSurface).toContainText(chinese("settings.appearance.transparency.title"));
   } finally {
     await harness.close();

@@ -2,6 +2,7 @@ import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import {
   desktopShortcut,
+  chooseSelectOption,
   launchDesktop,
   makeUserDataDir,
   makeWorkspace,
@@ -31,7 +32,11 @@ async function switchLocale(window: Page, locale: string): Promise<void> {
   const surface = window.getByTestId("settings-surface");
   await expect(surface).toBeVisible();
   await surface.getByRole("button", { name: /^(Appearance|外观)$/ }).click();
-  await window.getByRole("combobox", { name: /^(Language|语言)$/ }).selectOption(locale);
+  await chooseSelectOption(
+    window,
+    window.getByRole("combobox", { name: /^(Language|语言)$/ }),
+    locale,
+  );
   await expect(window.locator("html")).toHaveAttribute("lang", locale);
   await window.getByRole("button", { name: /^(Back to app|返回应用)$/ }).click();
   await expect(surface).toBeHidden();

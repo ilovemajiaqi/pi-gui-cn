@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 import { delimiter, dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { promisify } from "node:util";
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { _electron as electron, type ElectronApplication } from "playwright";
 import type { SessionDriverEvent, SessionRef } from "@pi-gui/session-driver";
 import type { PiDesktopApi } from "../../contracts/ipc";
@@ -1067,6 +1067,20 @@ async function withAgentDirEnv<T>(agentDir: string, action: () => Promise<T>): P
   }
 }
 
+/**
+ * Choose an option in the app's Codex-style Select combobox (src/ui/select.tsx).
+ * The option menu renders only while open and tags items with `data-value`,
+ * so selection stays locale-independent.
+ */
+export async function chooseSelectOption(
+  window: Page,
+  trigger: Locator,
+  value: string,
+): Promise<void> {
+  await trigger.click();
+  await window.locator(`[data-value="${value}"]`).click();
+}
+
 export async function makeWorkspace(name: string): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "pi-gui-workspace-"));
   const workspacePath = join(root, name);
@@ -1856,7 +1870,10 @@ export async function openNewThread(window: Page): Promise<void> {
 export async function expectNewThreadWorkspace(window: Page, workspacePath: string): Promise<void> {
   const workspace = await waitForWorkspaceByPath(window, workspacePath);
   await expect(window.getByTestId("new-thread-composer")).toBeVisible({ timeout: 15_000 });
-  await expect(window.locator(".new-thread__workspace")).toHaveValue(workspace.id);
+  await expect(window.getByRole("combobox", { name: "Workspace" })).toHaveAttribute(
+    "data-value",
+    workspace.id,
+  );
 }
 
 export async function startThreadFromSurface(
@@ -1871,7 +1888,9 @@ export async function startThreadFromSurface(
 
   await openNewThread(window);
   if (workspaceName) {
-    await window.locator(".new-thread__workspace").selectOption({ label: workspaceName });
+    const workspacePicker = window.getByRole("combobox", { name: "Workspace" });
+    await workspacePicker.click();
+    await window.getByRole("option", { name: workspaceName }).click();
   }
   if (environment === "worktree") {
     await window.getByRole("button", { name: "Worktree", exact: true }).click();

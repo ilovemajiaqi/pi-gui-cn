@@ -21,6 +21,7 @@ import {
 } from "../../../contracts/scheduled-tasks";
 import { useTranslation, type MessageKey } from "../../i18n";
 import { trapDialogFocus } from "../../ui/dialog-focus";
+import { Select } from "../../ui/select";
 
 /** Short weekday labels by `Weekday` index; the contract exports the English names. */
 const DAY_KEYS: Readonly<Record<Weekday, MessageKey>> = {
@@ -272,23 +273,20 @@ export function ScheduledTaskEditor({
           />
         </label>
 
-        <label className="scheduled-editor__field">
+        <div className="scheduled-editor__field">
           <span>{t("scheduledTasks.editor.workspace")}</span>
-          <select
-            data-testid="scheduled-task-workspace"
+          <Select
+            className="select__trigger--block"
+            label={t("scheduledTasks.editor.workspace")}
+            testId="scheduled-task-workspace"
+            options={workspaces.map((entry) => ({ value: entry.id, label: entry.name }))}
             value={workspaceId}
-            onChange={(event) => {
-              setWorkspaceId(event.target.value);
+            onChange={(nextWorkspaceId) => {
+              setWorkspaceId(nextWorkspaceId);
               setSessionId("");
             }}
-          >
-            {workspaces.map((entry) => (
-              <option key={entry.id} value={entry.id}>
-                {entry.name}
-              </option>
-            ))}
-          </select>
-        </label>
+          />
+        </div>
 
         <fieldset className="scheduled-editor__field">
           <legend>{t("scheduledTasks.editor.runsIn")}</legend>
@@ -311,34 +309,37 @@ export function ScheduledTaskEditor({
             {t("scheduledTasks.editor.existingThread")}
           </label>
           {targetKind === "existing-thread" ? (
-            <select
-              data-testid="scheduled-task-session"
+            <Select
+              className="select__trigger--block"
+              label={t("scheduledTasks.editor.selectThread")}
+              testId="scheduled-task-session"
+              options={[
+                { value: "", label: t("scheduledTasks.editor.selectThread") },
+                ...sessions.map((session) => ({ value: session.id, label: session.title })),
+              ]}
               value={sessionId}
-              onChange={(event) => setSessionId(event.target.value)}
-            >
-              <option value="">{t("scheduledTasks.editor.selectThread")}</option>
-              {sessions.map((session) => (
-                <option key={session.id} value={session.id}>
-                  {session.title}
-                </option>
-              ))}
-            </select>
+              onChange={setSessionId}
+              placeholder={t("scheduledTasks.editor.selectThread")}
+            />
           ) : null}
         </fieldset>
 
-        <label className="scheduled-editor__field">
+        <div className="scheduled-editor__field">
           <span>{t("scheduledTasks.editor.frequency")}</span>
-          <select
-            data-testid="scheduled-task-frequency"
+          <Select
+            className="select__trigger--block"
+            label={t("scheduledTasks.editor.frequency")}
+            testId="scheduled-task-frequency"
+            options={[
+              { value: "daily", label: t("scheduledTasks.editor.daily") },
+              { value: "weekly", label: t("scheduledTasks.editor.weekly") },
+              { value: "interval", label: t("scheduledTasks.editor.interval") },
+              { value: "once", label: t("scheduledTasks.editor.once") },
+            ]}
             value={frequency}
-            onChange={(event) => setFrequency(event.target.value as FrequencyKind)}
-          >
-            <option value="daily">{t("scheduledTasks.editor.daily")}</option>
-            <option value="weekly">{t("scheduledTasks.editor.weekly")}</option>
-            <option value="interval">{t("scheduledTasks.editor.interval")}</option>
-            <option value="once">{t("scheduledTasks.editor.once")}</option>
-          </select>
-        </label>
+            onChange={(next) => setFrequency(next as FrequencyKind)}
+          />
+        </div>
 
         {frequency === "once" ? (
           <label className="scheduled-editor__field">

@@ -30,6 +30,7 @@ import type {
 } from "../settings/model-onboarding";
 import { ModelSelector } from "../conversation/model-selector";
 import { ExtensionFlagsSelector } from "./extension-flags-selector";
+import { Select } from "../../ui/select";
 
 interface NewThreadViewProps {
   readonly workspaces: readonly WorkspaceRecord[];
@@ -163,20 +164,15 @@ export function NewThreadView({
           </div>
           <div className="new-thread__eyebrow">{t("threads.newThread.eyebrow")}</div>
           <h1 className="new-thread__title">{t("threads.newThread.title")}</h1>
-          <label className="new-thread__workspace-picker">
-            <span className="sr-only">{t("threads.newThread.workspace")}</span>
-            <select
-              className="new-thread__workspace"
+          <div className="new-thread__workspace-picker">
+            <Select
+              className="select__trigger--pill"
+              label={t("threads.newThread.workspace")}
+              options={workspaces.map((entry) => ({ value: entry.id, label: entry.name }))}
               value={workspace.id}
-              onChange={(event) => onSelectWorkspace(event.target.value)}
-            >
-              {workspaces.map((entry) => (
-                <option key={entry.id} value={entry.id}>
-                  {entry.name}
-                </option>
-              ))}
-            </select>
-          </label>
+              onChange={onSelectWorkspace}
+            />
+          </div>
         </div>
 
         <div className="new-thread__composer composer">

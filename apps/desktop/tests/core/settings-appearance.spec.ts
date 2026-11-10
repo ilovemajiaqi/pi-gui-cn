@@ -251,5 +251,6 @@ async function expectSameDesign(window: Page): Promise<void> {
 }
 
 async function selectThemePreset(window: Page, name: string): Promise<void> {
-  await window.getByLabel("Color preset").selectOption({ label: name });
+  await window.getByLabel("Color preset").click();
+  await window.getByRole("option", { name }).click();
 }

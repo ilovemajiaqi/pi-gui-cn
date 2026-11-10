@@ -1,5 +1,5 @@
 import { useTranslation } from "../../i18n";
-import { ChevronDownIcon } from "../../ui/icons";
+import { Select } from "../../ui/select";
 
 /** A checkbox drawn as a switch, so it keeps native checkbox keyboard and form behaviour. */
 export function SettingsSwitch({
@@ -72,31 +72,16 @@ export function SettingsSelect<T extends string>({
   readonly onChange: (value: T) => void;
 }) {
   const { t } = useTranslation();
-  // Without a matching option Chromium shows the first one as chosen, and choosing it
-  // fires no change, so an unset value gets an explicit placeholder instead.
+  // Without a matching option the trigger would show the first choice as if it
+  // were selected, so an unset value gets an explicit placeholder instead.
   const hasValue = options.some((option) => option.value === value);
   return (
-    <span className="settings-select-control">
-      <select
-        aria-label={label}
-        value={hasValue ? value : ""}
-        onChange={(event) => {
-          const selected = options.find((option) => option.value === event.currentTarget.value);
-          if (selected) onChange(selected.value);
-        }}
-      >
-        {hasValue ? null : (
-          <option disabled value="">
-            {t("settings.controls.choose")}
-          </option>
-        )}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-      <ChevronDownIcon />
-    </span>
+    <Select
+      label={label}
+      options={options}
+      value={hasValue ? value : undefined}
+      onChange={onChange}
+      placeholder={hasValue ? undefined : t("settings.controls.choose")}
+    />
   );
 }
