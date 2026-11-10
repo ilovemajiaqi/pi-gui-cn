@@ -189,6 +189,7 @@ try {
 
   verifyRequiredPackages(extractedDir);
   verifyPiDependencyVersions(extractedDir);
+  verifyPackagedDependencyGraph(extractedDir);
   await verifyPackagedPiRuntime(extractedDir);
   await verifyPackagedRuntimeImports(extractedDir);
   await verifyNativeNodePty(asarPath);
@@ -260,6 +261,13 @@ function verifyRequiredPackages(extractedDir) {
 
 function verifyPiDependencyVersions(extractedDir) {
   const mismatches = [];
+  // Security overrides in the root manifest intentionally supersede upstream
+  // ranges (e.g. undici ^8.12.4 over pi's pinned 8.10.2); validate against the
+  // override instead of failing on the original range forever.
+  const rootManifest = JSON.parse(
+    readFileSync(path.resolve(desktopDir, "..", "..", "package.json"), "utf8"),
+  );
+  const dependencyOverrides = rootManifest.pnpm?.overrides ?? {};
   // Validate the full required graph using the versions Node would resolve.
   // Hoisted packaging can include a dependency but lose its required nested version.
   const pending = [
@@ -285,9 +293,11 @@ function verifyPiDependencyVersions(extractedDir) {
       const actualVersion = dependencyFile
         ? JSON.parse(readFileSync(dependencyFile, "utf8")).version
         : undefined;
-      if (!actualVersion || !semver.satisfies(actualVersion, requiredVersion)) {
+      const overrideRange = dependencyOverrides[dependency];
+      const expectedRange = overrideRange ?? requiredVersion;
+      if (!actualVersion || !semver.satisfies(actualVersion, expectedRange)) {
         mismatches.push(
-          `${path.relative(extractedDir, packageFile)} (${manifest.version}) requires ${dependency}@${requiredVersion}; packaged resolution is ${actualVersion ?? "missing"}`,
+          `${path.relative(extractedDir, packageFile)} (${manifest.version}) requires ${dependency}@${requiredVersion}${overrideRange ? ` (pnpm override ${overrideRange})` : ""}; packaged resolution is ${actualVersion ?? "missing"}`,
         );
       }
       if (dependencyFile) pending.push(dependencyFile);
@@ -295,6 +305,103 @@ function verifyPiDependencyVersions(extractedDir) {
   }
   if (mismatches.length > 0) {
     throw new Error(`Packaged Pi dependency versions do not match:\n${mismatches.join("\n")}`);
+  }
+}
+
+// Compare every production dependency edge inside the packaged tree against
+// the workspace install the asar was collected from: the packaged resolution
+// must be faithful to the workspace — the same packages resolvable at the same
+// versions. This catches both pnpm-collector loss classes (packages dropped
+// entirely, like the startup-crashing "Cannot find module 'isexe'", and nested
+// conflicting versions falling back to an incompatible hoisted major) while
+// tolerating upstream manifest drift that the workspace install resolves the
+// same way.
+function verifyPackagedDependencyGraph(extractedDir) {
+  const workspaceModules = path.resolve(desktopDir, "..", "..", "node_modules");
+  if (!existsSync(path.join(workspaceModules, "node-pty"))) {
+    console.warn(
+      `Warning: workspace install not found at ${workspaceModules}; skipping packaged dependency graph check`,
+    );
+    return;
+  }
+  const problems = [];
+
+  function collectPackageDirs(dir, packages) {
+    let entries;
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (entry.name === ".bin" || entry.name.startsWith(".")) continue;
+      const entryPath = path.join(dir, entry.name);
+      if (entry.isDirectory() && (entry.name === "node_modules" || entry.name.startsWith("@"))) {
+        // node_modules container or scoped group: the packages are inside.
+        collectPackageDirs(entryPath, packages);
+        continue;
+      }
+      if (!entry.isDirectory() || !existsSync(path.join(entryPath, "package.json"))) continue;
+      packages.push(entryPath);
+      // The package may carry its own nested node_modules (hoisted conflicts).
+      collectPackageDirs(entryPath, packages);
+    }
+  }
+
+  function resolveWithin(startDir, dependency, limitDir) {
+    let cursor = startDir;
+    while (true) {
+      const candidate = path.join(cursor, "node_modules", ...dependency.split("/"));
+      if (existsSync(candidate)) return candidate;
+      if (cursor === limitDir) return undefined;
+      const parent = path.dirname(cursor);
+      if (parent === cursor) return undefined;
+      cursor = parent;
+    }
+  }
+
+  function readVersion(packageDir) {
+    return JSON.parse(readFileSync(path.join(packageDir, "package.json"), "utf8")).version;
+  }
+
+  const packages = [];
+  collectPackageDirs(path.join(extractedDir, "node_modules"), packages);
+
+  for (const packageDir of packages) {
+    const relative = path.relative(extractedDir, packageDir);
+    const workspacePackageDir = path.join(workspaceModules, relative);
+    if (!existsSync(path.join(workspacePackageDir, "package.json"))) continue;
+    const manifest = JSON.parse(readFileSync(path.join(packageDir, "package.json"), "utf8"));
+    if (readVersion(workspacePackageDir) !== manifest.version) {
+      // Not the same install; the workspace tree drifted from the package.
+      continue;
+    }
+    const optional = new Set(Object.keys(manifest.optionalDependencies ?? {}));
+    for (const [dependency, range] of Object.entries(manifest.dependencies ?? {})) {
+      if (optional.has(dependency)) continue;
+      // Type-only packages are never required at runtime.
+      if (dependency.startsWith("@types/")) continue;
+      const workspaceResolved = resolveWithin(workspacePackageDir, dependency, workspaceModules);
+      if (!workspaceResolved) continue; // nothing to be faithful to
+      const packagedResolved = resolveWithin(packageDir, dependency, extractedDir);
+      if (!packagedResolved) {
+        problems.push(
+          `${relative} (${manifest.version}) resolves ${dependency}@${range} to ${path.relative(workspaceModules, workspaceResolved)} in the workspace install, but the packaged app cannot resolve it`,
+        );
+        continue;
+      }
+      const workspaceVersion = readVersion(workspaceResolved);
+      const packagedVersion = readVersion(packagedResolved);
+      if (workspaceVersion !== packagedVersion) {
+        problems.push(
+          `${relative} (${manifest.version}) resolves ${dependency}@${range} to ${workspaceVersion} in the workspace install but ${packagedVersion} in the packaged app`,
+        );
+      }
+    }
+  }
+
+  if (problems.length > 0) {
+    throw new Error(`Packaged dependency graph diverges from the workspace install:\n${problems.join("\n")}`);
   }
 }
 
