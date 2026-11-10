@@ -4,7 +4,6 @@
 
 **[pi coding agent](https://github.com/earendil-works/pi) 桌面客户端 pi-gui 的完整简体中文版**
 
-[![CI](https://github.com/ilovemajiaqi/pi-gui-cn/actions/workflows/ci.yml/badge.svg)](https://github.com/ilovemajiaqi/pi-gui-cn/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0.1-blue)](./CHANGELOG.md)
 [![Upstream](https://img.shields.io/badge/upstream-pi--gui-0969da)](https://github.com/minghinmatthewlam/pi-gui)
