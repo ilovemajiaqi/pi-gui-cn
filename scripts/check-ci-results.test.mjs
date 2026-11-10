@@ -10,6 +10,70 @@ import { checkCiResults, requiredJobs, coreShardJobs } from "./check-ci-results.
 const passing = () => Object.fromEntries(requiredJobs.map((job) => [job, { result: "success" }]));
 const script = fileURLToPath(new URL("./check-ci-results.mjs", import.meta.url));
 
+function assertWindowsGuards(workflow) {
+  const job = workflow.jobs["windows-guards"];
+  assert.ok(job, "CI must run the guards on Windows");
+  assert.equal(job["runs-on"], "windows-latest");
+  assert.equal(job.if, undefined, "The Windows guard job must run on every CI invocation");
+  const runs = job.steps.filter((step) => typeof step.run === "string").map((step) => step.run);
+  for (const command of ["pnpm check:architecture", "pnpm test:guards", "pnpm test:desktop-unit"]) {
+    assert.ok(
+      runs.includes(command),
+      `The Windows guard job must run "${command}" so Windows-only breakage cannot merge`,
+    );
+  }
+  const install = job.steps.find((step) => step.run === "pnpm install --frozen-lockfile");
+  assert.ok(install, "The Windows guard job must install from the lockfile");
+  const guards = job.steps.find((step) => step.run === "pnpm test:guards");
+  assert.equal(guards.if, undefined, "The guard run must not be conditional on Windows");
+  assert.ok(
+    guards["continue-on-error"] === undefined || guards["continue-on-error"] === false,
+    "A failing guard on Windows must fail CI",
+  );
+}
+
+test("the guards also run on Windows, not only on Linux and macOS", () => {
+  const workflow = parse(
+    readFileSync(new URL("../.github/workflows/ci.yml", import.meta.url), "utf8"),
+  );
+  assertWindowsGuards(workflow);
+  for (const mutate of [
+    (w) => {
+      w.jobs["windows-guards"]["runs-on"] = "ubuntu-latest";
+    },
+    (w) => {
+      w.jobs["windows-guards"].if = "${{ false }}";
+    },
+    (w) => {
+      w.jobs["windows-guards"].steps = w.jobs["windows-guards"].steps.filter(
+        (step) => step.run !== "pnpm test:guards",
+      );
+    },
+    (w) => {
+      w.jobs["windows-guards"].steps = w.jobs["windows-guards"].steps.filter(
+        (step) => step.run !== "pnpm test:desktop-unit",
+      );
+    },
+    (w) => {
+      w.jobs["windows-guards"].steps.find((step) => step.run === "pnpm test:guards").run =
+        "pnpm test:guards:windows";
+    },
+    (w) => {
+      w.jobs["windows-guards"].steps.find((step) => step.run === "pnpm test:guards").if =
+        "${{ false }}";
+    },
+    (w) => {
+      w.jobs["windows-guards"].steps.find((step) => step.run === "pnpm test:guards")[
+        "continue-on-error"
+      ] = true;
+    },
+  ]) {
+    const invalid = structuredClone(workflow);
+    mutate(invalid);
+    assert.throws(() => assertWindowsGuards(invalid));
+  }
+});
+
 test("all required jobs must succeed", () => {
   assert.deepEqual(checkCiResults(passing()), []);
   for (const job of requiredJobs) {

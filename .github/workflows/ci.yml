@@ -20,6 +20,7 @@ jobs:
       - desktop-core
       - desktop-package-linux
       - desktop-package-windows
+      - windows-guards
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -251,3 +252,45 @@ jobs:
 
       - name: Verify packaged runtime dependencies
         run: pnpm --dir apps/desktop run verify:packaged-runtime-deps:windows
+
+  # Windows is a first-class target, but until this job existed no Windows runner
+  # ever executed the guards or the unit suite. That gap is how 38 POSIX-only
+  # assertions and 17 platform-fragile specs accumulated unnoticed: the Linux and
+  # macOS jobs agreed with each other while the product broke on Windows.
+  windows-guards:
+    name: Windows guards
+    runs-on: windows-latest
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # A Windows contributor committing CRLF would otherwise only break format:check
+      # on the ubuntu job, far from the change that caused it.
+      - name: Format gate
+        run: pnpm format:check
+
+      - name: Architecture guards
+        run: pnpm check:architecture
+
+      - name: Release configuration
+        run: pnpm verify:release-config
+
+      # Path handling, subprocess plumbing, and filesystem capabilities all differ
+      # here. Both suites are green on Windows; a host that cannot do something
+      # (symlinks, exec bits, TAB in filenames) probes for it and says so.
+      - name: Guard tests
+        run: pnpm test:guards
+
+      - name: Desktop unit tests
+        run: pnpm test:desktop-unit

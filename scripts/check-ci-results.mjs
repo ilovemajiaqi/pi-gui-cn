@@ -6,6 +6,7 @@ export const requiredJobs = [
   "desktop-core",
   "desktop-package-linux",
   "desktop-package-windows",
+  "windows-guards",
 ];
 
 export const coreShardJobs = ["desktop-core-shards"];
