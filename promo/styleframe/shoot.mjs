@@ -4,9 +4,13 @@ import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const browser = await chromium.launch({
-  executablePath: "C:\\Users\\Lecoo\\AppData\\Local\\ms-playwright\\chromium-1243\\chrome-win64\\chrome.exe",
+  executablePath:
+    "C:\\Users\\Lecoo\\AppData\\Local\\ms-playwright\\chromium-1243\\chrome-win64\\chrome.exe",
 });
-const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+const page = await browser.newPage({
+  viewport: { width: 1920, height: 1080 },
+  deviceScaleFactor: 1,
+});
 await page.goto("file:///" + path.join(here, "index.html").replace(/\\/g, "/"));
 await page.evaluate(() => document.fonts.ready);
 await page.waitForTimeout(800);

@@ -1,8 +1,8 @@
 // origin: vibe-motion/skills remotion-3d-ticker assets/VerticalTicker.tsx
 //         (2026-07-13 扫描，2026-07-15 吸收；改动：items 泛化为 ReactNode、
 //          遮罩高度/透视角/scale/列宽/间距提为 props)
-import React from 'react';
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from 'remotion';
+import React from "react";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 
 export interface TickerColumn {
   /** Column content — any ReactNode (screenshot-slice divs, <Img>, text cards…) */
@@ -41,7 +41,7 @@ export interface VerticalTickerProps {
  */
 export const VerticalTicker: React.FC<VerticalTickerProps> = ({
   columns,
-  backgroundColor = '#000',
+  backgroundColor = "#000",
   maskHeight = 200,
   tiltDeg = 20,
   perspective = 1000,
@@ -50,16 +50,16 @@ export const VerticalTicker: React.FC<VerticalTickerProps> = ({
   gap = 30,
 }) => {
   return (
-    <AbsoluteFill style={{ backgroundColor, overflow: 'hidden' }}>
+    <AbsoluteFill style={{ backgroundColor, overflow: "hidden" }}>
       <div
         style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          justifyContent: 'center',
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          justifyContent: "center",
           gap,
           transform: `perspective(${perspective}px) rotateX(${tiltDeg}deg) scale(${scale})`,
-          transformOrigin: 'center center',
+          transformOrigin: "center center",
         }}
       >
         {columns.map((col, idx) => (
@@ -69,7 +69,7 @@ export const VerticalTicker: React.FC<VerticalTickerProps> = ({
       {/* Fade masks sit above the wall so rows enter/exit softly */}
       <div
         style={{
-          position: 'absolute',
+          position: "absolute",
           top: 0,
           left: 0,
           right: 0,
@@ -80,7 +80,7 @@ export const VerticalTicker: React.FC<VerticalTickerProps> = ({
       />
       <div
         style={{
-          position: 'absolute',
+          position: "absolute",
           bottom: 0,
           left: 0,
           right: 0,
@@ -109,13 +109,13 @@ const Column: React.FC<TickerColumn & { width: number; gap: number }> = ({
   const translateY = direction === -1 ? progress * -50 : -50 + progress * 50;
 
   return (
-    <div style={{ width, height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ width, height: "100%", display: "flex", flexDirection: "column" }}>
       <div
         style={{
-          display: 'flex',
-          flexDirection: 'column',
+          display: "flex",
+          flexDirection: "column",
           transform: `translateY(${translateY}%)`,
-          willChange: 'transform',
+          willChange: "transform",
         }}
       >
         {[...items, ...items].map((node, i) => (

@@ -10,8 +10,8 @@
 //   ]}>
 //     {/* 页面空间子元素：CSS px 定位 */}
 //   </PageCam2D>
-import React from 'react';
-import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, Easing } from 'remotion';
+import React from "react";
+import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, Easing } from "remotion";
 
 export type CamKey2D = {
   frame: number;
@@ -34,7 +34,15 @@ export const PageCam2D: React.FC<{
   bg?: string;
   blur?: number; // px, 应用到整页（背景页 blur 化景深）
   ease?: (t: number) => number;
-}> = ({ src, pageH, keys, children, bg = '#faf7f2', blur = 0, ease = Easing.bezier(0.33, 0, 0.15, 1) }) => {
+}> = ({
+  src,
+  pageH,
+  keys,
+  children,
+  bg = "#faf7f2",
+  blur = 0,
+  ease = Easing.bezier(0.33, 0, 0.15, 1),
+}) => {
   const frame = useCurrentFrame();
   let a = keys[0];
   let b = keys[keys.length - 1];
@@ -49,8 +57,8 @@ export const PageCam2D: React.FC<{
     a.frame === b.frame
       ? 1
       : interpolate(frame, [a.frame, b.frame], [0, 1], {
-          extrapolateLeft: 'clamp',
-          extrapolateRight: 'clamp',
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
           easing: ease,
         });
   const cx = lerp(a.cx, b.cx, t);
@@ -61,23 +69,24 @@ export const PageCam2D: React.FC<{
   const rotZ = lerp(a.rotZ ?? 0, b.rotZ ?? 0, t);
   const persp = lerp(a.persp ?? 1400, b.persp ?? 1400, t);
   const has3D = keys.some(
-    (k) => k.rotX !== undefined || k.rotY !== undefined || k.rotZ !== undefined || k.persp !== undefined,
+    (k) =>
+      k.rotX !== undefined || k.rotY !== undefined || k.rotZ !== undefined || k.persp !== undefined,
   );
 
   if (!has3D) {
     return (
-      <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: bg }}>
+      <AbsoluteFill style={{ overflow: "hidden", backgroundColor: bg }}>
         <div
           style={{
-            position: 'absolute',
+            position: "absolute",
             width: 1920,
             height: pageH,
             transform: `translate(${960 - cx * zoom}px, ${540 - cy * zoom}px) scale(${zoom})`,
-            transformOrigin: '0 0',
+            transformOrigin: "0 0",
             filter: blur > 0 ? `blur(${blur}px)` : undefined,
           }}
         >
-          <Img src={staticFile(src)} style={{ position: 'absolute', width: 1920, height: pageH }} />
+          <Img src={staticFile(src)} style={{ position: "absolute", width: 1920, height: pageH }} />
           {children}
         </div>
       </AbsoluteFill>
@@ -85,28 +94,28 @@ export const PageCam2D: React.FC<{
   }
 
   return (
-    <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: bg }}>
+    <AbsoluteFill style={{ overflow: "hidden", backgroundColor: bg }}>
       <div
         style={{
-          position: 'absolute',
+          position: "absolute",
           inset: 0,
           perspective: `${persp * zoom}px`,
-          perspectiveOrigin: '960px 540px',
+          perspectiveOrigin: "960px 540px",
         }}
       >
         <div
           style={{
-            position: 'absolute',
+            position: "absolute",
             width: 1920,
             height: pageH,
             zoom,
             transform: `translate(${960 / zoom - cx}px, ${540 / zoom - cy}px) rotateY(${rotY}deg) rotateX(${rotX}deg) rotateZ(${rotZ}deg)`,
             transformOrigin: `${cx}px ${cy}px`,
-            transformStyle: 'preserve-3d',
+            transformStyle: "preserve-3d",
             filter: blur > 0 ? `blur(${blur}px)` : undefined,
           }}
         >
-          <Img src={staticFile(src)} style={{ position: 'absolute', width: 1920, height: pageH }} />
+          <Img src={staticFile(src)} style={{ position: "absolute", width: 1920, height: pageH }} />
           {children}
         </div>
       </div>

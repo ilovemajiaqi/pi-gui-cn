@@ -25,11 +25,8 @@ export const velocityAt = (
  * ghost 4f, …). Never accumulate state across rendered frames — every layer
  * stays a pure function of the frame number.
  */
-export const lagged = <T>(
-  stateAt: (f: number) => T,
-  frame: number,
-  delayFrames: number,
-): T => stateAt(frame - delayFrames);
+export const lagged = <T>(stateAt: (f: number) => T, frame: number, delayFrames: number): T =>
+  stateAt(frame - delayFrames);
 
 /**
  * Closed-form damped oscillation for recoil/settle tails, t in frames from

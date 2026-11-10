@@ -29,7 +29,8 @@ const CREATE_BTN = { x: 1456, y: 68, w: 70, h: 44 };
 const camAt = (frame: number) => {
   const u = ramp(frame, FLY[0], FLY[1] - FLY[0], swift);
   const raw = Math.min(1, Math.max(0, (frame - FLY[0]) / (FLY[1] - FLY[0])));
-  const pull = Math.sin(Math.PI * Math.pow(raw, 0.85)) * PULL_PEAK * (1 - ramp(frame, FLY[1], 8, EASE.out));
+  const pull =
+    Math.sin(Math.PI * Math.pow(raw, 0.85)) * PULL_PEAK * (1 - ramp(frame, FLY[1], 8, EASE.out));
   const cx = mix(1394, 1140, u);
   const cy = mix(196, 430, u);
   const zoom = mix(1.8, 1.45, u);
@@ -53,12 +54,28 @@ export const S07Terminal: React.FC = () => {
 
   const typed = frame < TYPE_AT ? 0 : Math.min(CMD.length, frame - TYPE_AT);
   const typingDone = typed >= CMD.length;
-  const caretOn = frame >= TYPE_AT - 2 && frame <= TYPE_END + 12 && (frame <= TYPE_END || Math.floor((frame - TYPE_END) / 8) % 2 === 0);
+  const caretOn =
+    frame >= TYPE_AT - 2 &&
+    frame <= TYPE_END + 12 &&
+    (frame <= TYPE_END || Math.floor((frame - TYPE_END) / 8) % 2 === 0);
 
   return (
     <AbsoluteFill style={{ backgroundColor: T.window, overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 60% 66% at 50% 44%, ${alpha(T.accent, 0.06)} 0%, rgba(154,174,216,0) 70%)` }} />
-      <div style={{ position: "absolute", inset: 0, perspective: 1400, perspectiveOrigin: "960px 540px" }}>
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: `radial-gradient(ellipse 60% 66% at 50% 44%, ${alpha(T.accent, 0.06)} 0%, rgba(154,174,216,0) 70%)`,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          perspective: 1400,
+          perspectiveOrigin: "960px 540px",
+        }}
+      >
         {/* —— 站 1 · 终端窗 —— */}
         <div
           style={{
@@ -68,14 +85,30 @@ export const S07Terminal: React.FC = () => {
             zoom,
             transform: `translate(${960 / zoom - cx}px, ${540 / zoom - cy}px) translateZ(${-pull}px)`,
             transformOrigin: `${cx}px ${cy}px`,
-            filter: s > 0.5 && s < 0.85 ? `blur(${(2.4 * (s - 0.5) * (0.85 - s) * 25).toFixed(2)}px)` : undefined,
+            filter:
+              s > 0.5 && s < 0.85
+                ? `blur(${(2.4 * (s - 0.5) * (0.85 - s) * 25).toFixed(2)}px)`
+                : undefined,
             opacity: frame < FLY[1] + 6 ? 1 : 0,
           }}
         >
-          <Img src={staticFile("textures/zh-CN/terminal.png")} style={{ position: "absolute", width: 1920, height: PAGE.h }} />
+          <Img
+            src={staticFile("textures/zh-CN/terminal.png")}
+            style={{ position: "absolute", width: 1920, height: PAGE.h }}
+          />
 
           {/* tab 遮片：同形底色垫底（盖掉原 tab 轮廓）→ chip */}
-          <div style={{ position: "absolute", left: TAB.x - 4, top: TAB.y - 3, width: TAB.w + 8, height: TAB.h + 6, borderRadius: 10, backgroundColor: T.main }} />
+          <div
+            style={{
+              position: "absolute",
+              left: TAB.x - 4,
+              top: TAB.y - 3,
+              width: TAB.w + 8,
+              height: TAB.h + 6,
+              borderRadius: 10,
+              backgroundColor: T.main,
+            }}
+          />
           <div
             style={{
               position: "absolute",
@@ -88,12 +121,31 @@ export const S07Terminal: React.FC = () => {
               boxShadow: `inset 0 0 0 1px ${alpha("#000000", 0.25)}`,
             }}
           />
-          <div style={{ position: "absolute", left: TAB.x + 14, top: TAB.y + 5, fontFamily: '"Cascadia Code","Consolas",monospace', fontSize: 12, color: T.muted, whiteSpace: "nowrap" }}>
+          <div
+            style={{
+              position: "absolute",
+              left: TAB.x + 14,
+              top: TAB.y + 5,
+              fontFamily: '"Cascadia Code","Consolas",monospace',
+              fontSize: 12,
+              color: T.muted,
+              whiteSpace: "nowrap",
+            }}
+          >
             stardust-notes — bash
           </div>
 
           {/* 命令/输出区补丁常驻（面板同色）：底层命令、输出与残留块光标永不再露出 */}
-          <div style={{ position: "absolute", left: PATCH.x, top: PATCH.y, width: PATCH.w, height: PATCH.h, backgroundColor: T.main }} />
+          <div
+            style={{
+              position: "absolute",
+              left: PATCH.x,
+              top: PATCH.y,
+              width: PATCH.w,
+              height: PATCH.h,
+              backgroundColor: T.main,
+            }}
+          />
 
           {/* 单层命令打字行 */}
           <div
@@ -109,7 +161,18 @@ export const S07Terminal: React.FC = () => {
           >
             <span style={{ color: T.success }}>$ </span>
             {CMD.slice(0, typed)}
-            {caretOn ? <span style={{ display: "inline-block", width: 7, height: 13, background: T.ink, opacity: 0.85, transform: "translateY(2px)" }} /> : null}
+            {caretOn ? (
+              <span
+                style={{
+                  display: "inline-block",
+                  width: 7,
+                  height: 13,
+                  background: T.ink,
+                  opacity: 0.85,
+                  transform: "translateY(2px)",
+                }}
+              />
+            ) : null}
           </div>
 
           {/* 输出行揭示（打字完成后；3f 淡入 + 左移收回） */}
@@ -136,9 +199,27 @@ export const S07Terminal: React.FC = () => {
           })}
           {/* 输出落定后的空行提示符（单层，光标呼吸） */}
           {typingDone && frame >= OUT_AT[1] ? (
-            <div style={{ position: "absolute", left: TERM.x + 12, top: TERM.y + 92, fontFamily: '"Cascadia Code","Consolas",monospace', fontSize: 13, color: T.text, whiteSpace: "pre" }}>
+            <div
+              style={{
+                position: "absolute",
+                left: TERM.x + 12,
+                top: TERM.y + 92,
+                fontFamily: '"Cascadia Code","Consolas",monospace',
+                fontSize: 13,
+                color: T.text,
+                whiteSpace: "pre",
+              }}
+            >
               <span style={{ color: T.success }}>$ </span>
-              <span style={{ display: "inline-block", width: 7, height: 13, background: alpha(T.ink, 0.85), transform: "translateY(2px)" }} />
+              <span
+                style={{
+                  display: "inline-block",
+                  width: 7,
+                  height: 13,
+                  background: alpha(T.ink, 0.85),
+                  transform: "translateY(2px)",
+                }}
+              />
             </div>
           ) : null}
         </div>
@@ -152,10 +233,16 @@ export const S07Terminal: React.FC = () => {
             zoom,
             transform: `translate(${960 / zoom - cx}px, ${540 / zoom - cy}px) translateZ(${-Math.max(0, pull - 200)}px)`,
             transformOrigin: `${cx}px ${cy}px`,
-            opacity: interpolate(frame, [FLY[0] + 20, FLY[1]], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
+            opacity: interpolate(frame, [FLY[0] + 20, FLY[1]], [0, 1], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            }),
           }}
         >
-          <Img src={staticFile("textures/zh-CN/scheduled-list.png")} style={{ position: "absolute", width: 1920, height: PAGE.h }} />
+          <Img
+            src={staticFile("textures/zh-CN/scheduled-list.png")}
+            style={{ position: "absolute", width: 1920, height: PAGE.h }}
+          />
           {/* 「创建」按钮强调：软光环呼吸（单点光，唯一） */}
           <div
             style={{
@@ -167,7 +254,10 @@ export const S07Terminal: React.FC = () => {
               borderRadius: 14,
               boxShadow: `inset 0 0 0 1px ${alpha(T.accent, 0.5)}, 0 0 26px ${alpha(T.accent, 0.28)}`,
               opacity:
-                interpolate(frame, [FLY[1] + 4, FLY[1] + 14], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) *
+                interpolate(frame, [FLY[1] + 4, FLY[1] + 14], [0, 1], {
+                  extrapolateLeft: "clamp",
+                  extrapolateRight: "clamp",
+                }) *
                 (0.75 + 0.25 * Math.sin((frame - FLY[1]) / 10)),
             }}
           />

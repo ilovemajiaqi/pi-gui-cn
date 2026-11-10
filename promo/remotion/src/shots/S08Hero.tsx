@@ -3,7 +3,16 @@
 // 1.5% 过冲回弹、涟漪强调色细环）+ 全界面同帧翻转蒙太奇 ×3 波（真实 en/zh 双态）。
 // 波次：① 时间线同帧翻转（全屏 slam②）→ ② 设置语言行翻转 → ③ 通知/设置字卡交代跨进程。
 import React from "react";
-import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, Easing, spring, useVideoConfig } from "remotion";
+import {
+  AbsoluteFill,
+  Img,
+  interpolate,
+  staticFile,
+  useCurrentFrame,
+  Easing,
+  spring,
+  useVideoConfig,
+} from "remotion";
 import { alpha } from "../lib/graphics";
 import { Vignette, Grain } from "../lib/Polish";
 import { T, PAGE } from "../theme";
@@ -30,18 +39,34 @@ export const S08Hero: React.FC = () => {
   const { fps } = useVideoConfig();
 
   // 光标（画外滑入 → 按下）
-  const curT = interpolate(frame, [ARROW_IN, ARROW_IN + 22], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
+  const curT = interpolate(frame, [ARROW_IN, ARROW_IN + 22], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.out(Easing.cubic),
+  });
   const curX = interpolate(curT, [0, 1], [2020, SWITCH_AT.x - 40]);
   const curY = interpolate(curT, [0, 1], [1160, SWITCH_AT.y + 4]);
-  const press = interpolate(frame, [CLICK, CLICK + 3, CLICK + 7], [0, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const press = interpolate(frame, [CLICK, CLICK + 3, CLICK + 7], [0, 1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
   const pointerScale = 1.1 * (1 - press * 0.12);
 
   // 白闪（slam②：全片唯一全画面拍击）
   const flash = frame >= FLIP_1 - 2 && frame < FLIP_1 + 6;
-  const flashO = flash ? interpolate(frame, [FLIP_1 - 2, FLIP_1, FLIP_1 + 6], [0, 0.9, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
+  const flashO = flash
+    ? interpolate(frame, [FLIP_1 - 2, FLIP_1, FLIP_1 + 6], [0, 0.9, 0], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      })
+    : 0;
 
   // 语言行选中块过冲 1.5%（点击后）
-  const rowPop = spring({ frame: frame - (CLICK + 2), fps, config: { damping: 12, stiffness: 200 } });
+  const rowPop = spring({
+    frame: frame - (CLICK + 2),
+    fps,
+    config: { damping: 12, stiffness: 200 },
+  });
   const rowScale = frame >= CLICK + 2 ? 0.985 + 0.015 * rowPop : 1;
 
   // 波①时间线 en→zh；波②设置 en→zh
@@ -51,8 +76,27 @@ export const S08Hero: React.FC = () => {
   return (
     <AbsoluteFill style={{ backgroundColor: T.window, overflow: "hidden" }}>
       {/* —— 段 A（0–52）：设置语言行特写（PageCam zoom 2.6 on LANG_ROW）—— */}
-      <div style={{ position: "absolute", inset: 0, opacity: frame < FLIP_1 - 6 ? 1 : interpolate(frame, [FLIP_1 - 6, FLIP_1 - 2], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }}>
-        <div style={{ position: "absolute", inset: 0, perspective: 1400, perspectiveOrigin: "960px 540px" }}>
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          opacity:
+            frame < FLIP_1 - 6
+              ? 1
+              : interpolate(frame, [FLIP_1 - 6, FLIP_1 - 2], [1, 0], {
+                  extrapolateLeft: "clamp",
+                  extrapolateRight: "clamp",
+                }),
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            perspective: 1400,
+            perspectiveOrigin: "960px 540px",
+          }}
+        >
           <div
             style={{
               position: "absolute",
@@ -63,7 +107,10 @@ export const S08Hero: React.FC = () => {
               transformOrigin: `${LANG_ROW.x + LANG_ROW.w / 2}px ${LANG_ROW.y + LANG_ROW.h / 2}px`,
             }}
           >
-            <Img src={staticFile("textures/en/settings-appearance.png")} style={{ position: "absolute", width: 1920, height: PAGE.h }} />
+            <Img
+              src={staticFile("textures/en/settings-appearance.png")}
+              style={{ position: "absolute", width: 1920, height: PAGE.h }}
+            />
             {/* row 选中块（点击后高亮 + 过冲） */}
             {frame >= CLICK + 2 ? (
               <div
@@ -84,7 +131,11 @@ export const S08Hero: React.FC = () => {
             {/* 涟漪 */}
             {frame >= CLICK && frame <= CLICK + 10
               ? (() => {
-                  const t = interpolate(frame, [CLICK, CLICK + 10], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.quad) });
+                  const t = interpolate(frame, [CLICK, CLICK + 10], [0, 1], {
+                    extrapolateLeft: "clamp",
+                    extrapolateRight: "clamp",
+                    easing: Easing.out(Easing.quad),
+                  });
                   const rad = interpolate(t, [0, 1], [16, 64]);
                   return (
                     <div
@@ -120,7 +171,13 @@ export const S08Hero: React.FC = () => {
                 filter: `drop-shadow(0 ${2 - press}px ${3 - press}px rgba(0,0,0,0.4)) drop-shadow(0 ${10 - press * 5}px ${16 - press * 5}px rgba(0,0,0,0.35))`,
               }}
             >
-              <path d="M4 2 L4 24 L9.5 18.5 L13 27 L16.8 25.4 L13.3 17 L21 17 Z" fill="#efece4" stroke="#151514" strokeWidth={1.4} strokeLinejoin="round" />
+              <path
+                d="M4 2 L4 24 L9.5 18.5 L13 27 L16.8 25.4 L13.3 17 L21 17 Z"
+                fill="#efece4"
+                stroke="#151514"
+                strokeWidth={1.4}
+                strokeLinejoin="round"
+              />
             </svg>
           </div>
         </div>
@@ -130,20 +187,62 @@ export const S08Hero: React.FC = () => {
       {/*
         en 前态 → 翻转帧（FLIP_1+2）→ zh。翻转 = 硬切（同帧）+ 2f 提亮（slam 与白闪配合）。
       */}
-      <div style={{ position: "absolute", inset: 0, opacity: frame >= FLIP_1 - 6 && frame < FLIP_2 ? 1 : 0 }}>
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          opacity: frame >= FLIP_1 - 6 && frame < FLIP_2 ? 1 : 0,
+        }}
+      >
         <div style={{ position: "absolute", inset: 0 }}>
-          <Img src={staticFile("textures/en/timeline.png")} style={{ position: "absolute", width: 1920, height: PAGE.h, opacity: frame < FLIP_1 + 2 ? 1 : 0 }} />
-          <div style={{ position: "absolute", inset: 0, opacity: frame >= FLIP_1 + 2 ? 1 : 0, filter: frame < FLIP_1 + 6 ? "brightness(1.35)" : undefined }}>
-            <Img src={staticFile("textures/zh-CN/timeline.png")} style={{ position: "absolute", width: 1920, height: PAGE.h }} />
+          <Img
+            src={staticFile("textures/en/timeline.png")}
+            style={{
+              position: "absolute",
+              width: 1920,
+              height: PAGE.h,
+              opacity: frame < FLIP_1 + 2 ? 1 : 0,
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              opacity: frame >= FLIP_1 + 2 ? 1 : 0,
+              filter: frame < FLIP_1 + 6 ? "brightness(1.35)" : undefined,
+            }}
+          >
+            <Img
+              src={staticFile("textures/zh-CN/timeline.png")}
+              style={{ position: "absolute", width: 1920, height: PAGE.h }}
+            />
           </div>
         </div>
       </div>
 
       {/* —— 波②（170–210）：设置 en → zh —— */}
       <div style={{ position: "absolute", inset: 0, opacity: frame >= FLIP_2 ? 1 : 0 }}>
-        <Img src={staticFile("textures/en/settings-appearance.png")} style={{ position: "absolute", width: 1920, height: PAGE.h, opacity: frame < FLIP_2 + 2 ? 1 : 0 }} />
-        <div style={{ position: "absolute", inset: 0, opacity: frame >= FLIP_2 + 2 ? 1 : 0, filter: frame < FLIP_2 + 6 ? "brightness(1.3)" : undefined }}>
-          <Img src={staticFile("textures/zh-CN/settings-appearance.png")} style={{ position: "absolute", width: 1920, height: PAGE.h }} />
+        <Img
+          src={staticFile("textures/en/settings-appearance.png")}
+          style={{
+            position: "absolute",
+            width: 1920,
+            height: PAGE.h,
+            opacity: frame < FLIP_2 + 2 ? 1 : 0,
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            opacity: frame >= FLIP_2 + 2 ? 1 : 0,
+            filter: frame < FLIP_2 + 6 ? "brightness(1.3)" : undefined,
+          }}
+        >
+          <Img
+            src={staticFile("textures/zh-CN/settings-appearance.png")}
+            style={{ position: "absolute", width: 1920, height: PAGE.h }}
+          />
         </div>
         {/* 底部交代行（跨进程一致）+ 收束 caption */}
         <div
@@ -154,7 +253,10 @@ export const S08Hero: React.FC = () => {
             bottom: 108,
             display: "flex",
             justifyContent: "center",
-            opacity: interpolate(frame, [FLIP_2 + 16, FLIP_2 + 26], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
+            opacity: interpolate(frame, [FLIP_2 + 16, FLIP_2 + 26], [0, 1], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            }),
           }}
         >
           <div

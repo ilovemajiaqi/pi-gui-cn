@@ -45,7 +45,10 @@ const DEMO_FILES: readonly [string, string][] = [
     "src/export.ts",
     `export function exportNote(note: Note): string {\n  return note.body;\n}\n\nexport function exportAll(notes: Note[]): string {\n  return notes.map(exportNote).join("\\n---\\n");\n}\n\nexport function legacyShim(): void {\n  // deprecated\n  console.log("legacy");\n}\n\ninterface Note {\n  id: string;\n  title: string;\n  body: string;\n}\n`,
   ],
-  ["notes/双向链接.md", `# 双向链接\n\n链接到 [[标签系统]] 与 [[导出规划]]。\n\n反链在底部面板列出。\n`],
+  [
+    "notes/双向链接.md",
+    `# 双向链接\n\n链接到 [[标签系统]] 与 [[导出规划]]。\n\n反链在底部面板列出。\n`,
+  ],
   ["notes/标签系统.md", `# 标签系统\n\n标签支持嵌套：#工作/周会。\n`],
   ["notes/导出规划.md", `# 导出规划\n\n目标：单文件夹静态导出，保留目录结构。\n`],
   ["package.json", `{ "name": "stardust-notes", "version": "1.2.0", "private": true }\n`],
@@ -82,7 +85,11 @@ async function makeDemoWorkspace(parent: string): Promise<string> {
   await writeFile(path.join(ws, "notes", "清单模板.md"), "## 今日\n- [ ] 整理标签\n", "utf8");
   git(["add", "."]);
   git(["commit", "-m", "初始化星尘笔记"]);
-  await writeFile(path.join(ws, "notes", "清单模板.md"), "## 今日\n- [ ] 整理标签\n- [x] 复习双向链接\n", "utf8");
+  await writeFile(
+    path.join(ws, "notes", "清单模板.md"),
+    "## 今日\n- [ ] 整理标签\n- [x] 复习双向链接\n",
+    "utf8",
+  );
   git(["add", "."]);
   git(["commit", "-m", "添加清单模板"]);
   // 留下未提交改动，供变更审查页展示真实 diff
@@ -181,7 +188,11 @@ async function seedSessions(agentDir: string, wsPath: string): Promise<void> {
         stopReason: "stop",
         timestamp: tick(),
       });
-      sm.appendMessage({ role: "user", content: "怀疑是内联恢复脚本没跑在首帧之前。", timestamp: tick() });
+      sm.appendMessage({
+        role: "user",
+        content: "怀疑是内联恢复脚本没跑在首帧之前。",
+        timestamp: tick(),
+      });
       sm.branch(root);
       sm.appendMessage({
         role: "user",
@@ -206,7 +217,11 @@ async function seedSessions(agentDir: string, wsPath: string): Promise<void> {
     // 撰写 1.2.0 发版说明
     {
       const sm = SessionManager.create(wsPath);
-      sm.appendMessage({ role: "user", content: "整理 1.2.0 的发版说明，突出导出的改进。", timestamp: tick() });
+      sm.appendMessage({
+        role: "user",
+        content: "整理 1.2.0 的发版说明，突出导出的改进。",
+        timestamp: tick(),
+      });
       sm.appendMessage({
         role: "assistant",
         content: [
@@ -294,9 +309,10 @@ async function seedSessions(agentDir: string, wsPath: string): Promise<void> {
             name: "edit",
             arguments: {
               path: "src/export.ts",
-              old_string: "export function legacyShim(): void {\n  // deprecated\n  console.log(\"legacy\");\n}",
+              old_string:
+                'export function legacyShim(): void {\n  // deprecated\n  console.log("legacy");\n}',
               new_string:
-                "export * from \"./export\";\n\nexport function renderMarkdown(body: string): string {\n  return body.replace(/^## /, \"h2\");\n}",
+                'export * from "./export";\n\nexport function renderMarkdown(body: string): string {\n  return body.replace(/^## /, "h2");\n}',
             },
           },
         ],
@@ -316,7 +332,12 @@ async function seedSessions(agentDir: string, wsPath: string): Promise<void> {
       sm.appendMessage({
         role: "assistant",
         content: [
-          { type: "toolCall", id: bashCall, name: "bash", arguments: { command: "pnpm vitest run export --reporter=dot" } },
+          {
+            type: "toolCall",
+            id: bashCall,
+            name: "bash",
+            arguments: { command: "pnpm vitest run export --reporter=dot" },
+          },
         ],
         ...meta(),
         stopReason: "toolUse",
@@ -326,7 +347,12 @@ async function seedSessions(agentDir: string, wsPath: string): Promise<void> {
         role: "toolResult",
         toolCallId: bashCall,
         toolName: "bash",
-        content: [{ type: "text", text: "PASS  src/export.test.ts\nTests  12 passed (12)\nDuration  2.41s" }],
+        content: [
+          {
+            type: "text",
+            text: "PASS  src/export.test.ts\nTests  12 passed (12)\nDuration  2.41s",
+          },
+        ],
         isError: false,
         timestamp: tick(),
       });
@@ -335,7 +361,7 @@ async function seedSessions(agentDir: string, wsPath: string): Promise<void> {
         content: [
           {
             type: "text",
-            text: "重构完成：\n\n1. `exportNote` 现在走 `renderMarkdown`，正文渲染与新导出能力打通；\n2. 移除了 `legacyShim`，顶层补了 `export * from \"./export\"` 索引；\n3. `vitest` 12 项全绿，无回归。\n\n后续可以把 `renderMarkdown` 的正则替换换成编译器插件，风险更低。",
+            text: '重构完成：\n\n1. `exportNote` 现在走 `renderMarkdown`，正文渲染与新导出能力打通；\n2. 移除了 `legacyShim`，顶层补了 `export * from "./export"` 索引；\n3. `vitest` 12 项全绿，无回归。\n\n后续可以把 `renderMarkdown` 的正则替换换成编译器插件，风险更低。',
           },
         ],
         ...meta(),
@@ -385,12 +411,12 @@ async function captureState(
   await mkdir(path.join(outRoot, locale), { recursive: true });
   const full = pngOf(locale, stateName);
   // 看门狗：截图挂死就抛错走人，不冻结整个流程
-  const shotOp = page
-    .screenshot({ path: full, animations: "disabled" })
-    .catch((error) => {
-      throw new Error(`screenshot failed: ${String(error).slice(0, 160)}`);
-    });
-  const watchdog = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("screenshot watchdog (30s)")), 30_000));
+  const shotOp = page.screenshot({ path: full, animations: "disabled" }).catch((error) => {
+    throw new Error(`screenshot failed: ${String(error).slice(0, 160)}`);
+  });
+  const watchdog = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("screenshot watchdog (30s)")), 30_000),
+  );
   await Promise.race([shotOp, watchdog]);
   const size = pngSize(full);
 
@@ -421,7 +447,7 @@ async function captureState(
   }
   await writeFile(
     path.join(outRoot, locale, `${stateName}.layout.json`),
-    JSON.stringify({ pageW: size.w / 2, pageH: size.h / 2, elements }, null, 1),
+    JSON.stringify({ pageW: size.w / 2, pageH: size.h / 2, elements }, null, 2),
     "utf8",
   );
   console.log(
@@ -452,7 +478,9 @@ async function main(): Promise<void> {
   await seedSessions(agentDir, workspacePath);
   console.log(`userData: ${userDataDir}\nworkspace: ${workspacePath}`);
 
-  const { createRequire } = (await import("node:module")) as { createRequire: (p: string) => NodeRequire };
+  const { createRequire } = (await import("node:module")) as {
+    createRequire: (p: string) => NodeRequire;
+  };
   const electronCli = createRequire(scriptDir + path.sep)["electron"] as string;
 
   const env: Record<string, string> = { ...process.env } as Record<string, string>;
@@ -491,24 +519,32 @@ async function main(): Promise<void> {
     const deltaW = 1920 - probe.w;
     const deltaH = 1080 - probe.h;
     if (Math.abs(deltaW) <= 0 && Math.abs(deltaH) <= 0) break;
-    await electronApp.evaluate(({ BrowserWindow }, delta) => {
-      const win =
-        BrowserWindow.getAllWindows().find((w) => !w.isDestroyed() && w.webContents.getURL().length > 0) ??
-        BrowserWindow.getAllWindows()[0];
-      // Windows 对不可缩放窗口忽略 resize——必须先解锁再改尺寸
-      win.setResizable(true);
-      win.setMinimumSize(0, 0);
-      const bounds = win.getContentBounds();
-      win.setContentSize(bounds.width + delta[0], bounds.height + delta[1]);
-      // 每次改尺寸后重新甩到屏幕外，别打扰正在工作的人
-      const outer = win.getBounds();
-      win.setBounds({ x: -6000, y: 40, width: outer.width, height: outer.height });
-      win.blur();
-    }, [deltaW, deltaH]);
+    await electronApp.evaluate(
+      ({ BrowserWindow }, delta) => {
+        const win =
+          BrowserWindow.getAllWindows().find(
+            (w) => !w.isDestroyed() && w.webContents.getURL().length > 0,
+          ) ?? BrowserWindow.getAllWindows()[0];
+        // Windows 对不可缩放窗口忽略 resize——必须先解锁再改尺寸
+        win.setResizable(true);
+        win.setMinimumSize(0, 0);
+        const bounds = win.getContentBounds();
+        win.setContentSize(bounds.width + delta[0], bounds.height + delta[1]);
+        // 每次改尺寸后重新甩到屏幕外，别打扰正在工作的人
+        const outer = win.getBounds();
+        win.setBounds({ x: -6000, y: 40, width: outer.width, height: outer.height });
+        win.blur();
+      },
+      [deltaW, deltaH],
+    );
   }
   await hold(600);
 
-  const vp = await page.evaluate(() => ({ w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio }));
+  const vp = await page.evaluate(() => ({
+    w: window.innerWidth,
+    h: window.innerHeight,
+    dpr: window.devicePixelRatio,
+  }));
   console.log(`viewport ${vp.w}x${vp.h} @ ${vp.dpr}x`);
   // PageCam 以每次采集的 layout.json 为坐标系，±24px 的视口差异不构成素材问题，只有 2x 纹理是硬要求
   if (vp.dpr !== 2) throw new Error(`devicePixelRatio is ${vp.dpr}, expected 2`);
@@ -516,7 +552,8 @@ async function main(): Promise<void> {
 
   const setThemeDark = async (): Promise<void> => {
     await page.evaluate(async () => {
-      const app = (window as unknown as { piApp?: { setThemeMode(m: string): Promise<unknown> } }).piApp;
+      const app = (window as unknown as { piApp?: { setThemeMode(m: string): Promise<unknown> } })
+        .piApp;
       if (!app) throw new Error("piApp unavailable");
       await app.setThemeMode("dark");
     });
@@ -543,7 +580,8 @@ async function main(): Promise<void> {
   };
 
   let locale: Locale = "en";
-  const shoot = (stateName: string, cuts: readonly CutSpec[] = []) => captureState(page, locale, stateName, cuts);
+  const shoot = (stateName: string, cuts: readonly CutSpec[] = []) =>
+    captureState(page, locale, stateName, cuts);
 
   const captureAll = async (): Promise<void> => {
     // 1 · 新对话页（默认）
@@ -552,17 +590,19 @@ async function main(): Promise<void> {
     // 2 · 时间线（选最新会话）
     try {
       await page.evaluate(async () => {
-        const app = (window as unknown as {
-          piApp?: {
-            getState(): Promise<{
-              workspaces: {
-                id: string;
-                sessions: { id: string; title: string }[];
-              }[];
-            }>;
-            selectSession(a: unknown): Promise<void>;
-          };
-        }).piApp;
+        const app = (
+          window as unknown as {
+            piApp?: {
+              getState(): Promise<{
+                workspaces: {
+                  id: string;
+                  sessions: { id: string; title: string }[];
+                }[];
+              }>;
+              selectSession(a: unknown): Promise<void>;
+            };
+          }
+        ).piApp;
         if (!app) throw new Error("piApp unavailable");
         const st = await app.getState();
         const ws = st.workspaces[0];
@@ -582,7 +622,9 @@ async function main(): Promise<void> {
     try {
       await openPalette();
       await hold(600);
-      await shoot("palette-empty", [{ name: "palette", selector: '[data-testid="command-palette"]' }]);
+      await shoot("palette-empty", [
+        { name: "palette", selector: '[data-testid="command-palette"]' },
+      ]);
       await page.keyboard.insertText(locale === "en" ? "review" : "重构");
       await hold(800);
       await shoot("palette", [{ name: "palette", selector: '[data-testid="command-palette"]' }]);
@@ -600,9 +642,7 @@ async function main(): Promise<void> {
         { name: "file-explorer", selector: '[data-testid="file-explorer"]' },
       ]);
       // 文件树里的 src/export.ts 行（单选择器，避免严格模式多匹配异常）
-      const diffRow = page
-        .getByText(/export.ts/)
-        .last();
+      const diffRow = page.getByText(/export.ts/).last();
       if (await diffRow.isVisible().catch(() => false)) {
         await diffRow.click();
         await hold(2400);
@@ -629,7 +669,9 @@ async function main(): Promise<void> {
       await page.keyboard.insertText('node -v && echo "stardust-notes dev ready"');
       await page.keyboard.press("Enter");
       await hold(2600);
-      await shoot("terminal", [{ name: "terminal", selector: '[data-testid="integrated-terminal"]' }]);
+      await shoot("terminal", [
+        { name: "terminal", selector: '[data-testid="integrated-terminal"]' },
+      ]);
       await page.keyboard.press("Control+j");
       await hold(900);
     } catch (error) {
@@ -640,7 +682,9 @@ async function main(): Promise<void> {
     try {
       await page.locator('[data-testid="sidebar-scheduled"]').first().click();
       await hold(1500);
-      await shoot("scheduled-list", [{ name: "scheduled", selector: '[data-testid="scheduled-tasks-view"]' }]);
+      await shoot("scheduled-list", [
+        { name: "scheduled", selector: '[data-testid="scheduled-tasks-view"]' },
+      ]);
       const create = page.locator('[data-testid="scheduled-task-create"]').first();
       if (await create.isVisible().catch(() => false)) {
         await create.click();
@@ -651,7 +695,9 @@ async function main(): Promise<void> {
           const instruction = page.locator('[data-testid="scheduled-task-instruction"]').first();
           await instruction.fill("检查 notes/ 目录，为没有标签的笔记补上默认标签，并更新索引。");
           await hold(500);
-          await shoot("scheduled-editor", [{ name: "scheduled", selector: '[data-testid="scheduled-tasks-view"]' }]);
+          await shoot("scheduled-editor", [
+            { name: "scheduled", selector: '[data-testid="scheduled-tasks-view"]' },
+          ]);
           await page.keyboard.press("Escape");
           await hold(500);
         }
@@ -660,7 +706,11 @@ async function main(): Promise<void> {
       console.warn(`  scheduled failed: ${String(error).slice(0, 200)}`);
     }
     // 回到会话视图
-    await page.locator('[data-testid="sidebar-scheduled"]').first().click().catch(() => {});
+    await page
+      .locator('[data-testid="sidebar-scheduled"]')
+      .first()
+      .click()
+      .catch(() => {});
     await hold(900);
 
     // 7 · 技能 & 扩展（侧栏按钮，中英文案不同）
@@ -670,7 +720,9 @@ async function main(): Promise<void> {
       if (await skillsBtn.isVisible().catch(() => false)) {
         await skillsBtn.click();
         await hold(1800);
-        await shoot("skills", [{ name: "skills-surface", selector: '[data-testid="skills-surface"]' }]);
+        await shoot("skills", [
+          { name: "skills-surface", selector: '[data-testid="skills-surface"]' },
+        ]);
       } else {
         console.warn("  skills button not found");
       }
@@ -682,7 +734,9 @@ async function main(): Promise<void> {
       if (await extBtn.isVisible().catch(() => false)) {
         await extBtn.click();
         await hold(1800);
-        await shoot("extensions", [{ name: "extensions-surface", selector: '[data-testid="extensions-surface"]' }]);
+        await shoot("extensions", [
+          { name: "extensions-surface", selector: '[data-testid="extensions-surface"]' },
+        ]);
       } else {
         console.warn("  extensions button not found");
       }
@@ -695,14 +749,18 @@ async function main(): Promise<void> {
       await page.keyboard.press("Control+,");
       await page.waitForSelector('[data-testid="settings-surface"]', { timeout: 15_000 });
       await hold(1400);
-      await shoot("settings-root", [{ name: "settings", selector: '[data-testid="settings-surface"]' }]);
+      await shoot("settings-root", [
+        { name: "settings", selector: '[data-testid="settings-surface"]' },
+      ]);
       const appearanceBtn = page
         .getByRole("button", { name: locale === "en" ? "Appearance" : "外观" })
         .first();
       if (await appearanceBtn.isVisible().catch(() => false)) {
         await appearanceBtn.click();
         await hold(1300);
-        await shoot("settings-appearance", [{ name: "settings", selector: '[data-testid="settings-surface"]' }]);
+        await shoot("settings-appearance", [
+          { name: "settings", selector: '[data-testid="settings-surface"]' },
+        ]);
       }
       await page.keyboard.press("Escape");
       await hold(700);

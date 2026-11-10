@@ -63,8 +63,19 @@ const Page: React.FC = () => {
   const { s, tx, ty } = tailPush(frame);
   return (
     <AbsoluteFill style={{ overflow: "hidden", backgroundColor: T.window }}>
-      <div style={{ position: "absolute", width: 1920, height: PAGE.h, transformOrigin: "0 0", transform: `translate(${tx.toFixed(2)}px, ${ty.toFixed(2)}px) scale(${s.toFixed(4)})` }}>
-        <Img src={staticFile("textures/zh-CN/new-thread.png")} style={{ position: "absolute", width: 1920, height: PAGE.h }} />
+      <div
+        style={{
+          position: "absolute",
+          width: 1920,
+          height: PAGE.h,
+          transformOrigin: "0 0",
+          transform: `translate(${tx.toFixed(2)}px, ${ty.toFixed(2)}px) scale(${s.toFixed(4)})`,
+        }}
+      >
+        <Img
+          src={staticFile("textures/zh-CN/new-thread.png")}
+          style={{ position: "absolute", width: 1920, height: PAGE.h }}
+        />
       </div>
     </AbsoluteFill>
   );

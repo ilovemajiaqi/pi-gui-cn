@@ -26,7 +26,13 @@ export const SFX_CUES: readonly SfxCue[] = [
   { from: beatIn("S01", 3), src: POP, volume: 0.5, note: "徽章 landPop 落定" },
   // S02 · crane 拉升（whoosh 上升段起拍 1）+ 定场 impact（slam①，beat 7+）
   { from: beatIn("S02", 1), src: SWOOSH_AIR, volume: 0.6, note: "拉升运镜上升气流" },
-  { from: beatIn("S02", 7) + 1, src: IMPACT_A, volume: 0.7, startFrom: 0.175, note: "整页落定 slam①" },
+  {
+    from: beatIn("S02", 7) + 1,
+    src: IMPACT_A,
+    volume: 0.7,
+    startFrom: 0.175,
+    note: "整页落定 slam①",
+  },
   // C01 · 字卡进入
   { from: beatIn("C01", 0) - 4, src: SWOOSH_D, volume: 0.45, note: "字卡轻扫入" },
   // S03 · 换章 whip-pan
@@ -46,7 +52,13 @@ export const SFX_CUES: readonly SfxCue[] = [
   { from: beatIn("S06", 0) + 24, src: POP, volume: 0.35, note: "行1 嵌入" },
   { from: beatIn("S06", 0) + 34, src: SWOOSH_D, volume: 0.5, note: "行2 归位" },
   { from: beatIn("S06", 0) + 43, src: POP, volume: 0.3, note: "行3 嵌入" },
-  { from: beatIn("S06", 0) + 51, src: IMPACT_B, volume: 0.45, startFrom: 0.135, note: "diff 主块落位" },
+  {
+    from: beatIn("S06", 0) + 51,
+    src: IMPACT_B,
+    volume: 0.45,
+    startFrom: 0.135,
+    note: "diff 主块落位",
+  },
   // S07 · 终端打字（1f/字符，3 声随打字窗）/ 输出揭示 / 换站 / 创建按钮光环
   { from: beatIn("S07", 0) + 10, src: KEY, volume: 0.4, startFrom: 0.1, note: "终端打字1" },
   { from: beatIn("S07", 0) + 18, src: KEY, volume: 0.34, startFrom: 0.1, note: "终端打字2" },
@@ -58,7 +70,13 @@ export const SFX_CUES: readonly SfxCue[] = [
   // S08 · HERO：光标滑入 / 点击 / slam② 白闪 / 波②换页 / 交代行
   { from: beatIn("S08", 0) + 20, src: SWOOSH_AIR, volume: 0.6, note: "光标滑入" },
   { from: beatIn("S08", 1.5), src: POP, volume: 0.55, note: "点击语言行" },
-  { from: beatIn("S08", 3), src: IMPACT_A, volume: 0.8, startFrom: 0.175, note: "波①全界面翻转 slam②" },
+  {
+    from: beatIn("S08", 3),
+    src: IMPACT_A,
+    volume: 0.8,
+    startFrom: 0.175,
+    note: "波①全界面翻转 slam②",
+  },
   { from: beatIn("S08", 10) - 11, src: WAVE, volume: 0.7, note: "波②设置页翻转（wipe 峰拍对齐）" },
   { from: beatIn("S08", 12), src: POP, volume: 0.4, note: "跨进程交代行落定" },
   // S09 · 数字滚轮三连 + 分隔线

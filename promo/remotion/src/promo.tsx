@@ -16,12 +16,18 @@ import { S09Foundation, S10Lockup, S11Outro } from "./shots/S09S10S11";
 // 转场覆盖层：S01→S02 推进流白（4f 入/4f 出），S10→S11 黑场 dip（4f 入/4f 出）
 const FlushWhite: React.FC = () => {
   const f = useCurrentFrame();
-  const o = interpolate(f, [0, 4, 8], [0, 0.55, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const o = interpolate(f, [0, 4, 8], [0, 0.55, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
   return <AbsoluteFill style={{ background: "#f5f4f0", opacity: o, pointerEvents: "none" }} />;
 };
 const DipBlack: React.FC = () => {
   const f = useCurrentFrame();
-  const o = interpolate(f, [0, 4, 8], [0, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const o = interpolate(f, [0, 4, 8], [0, 1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
   return <AbsoluteFill style={{ background: "#000000", opacity: o, pointerEvents: "none" }} />;
 };
 
@@ -51,14 +57,24 @@ export const Promo: React.FC<PromoProps> = ({ bgm }) => {
       {SHOTS.map((shot) => {
         const Comp = SHOT_COMPONENTS[shot.id];
         return (
-          <Sequence key={shot.id} from={shot.from} durationInFrames={shot.duration} name={`${shot.id} ${shot.title}`}>
+          <Sequence
+            key={shot.id}
+            from={shot.from}
+            durationInFrames={shot.duration}
+            name={`${shot.id} ${shot.title}`}
+          >
             <Comp />
           </Sequence>
         );
       })}
       {/* SFX：钉帧表相对帧；startFrom = 文件内起点（按素材能量峰对齐） */}
       {SFX_CUES.map((cue, i) => (
-        <Sequence key={`sfx-${i}`} from={Math.max(0, cue.from)} durationInFrames={TOTAL_FRAMES - Math.max(0, cue.from)} name={`sfx ${cue.note}`}>
+        <Sequence
+          key={`sfx-${i}`}
+          from={Math.max(0, cue.from)}
+          durationInFrames={TOTAL_FRAMES - Math.max(0, cue.from)}
+          name={`sfx ${cue.note}`}
+        >
           <Audio src={staticFile(cue.src)} volume={cue.volume} startFrom={cue.startFrom ?? 0} />
         </Sequence>
       ))}
@@ -73,7 +89,9 @@ export const Promo: React.FC<PromoProps> = ({ bgm }) => {
       {bgm ? (
         <Audio
           src={staticFile("audio/bgm/bgm-cut.mp3")}
-          volume={(f) => 0.45 * (f > TOTAL_FRAMES - 54 ? Math.max(0, 1 - (f - (TOTAL_FRAMES - 54)) / 54) : 1)}
+          volume={(f) =>
+            0.45 * (f > TOTAL_FRAMES - 54 ? Math.max(0, 1 - (f - (TOTAL_FRAMES - 54)) / 54) : 1)
+          }
         />
       ) : null}
     </AbsoluteFill>

@@ -41,7 +41,7 @@ export const S04Threads: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const { zoom, cx, cy } = camAt(frame);
-  
+
   return (
     <AbsoluteFill style={{ backgroundColor: T.window, overflow: "hidden" }}>
       <div
@@ -63,7 +63,10 @@ export const S04Threads: React.FC = () => {
             filter: "none",
           }}
         >
-          <Img src={staticFile("textures/zh-CN/timeline.png")} style={{ position: "absolute", width: 1920, height: PAGE.h }} />
+          <Img
+            src={staticFile("textures/zh-CN/timeline.png")}
+            style={{ position: "absolute", width: 1920, height: PAGE.h }}
+          />
           {/* 线程行 reveal：真实截图上覆高亮片（内容已在页内，显形而非移位） */}
           {THREADS.map((r, i) => {
             const t0 = 12 + i * 10;
@@ -106,13 +109,42 @@ export const S04Threads: React.FC = () => {
           const subP = Easing.out(Easing.cubic)(Math.min(1, Math.max(0, (frame - 64) / 18)));
           return (
             <div>
-              <div style={{ fontFamily: "var(--font-mono)", fontFamily: FONT_MONO, fontSize: 20, letterSpacing: "0.3em", color: T.accent, opacity: kickP }}>
+              <div
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontFamily: FONT_MONO,
+                  fontSize: 20,
+                  letterSpacing: "0.3em",
+                  color: T.accent,
+                  opacity: kickP,
+                }}
+              >
                 PARALLEL THREADS
               </div>
-              <div style={{ marginTop: 26, fontFamily: FONT_SANS, fontSize: 76, fontWeight: 700, letterSpacing: "-0.02em", color: T.ink, opacity: line1P, transform: `translateY(${((1 - line1P) * 18).toFixed(2)}px)` }}>
+              <div
+                style={{
+                  marginTop: 26,
+                  fontFamily: FONT_SANS,
+                  fontSize: 76,
+                  fontWeight: 700,
+                  letterSpacing: "-0.02em",
+                  color: T.ink,
+                  opacity: line1P,
+                  transform: `translateY(${((1 - line1P) * 18).toFixed(2)}px)`,
+                }}
+              >
                 多线程同时推进
               </div>
-              <div style={{ marginTop: 18, fontFamily: FONT_SANS, fontSize: 34, color: T.muted, opacity: subP, transform: `translateY(${((1 - subP) * 12).toFixed(2)}px)` }}>
+              <div
+                style={{
+                  marginTop: 18,
+                  fontFamily: FONT_SANS,
+                  fontSize: 34,
+                  color: T.muted,
+                  opacity: subP,
+                  transform: `translateY(${((1 - subP) * 12).toFixed(2)}px)`,
+                }}
+              >
                 每个会话一个 git 工作树，
                 <br />
                 互不踩脚，随时切换。

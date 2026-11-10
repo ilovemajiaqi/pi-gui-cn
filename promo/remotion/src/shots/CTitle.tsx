@@ -16,9 +16,14 @@ export interface CardCopy {
 
 // 数字滚轮（odometer；demo 同款，双份拼接保证滚感）
 const DIGITS = "0123456789";
-const DigitColumn: React.FC<{ ch: string; delay: number; lineH: number }> = ({ ch, delay, lineH }) => {
+const DigitColumn: React.FC<{ ch: string; delay: number; lineH: number }> = ({
+  ch,
+  delay,
+  lineH,
+}) => {
   const frame = useCurrentFrame();
-  if (ch < "0" || ch > "9") return <span style={{ fontSize: 24, lineHeight: `${lineH}px`, color: T.mutedSoft }}>{ch}</span>;
+  if (ch < "0" || ch > "9")
+    return <span style={{ fontSize: 24, lineHeight: `${lineH}px`, color: T.mutedSoft }}>{ch}</span>;
   const target = DIGITS.indexOf(ch);
   const t = interpolate(frame, [delay, delay + 22], [0, 1], {
     extrapolateLeft: "clamp",
@@ -30,7 +35,16 @@ const DigitColumn: React.FC<{ ch: string; delay: number; lineH: number }> = ({ c
     <span style={{ display: "inline-block", height: lineH }}>
       <span style={{ display: "block", transform: `translateY(${-offset}px)` }}>
         {(DIGITS + DIGITS).split("").map((d, j) => (
-          <span key={j} style={{ display: "block", fontSize: 24, lineHeight: `${lineH}px`, color: T.accent, fontVariantNumeric: "tabular-nums" }}>
+          <span
+            key={j}
+            style={{
+              display: "block",
+              fontSize: 24,
+              lineHeight: `${lineH}px`,
+              color: T.accent,
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
             {d}
           </span>
         ))}
@@ -42,7 +56,9 @@ const DigitColumn: React.FC<{ ch: string; delay: number; lineH: number }> = ({ c
 export const DigitRoll: React.FC<{ value: string; delay: number }> = ({ value, delay }) => {
   const lineH = 24 * 1.2;
   return (
-    <span style={{ display: "inline-flex", overflow: "hidden", height: lineH, verticalAlign: "bottom" }}>
+    <span
+      style={{ display: "inline-flex", overflow: "hidden", height: lineH, verticalAlign: "bottom" }}
+    >
       {value.split("").map((c, i) => (
         <DigitColumn key={i} ch={c} delay={delay + i * 4} lineH={lineH} />
       ))}
@@ -61,11 +77,18 @@ export const TitleCard: React.FC<{ copy: CardCopy }> = ({ copy }) => {
     extrapolateRight: "clamp",
     easing: Easing.bezier(0.3, 0, 0.2, 1),
   });
-  const subT = interpolate(frame, [10, 22], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const subT = interpolate(frame, [10, 22], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
   const headP = ramp(frame, 0, 16);
 
   function ramp(f: number, s: number, d: number) {
-    return interpolate(f, [s, s + d], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
+    return interpolate(f, [s, s + d], [0, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: Easing.out(Easing.cubic),
+    });
   }
 
   return (
@@ -78,7 +101,13 @@ export const TitleCard: React.FC<{ copy: CardCopy }> = ({ copy }) => {
         backgroundImage: `radial-gradient(1100px 750px at 50% 42%, ${alpha("#ffffff", 0.05)}, transparent 65%), radial-gradient(ellipse 55% 60% at 50% 20%, ${alpha(T.accent, 0.06)}, transparent 70%)`,
       }}
     >
-      <div style={{ textAlign: "center", maxWidth: 1500, transform: `translateY(${((1 - subT) * 8).toFixed(2)}px)` }}>
+      <div
+        style={{
+          textAlign: "center",
+          maxWidth: 1500,
+          transform: `translateY(${((1 - subT) * 8).toFixed(2)}px)`,
+        }}
+      >
         <div
           style={{
             fontFamily: FONT.mono,

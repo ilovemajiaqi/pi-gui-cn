@@ -8,7 +8,13 @@ import { FONT, T } from "../theme";
 export const alpha = (color: string, a: number): string => {
   if (color.startsWith("#")) {
     const h = color.slice(1);
-    const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h.slice(0, 6);
+    const full =
+      h.length === 3
+        ? h
+            .split("")
+            .map((c) => c + c)
+            .join("")
+        : h.slice(0, 6);
     const n = parseInt(full, 16);
     return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
   }
@@ -44,7 +50,9 @@ export const Words: React.FC<{
               opacity: p,
               transform: `translateY(${((1 - p) * dy).toFixed(2)}px)`,
               filter: p >= 0.999 ? undefined : `blur(${((1 - p) * blur).toFixed(2)}px)`,
-              letterSpacing: w.track ? `${(w.track[0] + (w.track[1] - w.track[0]) * p).toFixed(4)}em` : undefined,
+              letterSpacing: w.track
+                ? `${(w.track[0] + (w.track[1] - w.track[0]) * p).toFixed(4)}em`
+                : undefined,
               ...w.style,
             }}
           >
@@ -57,7 +65,11 @@ export const Words: React.FC<{
 };
 
 // mono 小写 kicker（首帧即在，blur-slide 单行版）
-export const Kicker: React.FC<{ text: string; start: number; style?: React.CSSProperties }> = ({ text, start, style }) => {
+export const Kicker: React.FC<{ text: string; start: number; style?: React.CSSProperties }> = ({
+  text,
+  start,
+  style,
+}) => {
   const frame = useCurrentFrame();
   const p = ramp(frame, start, 18, EASE.out);
   return (

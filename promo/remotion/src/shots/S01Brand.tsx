@@ -27,10 +27,32 @@ export const S01Brand: React.FC = () => {
   ];
 
   return (
-    <AbsoluteFill style={{ overflow: "hidden", background: `radial-gradient(1200px 800px at 50% 38%, ${T.windowCenter} 0%, ${T.window} 68%)` }}>
-      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 62% 70% at 50% 20%, ${alpha(T.accent, 0.07)} 0%, ${alpha(T.accent, 0)} 70%), radial-gradient(ellipse 62% 70% at 50% 40%, ${alpha("#ffffff", 0.045)} 0%, ${alpha("#ffffff", 0)} 72%)` }} />
-      <div style={{ position: "absolute", inset: 0, transform: `scale(${push.toFixed(4)})`, transformOrigin: "50% 46%" }}>
-        <Kicker text="pi coding agent · desktop client" start={6} style={{ position: "absolute", left: 0, right: 0, top: 268, textAlign: "center" }} />
+    <AbsoluteFill
+      style={{
+        overflow: "hidden",
+        background: `radial-gradient(1200px 800px at 50% 38%, ${T.windowCenter} 0%, ${T.window} 68%)`,
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: `radial-gradient(ellipse 62% 70% at 50% 20%, ${alpha(T.accent, 0.07)} 0%, ${alpha(T.accent, 0)} 70%), radial-gradient(ellipse 62% 70% at 50% 40%, ${alpha("#ffffff", 0.045)} 0%, ${alpha("#ffffff", 0)} 72%)`,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          transform: `scale(${push.toFixed(4)})`,
+          transformOrigin: "50% 46%",
+        }}
+      >
+        <Kicker
+          text="pi coding agent · desktop client"
+          start={6}
+          style={{ position: "absolute", left: 0, right: 0, top: 268, textAlign: "center" }}
+        />
 
         {/* 字标：逐词从虚焦浮出；连字符是唯一强调点 */}
         <Words

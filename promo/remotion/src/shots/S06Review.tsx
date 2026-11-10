@@ -20,7 +20,11 @@ const CAM_EASE = Easing.bezier(0.33, 0, 0.15, 1);
 const camAt = (frame: number) => {
   let a = KEY[0];
   let b = KEY[KEY.length - 1];
-  const t = interpolate(frame, [a.frame, b.frame], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: CAM_EASE });
+  const t = interpolate(frame, [a.frame, b.frame], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: CAM_EASE,
+  });
   return {
     zoom: a.zoom + (b.zoom - a.zoom) * t,
     cx: a.cx + (b.cx - a.cx) * t,
@@ -31,9 +35,9 @@ const camAt = (frame: number) => {
 // src/export.ts 的 diff 块（review-diff 纹理内的面板空间坐标，采集后按 layout 校准；
 // 5 块 = 未提交头 + 筛选输入 + export.ts 行 + diff +5/−13 行组 ×3）
 const DIFF_ROWS = [
-  { x: 1491, y: 56, w: 430, h: 40 },   // 未提交 +11 −13 头
-  { x: 1491, y: 112, w: 430, h: 36 },  // src/export.ts +3 −5 行
-  { x: 1741, y: 112, w: 180, h: 34 },  // 筛选文件 输入列
+  { x: 1491, y: 56, w: 430, h: 40 }, // 未提交 +11 −13 头
+  { x: 1491, y: 112, w: 430, h: 36 }, // src/export.ts +3 −5 行
+  { x: 1741, y: 112, w: 180, h: 34 }, // 筛选文件 输入列
   { x: 1491, y: 160, w: 245, h: 250 }, // diff 行块（+绿 −红）
 ];
 const CUES = [12, 22, 31, 39];
@@ -44,7 +48,8 @@ const SRC = "textures/zh-CN/review-diff.png";
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 const PAGE_BG = "#222221"; // 采样自 review 面板真实底色
 
-const airOf = (frame: number, cue: number) => 1 - interpolate(frame, [cue, cue + FLY], [0, 1], { ...clamp, easing: FLY_EASE });
+const airOf = (frame: number, cue: number) =>
+  1 - interpolate(frame, [cue, cue + FLY], [0, 1], { ...clamp, easing: FLY_EASE });
 
 export const S06Review: React.FC = () => {
   const frame = useCurrentFrame();
@@ -70,7 +75,10 @@ export const S06Review: React.FC = () => {
             transformOrigin: `${cx}px ${cy}px`,
           }}
         >
-          <Img src={staticFile(SRC)} style={{ position: "absolute", width: 1920, height: PAGE.h }} />
+          <Img
+            src={staticFile(SRC)}
+            style={{ position: "absolute", width: 1920, height: PAGE.h }}
+          />
           {DIFF_ROWS.map((r, i) => {
             const cue = CUES[i];
             const land = cue + FLY;
@@ -82,7 +90,13 @@ export const S06Review: React.FC = () => {
               const air = airOf(frame, cue);
               const p = 1 - air;
               const appear = interpolate(frame, [cue, cue + 3], [0, 1], clamp);
-              const scale = frame < land ? 1.06 - 0.065 * p : interpolate(frame, [land, land + 4], [0.995, 1], { ...clamp, easing: Easing.out(Easing.quad) });
+              const scale =
+                frame < land
+                  ? 1.06 - 0.065 * p
+                  : interpolate(frame, [land, land + 4], [0.995, 1], {
+                      ...clamp,
+                      easing: Easing.out(Easing.quad),
+                    });
               const vy = 120 * (airOf(frame - 0.5, cue) - airOf(frame + 0.5, cue));
               const mb = frame < land ? Math.min(3.2, vy * 0.22) : 0;
               flyer = (
@@ -121,7 +135,8 @@ export const S06Review: React.FC = () => {
                 </div>
               );
               const near = interpolate(air, [0, 0.5], [1, 0], clamp);
-              const contactOp = frame < land ? near * 0.5 : interpolate(frame, [land, land + 3], [0.5, 0], clamp);
+              const contactOp =
+                frame < land ? near * 0.5 : interpolate(frame, [land, land + 3], [0.5, 0], clamp);
               contact = (
                 <div
                   key={`contact-${i}`}
@@ -141,7 +156,10 @@ export const S06Review: React.FC = () => {
             }
             let seam: React.ReactNode = null;
             if (frame >= land && frame < land + 8) {
-              const spread = interpolate(frame, [land, land + 5], [0, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
+              const spread = interpolate(frame, [land, land + 5], [0, 1], {
+                ...clamp,
+                easing: Easing.out(Easing.cubic),
+              });
               const seamOpacity = interpolate(frame, [land, land + 2, land + 8], [1, 1, 0], clamp);
               const seamW = r.w * spread;
               seam = (

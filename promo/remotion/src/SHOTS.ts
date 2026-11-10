@@ -7,7 +7,8 @@ export const SOURCE_BEAT0 = 9.458492;
 export const BEAT_SECONDS = 0.4838524;
 export const OUTPUT_AUDIO_OFFSET_SEC = 0; // 渲后回测若有编码偏移再填实测
 export const BGM_START_BEAT = 8; // 视频第 0 帧 ↔ 源音乐拍 8
-export const BGM_START_TIME = SOURCE_BEAT0 + BGM_START_BEAT * BEAT_SECONDS + OUTPUT_AUDIO_OFFSET_SEC; // 13.3289s
+export const BGM_START_TIME =
+  SOURCE_BEAT0 + BGM_START_BEAT * BEAT_SECONDS + OUTPUT_AUDIO_OFFSET_SEC; // 13.3289s
 
 const beatT = (n: number) => SOURCE_BEAT0 + OUTPUT_AUDIO_OFFSET_SEC + n * BEAT_SECONDS;
 export const beatF = (n: number) => Math.round(beatT(n) * FPS);
