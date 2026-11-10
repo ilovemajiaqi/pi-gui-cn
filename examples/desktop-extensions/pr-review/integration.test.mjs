@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { chmod, mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -27,8 +27,7 @@ test(
     const directory = await mkdtemp(join(tmpdir(), "pi-pr-review-admission-"));
     const cwd = join(directory, "checkout");
     const agentDir = join(directory, "agent");
-    const bin = join(directory, "bin");
-    await Promise.all([cwd, agentDir, bin].map((path) => mkdir(path)));
+    await Promise.all([cwd, agentDir].map((path) => mkdir(path)));
     const execute = promisify(execFile);
     const git = async (...args) =>
       (await execute("git", args, { cwd, encoding: "utf8" })).stdout.trim();
@@ -59,16 +58,17 @@ test(
       headRefOid: head,
       baseRefOid: base,
     };
-    // The process-local fixture executable cannot contact GitHub or read user credentials.
-    const gh = join(bin, "gh");
-    await writeFile(
-      gh,
-      `#!/usr/bin/env node\nprocess.stdout.write(${JSON.stringify(JSON.stringify(metadata))});\n`,
-    );
-    await chmod(gh, 0o755);
+    // The process-local fixture cannot contact GitHub or read user credentials. It is a
+    // plain Node script handed over through PI_APP_EXAMPLE_GH_COMMAND instead of a
+    // shebang `gh` on PATH: Windows cannot execute a shebang script, and a fixture that
+    // only works on POSIX would leave the Windows job red for a reason unrelated to the
+    // code under test.
+    const ghMetadata = JSON.stringify(metadata);
+    const stub = join(directory, "gh-stub.js");
+    await writeFile(stub, `process.stdout.write(${JSON.stringify(ghMetadata)});\n`);
 
-    const previousPath = process.env.PATH;
-    process.env.PATH = `${bin}:${previousPath ?? ""}`;
+    const previousGhCommand = process.env.PI_APP_EXAMPLE_GH_COMMAND;
+    process.env.PI_APP_EXAMPLE_GH_COMMAND = stub;
     const bus = createEventBus();
     const declarations = [];
     bus.on(DESKTOP_VIEW_REGISTER, (event) => {
@@ -154,8 +154,8 @@ test(
       session?.dispose();
       loader.getExtensions().runtime.invalidate();
       bus.clear();
-      if (previousPath === undefined) delete process.env.PATH;
-      else process.env.PATH = previousPath;
+      if (previousGhCommand === undefined) delete process.env.PI_APP_EXAMPLE_GH_COMMAND;
+      else process.env.PI_APP_EXAMPLE_GH_COMMAND = previousGhCommand;
     }
   },
 );

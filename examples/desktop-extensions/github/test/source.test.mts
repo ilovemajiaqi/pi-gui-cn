@@ -8,7 +8,10 @@ import { GH_MISSING } from "../contract.ts";
 import { issueDraft, pullRequestDraft } from "../drafts.ts";
 import { loadRepository, readItem, summarizeChecks } from "../source.ts";
 
-const gh = fileURLToPath(new URL("./fake-gh.mjs", import.meta.url));
+// A Node script rather than a shebang `gh` on PATH: Windows cannot exec a shebang file
+// without a registered extension, so the fake is launched as `node fake-gh.mjs` there and
+// the same fixture works on every OS.
+const gh = [process.execPath, fileURLToPath(new URL("./fake-gh.mjs", import.meta.url))];
 const piGuiResponses = fileURLToPath(new URL("./fixtures/pi-gui.json", import.meta.url));
 const signal = new AbortController().signal;
 

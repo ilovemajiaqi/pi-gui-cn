@@ -23,6 +23,22 @@ export function relativeFile(value: string): boolean {
   );
 }
 
+/**
+ * Resolve a program to a fixture launcher when the offline test asked for one.
+ *
+ * The integration test replaces `gh` with a local stub. On POSIX that is a shebang
+ * script, but Windows cannot execute one, and `execFile` without `shell` only
+ * resolves real executables. Rather than turning `shell` on (which concatenates
+ * arguments unescaped and is deprecated for exactly that reason), the test points
+ * `PI_APP_EXAMPLE_GH_COMMAND` at the current Node binary and this prefix supplies
+ * the stub as the script argument.
+ */
+function fixtureCommand(program: string): string[] {
+  const prefix = process.env.PI_APP_EXAMPLE_GH_COMMAND;
+  if (program !== "gh" || !prefix) return [program];
+  return [process.execPath, prefix];
+}
+
 export class ReviewRepository {
   constructor(
     readonly cwd: string,
@@ -31,8 +47,9 @@ export class ReviewRepository {
 
   private async run(program: string, args: string[], maxBuffer = 1024 * 1024): Promise<string> {
     this.signal.throwIfAborted();
+    const [executable, ...prefix] = fixtureCommand(program);
     try {
-      const { stdout } = await execute(program, args, {
+      const { stdout } = await execute(executable, [...prefix, ...args], {
         cwd: this.cwd,
         signal: this.signal,
         timeout: 20_000,

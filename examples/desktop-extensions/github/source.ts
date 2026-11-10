@@ -30,8 +30,14 @@ export interface LoadOptions {
   cwd: string;
   signal: AbortSignal;
   env: NodeJS.ProcessEnv;
-  /** Executable name or path; tests pass a fake. */
-  gh?: string;
+  /**
+   * Executable name, absolute path, or a `[program, ...prefixArgs]` form; tests pass a fake.
+   *
+   * The array form exists because the fixture is a Node script: POSIX can exec a shebang
+   * file, Windows cannot exec anything without a registered extension, so the same fake has
+   * to be launched as `node fake-gh.mjs` there.
+   */
+  gh?: string | readonly string[];
 }
 
 /** Reads the folder's repository, open and recent closed PRs and issues through `gh`. */
@@ -74,10 +80,12 @@ async function run(
   describeFailure: (stderr: string) => string,
 ): Promise<string> {
   options.signal.throwIfAborted();
+  const [program, ...prefix] =
+    typeof options.gh === "string" ? [options.gh] : (options.gh ?? ["gh"]);
   return new Promise((resolve, reject) => {
     execFile(
-      options.gh ?? "gh",
-      args,
+      program,
+      [...prefix, ...args],
       {
         cwd: options.cwd,
         env: { ...options.env, GH_PROMPT_DISABLED: "1", NO_COLOR: "1", GIT_OPTIONAL_LOCKS: "0" },
