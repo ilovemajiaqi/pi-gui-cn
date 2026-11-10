@@ -22,6 +22,14 @@ import {
   readGitReviewFile,
   type GitReviewSnapshot,
 } from "../../electron/platform/files/git-review";
+import {
+  canCreateSymlinks,
+  canUseTabInFileName,
+  executableBitUnsupportedReason,
+  recordsExecutableBit,
+  symlinkUnsupportedReason,
+  tabFileNameUnsupportedReason,
+} from "../helpers/platform-capabilities";
 
 const execute = promisify(execFile);
 async function git(cwd: string, ...args: string[]): Promise<string> {
@@ -34,6 +42,11 @@ async function repository(unborn = false): Promise<string> {
   await git(cwd, "init", "-b", "trunk");
   await git(cwd, "config", "user.email", "review@example.invalid");
   await git(cwd, "config", "user.name", "Review fixture");
+  // A host-level core.autocrlf=true would make Git convert the LF bytes these
+  // fixtures write, and review would correctly report raw-byte conversion on
+  // every file. Pin the repository to store bytes verbatim so each test asserts
+  // the behavior it names instead of the contributor's Git configuration.
+  await git(cwd, "config", "core.autocrlf", "false");
   if (!unborn) {
     await writeFile(join(cwd, "file.txt"), "base\n");
     await git(cwd, "add", "--", "file.txt");
@@ -155,7 +168,19 @@ test("a new file at a staged rename's old path stays current, readable and stage
   expect((await changeGitReviewFileStage(review, recreated!.id, "stage")).state).toBe("applied");
 });
 
+let hostRecordsExecutableBit = false;
+let hostCreatesSymlinks = false;
+let hostAcceptsTabFileNames = false;
+test.beforeAll(async () => {
+  [hostRecordsExecutableBit, hostCreatesSymlinks, hostAcceptsTabFileNames] = await Promise.all([
+    recordsExecutableBit(),
+    canCreateSymlinks(),
+    canUseTabInFileName(),
+  ]);
+});
+
 test("detects same-status byte and executable-mode changes before reading or staging", async () => {
+  test.skip(!hostRecordsExecutableBit, executableBitUnsupportedReason);
   const cwd = await repository();
   await writeFile(join(cwd, "file.txt"), "first edit\n");
   const first = await uncommitted(cwd);
@@ -174,6 +199,7 @@ test("detects same-status byte and executable-mode changes before reading or sta
 });
 
 test("stages and unstages exact pathological paths, rename pairs, and unborn additions", async () => {
+  test.skip(!hostAcceptsTabFileNames, tabFileNameUnsupportedReason);
   const cwd = await repository();
   const odd = ' :(glob)* spaced\t"quoted"\nname.txt';
   await writeFile(join(cwd, odd), "odd content\n");
@@ -322,6 +348,7 @@ test("makes binary, deleted, empty, conflict, and submodule coverage explicit", 
 });
 
 test("renders symlink text without following its target and reports oversized content", async () => {
+  test.skip(!hostCreatesSymlinks, symlinkUnsupportedReason);
   const cwd = await repository();
   const secret = join(await mkdtemp(join(tmpdir(), "pi-review-outside-")), "secret.txt");
   await writeFile(secret, "outside-content-must-not-be-read");

@@ -12,7 +12,7 @@ import {
   symlink,
   writeFile,
 } from "node:fs/promises";
-import { devNull, tmpdir } from "node:os";
+import { tmpdir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import type {
   ChangeReviewFileStageResult,
@@ -36,6 +36,14 @@ const PREPARATION_MS = 10_000;
 /** Pathspec bytes per Git call, well below Windows' 32K command-line limit. */
 const MAX_PATHSPEC_BYTES = 24_000;
 const COMPLETE: ReviewCoverage = { state: "complete", notes: [] };
+/**
+ * Absent side of a one-sided diff. `os.devNull` is "\\.\nul" on Windows and Git
+ * rejects it with "Could not access", exiting 1 with empty stdout — which the
+ * exit-code contract below treats as success, silently blanking every patch for
+ * added and deleted files. Git understands the bare "nul" device on Windows, and
+ * it is the spelling that still yields "new file mode"/"deleted file mode".
+ */
+const NULL_DEVICE = process.platform === "win32" ? "nul" : "/dev/null";
 
 export interface GitReviewLimits {
   /** Output cap for one Git listing; larger output makes the review unavailable. */
@@ -124,7 +132,14 @@ function git(cwd: string, args: readonly string[], maxBuffer = MAX_GIT_BYTES): P
           reject(error);
         } else {
           const code = typeof error?.code === "number" ? error.code : 0;
-          if (code > 1) reject(new Error(stderr.toString("utf8").trim() || "Git command failed."));
+          // Exit 1 is the "there are differences" signal this module relies on,
+          // so it cannot be a blanket failure. But a command that produced no
+          // output and still explained itself on stderr did not diff anything —
+          // treating that as success is what silently blanked patches for added
+          // and deleted files on Windows. Only that combination fails closed.
+          const explainedNothing = code === 1 && stdout.length === 0 && stderr.length > 0;
+          if (code > 1 || explainedNothing)
+            reject(new Error(stderr.toString("utf8").trim() || "Git command failed."));
           else done({ stdout, code, truncated: false });
         }
       },
@@ -963,7 +978,7 @@ async function readPatch(
   const scratch = await mkdtemp(join(tmpdir(), "pi-gui-review-"));
   try {
     const materialize = async (side: string, name: string, file: WorkingFile) => {
-      if (file.mode === "missing") return devNull;
+      if (file.mode === "missing") return NULL_DEVICE;
       const relative = `${side}/${name}`;
       const target = safePath(scratch, relative);
       await mkdir(dirname(target), { recursive: true });
@@ -992,7 +1007,11 @@ async function readPatch(
       notes.push("Binary file contents are not rendered; the patch reports whether they differ.");
     return { patch, coverage: notes.length ? partial(...notes) : COMPLETE };
   } finally {
-    await rm(scratch, { recursive: true, force: true });
+    // Windows releases the scratch directory's handles a moment after Git exits,
+    // so an immediate recursive remove fails with EBUSY and would replace the
+    // patch we just computed with that cleanup error. Retrying is the fix; the
+    // force flag still keeps a genuine removal failure from surfacing.
+    await rm(scratch, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
   }
 }
 

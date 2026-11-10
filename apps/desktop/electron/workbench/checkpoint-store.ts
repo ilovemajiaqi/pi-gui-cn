@@ -594,7 +594,14 @@ export class TurnCheckpointStore {
           "Git returned an invalid snapshot object inventory.",
         );
       }
-      await rm(captureDirectory, { recursive: true, force: true });
+      // Git has just exited; on Windows its handles on the capture directory are
+      // released a moment later, so an immediate recursive remove fails EBUSY.
+      await rm(captureDirectory, {
+        recursive: true,
+        force: true,
+        maxRetries: 10,
+        retryDelay: 50,
+      });
       spoolPath = undefined;
       signal.throwIfAborted();
       const files = new Map<string, CachedFile>();
@@ -683,7 +690,9 @@ export class TurnCheckpointStore {
               );
       return { ...result, fileCount, byteCount, durationMs: Date.now() - started };
     } finally {
-      if (spoolPath) await rm(spoolPath, { recursive: true, force: true });
+      // Same Windows handle-release lag as the capture directory above.
+      if (spoolPath)
+        await rm(spoolPath, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
       // These are this capture's newly created scratch indexes, not user or checkpoint data.
       await Promise.all(
         [indexPath, `${indexPath}.lock`].map(async (path) => {
