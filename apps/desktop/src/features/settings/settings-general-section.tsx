@@ -9,6 +9,7 @@ interface SettingsGeneralSectionProps {
   readonly runtime?: RuntimeSnapshot;
   readonly modelSettingsScopeMode: ModelSettingsScopeMode;
   readonly integratedTerminalShell: string;
+  readonly platform: NodeJS.Platform;
   readonly onSetModelSettingsScopeMode: (mode: ModelSettingsScopeMode) => void;
   readonly onSetIntegratedTerminalShell: (shellPath: string) => void;
   readonly onToggleSkillCommands: (enabled: boolean) => void;
@@ -18,6 +19,7 @@ export function SettingsGeneralSection({
   runtime,
   modelSettingsScopeMode,
   integratedTerminalShell,
+  platform,
   onSetModelSettingsScopeMode,
   onSetIntegratedTerminalShell,
   onToggleSkillCommands,
@@ -72,7 +74,8 @@ export function SettingsGeneralSection({
           <input
             aria-label={t("settings.general.shell.label")}
             className="settings-text-input"
-            placeholder="/bin/zsh"
+            // Hint at the real default shell per platform instead of the macOS one.
+            placeholder={platform === "win32" ? "cmd.exe" : "/bin/zsh"}
             spellCheck={false}
             type="text"
             value={terminalShellDraft}

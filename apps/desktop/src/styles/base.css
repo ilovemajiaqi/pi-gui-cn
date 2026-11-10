@@ -223,7 +223,14 @@ svg {
 /* One scrollbar style app-wide (Codex-style): a thin rounded thumb on a
  * transparent track that only shows while the pointer is over its scroller,
  * so idle panes never carry a grey bar. The transparent border insets the
- * thumb from the scroller edge. */
+ * thumb from the scroller edge. The standard properties mirror the same look
+ * for surfaces where the WebKit pseudos do not apply (Chromium's fluent
+ * overlay scrollbars, future engines). */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
 ::-webkit-scrollbar {
   width: var(--scrollbar-size);
   height: var(--scrollbar-size);

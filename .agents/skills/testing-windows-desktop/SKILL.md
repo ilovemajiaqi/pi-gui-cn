@@ -32,7 +32,7 @@ description: End-to-end test the pi-gui Electron desktop app on Windows. Use whe
 
 ## Cosmetic (not functional) macOS-centric labels on Windows
 
-- Settings shortcut hints may show `Cmd+…` and the integrated-terminal shell field placeholder may read `/bin/zsh`. Display-only; the actual default shell resolves to `cmd.exe`.
+- Settings shortcut hints may show `Cmd+…` on macOS-focused copy. The terminal shell placeholder is platform-aware (cmd.exe on Windows) since the Codex-style select rework.
 
 ## Reporting
 
