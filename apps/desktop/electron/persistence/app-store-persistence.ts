@@ -56,7 +56,18 @@ export interface PersistedUiState {
   readonly enableTransparency?: boolean;
   readonly themeMode?: ThemeMode;
   readonly themePresetId?: ThemePresetId;
-  /** Language main uses for native menus, dialogs and notifications; absent in pre-v20 files. */
+  /**
+   * Language main uses for native menus, dialogs and notifications; absent in pre-v20 files.
+   *
+   * This is a mirror of the renderer's choice, not the authority. The renderer owns
+   * `pi-gui:locale` in localStorage and pushes the resolved locale over IPC on mount,
+   * on a preference change and on an OS language change; main stores what it is told
+   * so a relaunch can restore menus before the first window paints. The order is
+   * localStorage > this file > system. A v21 migration that moved the preference here
+   * and read it back into the renderer was considered and rejected: it would touch 30
+   * persisted fields and every existing profile to replace a fallback that already
+   * behaves predictably.
+   */
   readonly locale?: DesktopLocale;
   readonly orchestrationChildren?: readonly OrchestrationChildThread[];
 }
