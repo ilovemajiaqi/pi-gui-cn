@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import ts from "typescript";
+import { normalizePath } from "./posix-path.mjs";
 
 // Build the shared packages first, just as the canonical check command does.
 // Compile an in-memory caller with the driver's real configuration and sources.
@@ -27,8 +28,12 @@ const rejected: SessionDriver = incomplete;
   const options = { ...parsed.options, noEmit: true };
   const host = ts.createCompilerHost(options);
   const getSourceFile = host.getSourceFile.bind(host);
+  // TypeScript may hand back the same file under a different spelling (drive
+  // letter case, separator). Compare normalized so the in-memory caller is
+  // actually injected instead of silently falling through to a missing file.
+  const proofFile = normalizePath(file);
   host.getSourceFile = (name, languageVersion, onError, shouldCreateNewSourceFile) =>
-    name === file
+    normalizePath(name) === proofFile
       ? ts.createSourceFile(file, text, languageVersion, true)
       : getSourceFile(name, languageVersion, onError, shouldCreateNewSourceFile);
   const program = ts.createProgram([...parsed.fileNames, file], options, host);
@@ -37,7 +42,7 @@ const rejected: SessionDriver = incomplete;
     ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"),
   );
   assert.equal(diagnostics.length, 1, rendered.join("\n"));
-  assert.equal(diagnostics[0].file?.fileName, file);
+  assert.equal(normalizePath(diagnostics[0].file?.fileName ?? ""), proofFile);
   assert.match(rendered[0], /missing.*getSessionTree, navigateSessionTree/);
   const source = program.getSourceFile(file);
   const binding = source.statements[0].importClause.namedBindings.elements[0].name;
@@ -45,8 +50,8 @@ const rejected: SessionDriver = incomplete;
   const declaration = checker.getAliasedSymbol(checker.getSymbolAtLocation(binding))
     .declarations[0];
   assert.equal(
-    declaration.getSourceFile().fileName,
-    path.join(root, "packages/session-driver/dist/types.d.ts"),
+    normalizePath(declaration.getSourceFile().fileName),
+    normalizePath(path.join(root, "packages/session-driver/dist/types.d.ts")),
   );
 });
 

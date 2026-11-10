@@ -91,8 +91,11 @@ test("desktop tests use one public Electron helper entrypoint", async () => {
 });
 
 test("the public Electron helper loads through Playwright and the marketing script loader", async () => {
-  const desktopConfig = path.join(root, "apps/desktop/playwright.config.ts");
-  const smokeSpec = path.join(root, "apps/desktop/tests/core/smoke.spec.ts");
+  // Playwright compiles positional arguments into a regex, so a Windows
+  // absolute path ("C:\Users\...") is read as escape sequences and matches
+  // nothing. Pass repository-relative POSIX paths; cwd is already the root.
+  const desktopConfig = "apps/desktop/playwright.config.ts";
+  const smokeSpec = "apps/desktop/tests/core/smoke.spec.ts";
   const result = spawnSync(
     process.execPath,
     [require.resolve("@playwright/test/cli"), "test", "-c", desktopConfig, smokeSpec, "--list"],

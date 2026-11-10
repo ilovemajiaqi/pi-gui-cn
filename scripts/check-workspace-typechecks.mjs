@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, realpathSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { relativePosix } from "./posix-path.mjs";
 
 export function checkWorkspaceTypechecks(root, pnpmPath) {
   root = realpathSync(root);
@@ -19,7 +20,7 @@ export function checkWorkspaceTypechecks(root, pnpmPath) {
     const manifest = JSON.parse(readFileSync(path.join(workspace.path, "package.json"), "utf8"));
     if (typeof manifest.scripts?.typecheck !== "string" || !manifest.scripts.typecheck.trim()) {
       failures.push(
-        `${path.relative(root, workspace.path)}/package.json: missing scripts.typecheck. Add a typecheck command so this workspace participates in CI.`,
+        `${relativePosix(root, workspace.path)}/package.json: missing scripts.typecheck. Add a typecheck command so this workspace participates in CI.`,
       );
     }
   }

@@ -13,6 +13,7 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { ESLint } from "eslint";
+import { relativePosix } from "./posix-path.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 // lintText replaces only the in-memory contents of existing project members.
@@ -133,7 +134,7 @@ async function workspaceLintFailures(workspaceRoot) {
     );
     if (missing.length)
       failures.push(
-        `${path.relative(workspaceRoot, project.path)}: add a typed project in eslint.config.mjs; missing ${missing.join(", ")}.`,
+        `${relativePosix(workspaceRoot, project.path)}: add a typed project in eslint.config.mjs; missing ${missing.join(", ")}.`,
       );
   }
   return failures;
