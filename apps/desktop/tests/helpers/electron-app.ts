@@ -144,6 +144,13 @@ function electronCliArgs(entry?: string): string[] {
     // and native wheel scrolling in background test mode.
     args.push("--disable-gpu", "--no-sandbox", "--disable-frame-rate-limit");
   }
+  // Some Windows hosts run under a restricted token or AppContainer in which Chromium
+  // cannot initialise its sandbox; the renderer then dies during startup with
+  // 0xC0000005 before a window ever appears. Keep the sandbox for everyone else and let
+  // those hosts opt out explicitly.
+  if (process.platform === "win32" && process.env.PI_APP_DISABLE_SANDBOX === "1") {
+    args.push("--no-sandbox");
+  }
   return args;
 }
 

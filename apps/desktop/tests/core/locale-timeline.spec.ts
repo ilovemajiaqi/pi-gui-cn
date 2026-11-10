@@ -30,14 +30,23 @@ async function setWindowSize(
   window: Page,
   size: { readonly width: number; readonly height: number },
 ): Promise<void> {
+  // setContentSize, not setSize: the assertion below reads the viewport, and on
+  // Windows a frame-sized window reports an innerWidth short of the requested width.
   const resized = await harness.electronApp.evaluate(({ BrowserWindow }, bounds) => {
     const appWindow = BrowserWindow.getAllWindows()[0];
     if (!appWindow) return false;
-    appWindow.setSize(bounds.width, bounds.height);
+    appWindow.setContentSize(bounds.width, bounds.height);
     return true;
   }, size);
   expect(resized).toBe(true);
-  await expect.poll(() => window.evaluate(() => globalThis.window.innerWidth)).toBe(size.width);
+  await expect
+    .poll(() =>
+      window.evaluate(() => ({
+        width: globalThis.window.innerWidth,
+        height: globalThis.window.innerHeight,
+      })),
+    )
+    .toEqual({ width: size.width, height: size.height });
 }
 
 /** Seeds the rows the main process writes as prose: an activity line, a tool row and a summary. */
