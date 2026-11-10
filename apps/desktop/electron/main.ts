@@ -3,13 +3,11 @@ import {
   BrowserWindow,
   clipboard,
   dialog,
-  Menu,
   nativeImage,
   nativeTheme,
   net,
   protocol,
   shell,
-  type MenuItemConstructorOptions,
   type MessageBoxOptions,
 } from "electron";
 import { isValidHttpBaseUrl } from "@pi-gui/pi-sdk-driver";
@@ -58,6 +56,7 @@ import { checkForUpdate, initUpdateChecker, openReleasesPage } from "./platform/
 import { ThemeManager } from "./platform/theme-manager";
 import { LocaleManager } from "./platform/locale-manager";
 import { createMainTranslator } from "./platform/main-messages";
+import { installMacApplicationMenu } from "./platform/menus/macos-menu";
 import { EditorService } from "./platform/editors/editor-service";
 import { windowBackgroundFor } from "../contracts/theme";
 import { TerminalService } from "./platform/terminal-service";
@@ -196,7 +195,6 @@ const SUPPORTED_IMAGE_TYPES = SUPPORTED_COMPOSER_IMAGE_TYPES;
 const SUPPORTED_IMAGE_MIME_TYPES = new Set<string>(
   SUPPORTED_IMAGE_TYPES.map((type) => type.mimeType),
 );
-const NEW_WINDOW_MENU_ITEM_ID = "file.new-window";
 
 function createStoreBackedOrchestrationRuntimeBridge(): OrchestrationRuntimeBridge {
   return {
@@ -290,8 +288,7 @@ function createTestExtensionContext(sessionRef: SessionRef): ExtensionToolContex
     executeTool: () => Promise.reject(new Error("Nested tool calls are not available in tests")),
   };
 }
-const OPEN_FOLDER_MENU_ITEM_ID = "file.open-folder";
-const CHECK_FOR_UPDATES_MENU_ITEM_ID = "app.check-for-updates";
+
 const QUIT_FLUSH_TIMEOUT_MS = 5_000;
 // Part of the quit budget above: renderers get this long to send their debounced drafts.
 const DRAFT_FLUSH_TIMEOUT_MS = 2_000;
@@ -847,94 +844,28 @@ function installApplicationMenu(locale: DesktopLocale): void {
   if (process.platform !== "darwin") {
     return;
   }
-  const t = createMainTranslator(locale);
-
-  const template: MenuItemConstructorOptions[] = [
-    {
-      label: app.name,
-      submenu: [
-        { role: "about" },
-        { type: "separator" },
-        {
-          id: CHECK_FOR_UPDATES_MENU_ITEM_ID,
-          label: t("main.menu.checkForUpdates"),
-          click: () => {
-            void runManualUpdateCheck().catch((error: unknown) => {
-              console.error("[main] runManualUpdateCheck failed", error);
-            });
-          },
-        },
-        { type: "separator" },
-        { role: "services" },
-        { type: "separator" },
-        { role: "hide" },
-        { role: "hideOthers" },
-        { role: "unhide" },
-        { type: "separator" },
-        { role: "quit" },
-      ],
+  installMacApplicationMenu(createMainTranslator(locale), {
+    appName: app.name,
+    checkForUpdates: () => {
+      void runManualUpdateCheck().catch((error: unknown) => {
+        console.error("[main] runManualUpdateCheck failed", error);
+      });
     },
-    {
-      label: t("main.menu.file"),
-      submenu: [
-        {
-          label: t("main.menu.newThread"),
-          accelerator: "CommandOrControl+N",
-          click: () => {
-            const window = BrowserWindow.getFocusedWindow() ?? mainWindow;
-            window?.webContents.send(desktopIpc.appCommand, desktopCommands.openNewThread);
-          },
-        },
-        {
-          id: NEW_WINDOW_MENU_ITEM_ID,
-          label: t("main.menu.newWindow"),
-          accelerator: "CommandOrControl+Shift+N",
-          click: () => {
-            createAppWindow(windowOwner.foregroundView());
-          },
-        },
-        { type: "separator" },
-        {
-          id: OPEN_FOLDER_MENU_ITEM_ID,
-          label: t("main.menu.openFolder"),
-          accelerator: "Command+O",
-          click: () => {
-            void pickWorkspaceViaDialog(mainWindow).catch((error: unknown) => {
-              console.error("[main] pickWorkspaceViaDialog failed", error);
-            });
-          },
-        },
-        { type: "separator" },
-        { role: "close" },
-      ],
+    openNewThread: () => {
+      const window = BrowserWindow.getFocusedWindow() ?? mainWindow;
+      window?.webContents.send(desktopIpc.appCommand, desktopCommands.openNewThread);
     },
-    { role: "editMenu" },
-    {
-      label: t("main.menu.view"),
-      submenu: [
-        // Cmd+R toggles Review and Shift+Cmd+R renames the thread, so neither
-        // reload has a shortcut.
-        {
-          label: t("main.menu.reload"),
-          click: () => BrowserWindow.getFocusedWindow()?.webContents.reload(),
-        },
-        {
-          label: t("main.menu.forceReload"),
-          click: () => BrowserWindow.getFocusedWindow()?.webContents.reloadIgnoringCache(),
-        },
-        { role: "toggleDevTools" },
-        { type: "separator" },
-        { role: "resetZoom" },
-        { role: "zoomIn" },
-        { role: "zoomOut" },
-        { type: "separator" },
-        { role: "togglefullscreen" },
-      ],
+    newWindow: () => {
+      createAppWindow(windowOwner.foregroundView());
     },
-    { role: "windowMenu" },
-  ];
-
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+    openFolder: () => {
+      void pickWorkspaceViaDialog(mainWindow).catch((error: unknown) => {
+        console.error("[main] pickWorkspaceViaDialog failed", error);
+      });
+    },
+    reload: () => BrowserWindow.getFocusedWindow()?.webContents.reload(),
+    forceReload: () => BrowserWindow.getFocusedWindow()?.webContents.reloadIgnoringCache(),
+  });
 }
 
 // Ensure npm (and other Homebrew/npm-global binaries) are available even when

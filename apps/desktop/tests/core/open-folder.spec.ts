@@ -1,5 +1,6 @@
 import { basename } from "node:path";
 import { expect, test } from "@playwright/test";
+import { OPEN_FOLDER_MENU_ITEM_ID } from "../../electron/platform/menus/macos-menu-template";
 import {
   expectNewThreadWorkspace,
   getApplicationMenuItemInfo,
@@ -10,8 +11,6 @@ import {
   stubNextOpenDialog,
   triggerApplicationMenuItem,
 } from "../helpers/electron-app";
-
-const OPEN_FOLDER_MENU_ITEM_ID = "file.open-folder";
 
 test("adds a workspace from the empty state button using a stubbed folder selection", async () => {
   test.setTimeout(60_000);
