@@ -1,7 +1,17 @@
-import { readdirSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
-const base = "C:/Users/Lecoo/.agents/skills/video-shotcraft/references/shots";
+// The shot recipe cards live in the video-shotcraft skill, outside this repo.
+// Point SHOTS_DIR at that directory; the fallback mirrors the author's machine
+// layout so re-running the index does not need the variable set.
+const base = path.resolve(
+  process.env.SHOTS_DIR ?? "C:/Users/Lecoo/.agents/skills/video-shotcraft/references/shots",
+);
+if (!existsSync(base)) {
+  console.error(`shots directory not found: ${base}`);
+  console.error("Set SHOTS_DIR to the video-shotcraft references/shots directory.");
+  process.exit(1);
+}
 const cats = readdirSync(base, { withFileTypes: true }).filter((e) => e.isDirectory());
 const out = [];
 for (const cat of cats) {
@@ -22,7 +32,7 @@ for (const cat of cats) {
   }
 }
 mkdirSync("promo/notes", { recursive: true });
-writeFileSync("promo/notes/shots-index.json", JSON.stringify(out, null, 1), "utf8");
+writeFileSync("promo/notes/shots-index.json", JSON.stringify(out, null, 2), "utf8");
 writeFileSync(
   "promo/notes/shots-index.md",
   out

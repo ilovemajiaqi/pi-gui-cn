@@ -1,6 +1,8 @@
 node_modules/
 *.tsbuildinfo
 .turbo/
+# Local scratch plans stay untracked. The three historical plans already in
+# plans/ are tracked on purpose and are unaffected by this rule.
 plans/
 dist/
 build/
