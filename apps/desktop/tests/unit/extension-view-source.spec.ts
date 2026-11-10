@@ -7,6 +7,12 @@ import {
   resolveDesktopExtensionAsset,
   validateDesktopExtensionSource,
 } from "../../electron/extensions/extension-view-source";
+import { canCreateSymlinks, symlinkUnsupportedReason } from "../helpers/platform-capabilities";
+
+let hostCreatesSymlinks = false;
+test.beforeAll(async () => {
+  hostCreatesSymlinks = await canCreateSymlinks();
+});
 
 test("desktop assets belong to one loaded extension and its browser build", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "pi-desktop-source-"));
@@ -50,6 +56,7 @@ test("desktop assets belong to one loaded extension and its browser build", asyn
 });
 
 test("desktop asset validation rejects symlink escapes at registration and serving", async () => {
+  test.skip(!hostCreatesSymlinks, symlinkUnsupportedReason);
   const directory = await mkdtemp(path.join(os.tmpdir(), "pi-desktop-escape-"));
   try {
     const extension = path.join(directory, "extension");

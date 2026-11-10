@@ -8,6 +8,12 @@ import type { TurnChangeSummary } from "../../contracts/review";
 import type { TranscriptMessage } from "../../contracts/timeline-types";
 import { summarizeGitTreeChanges } from "../../electron/platform/files/git-review";
 import { buildDisplayTimelineItems } from "../../src/features/conversation/timeline-turns";
+import { canUseTabInFileName } from "../helpers/platform-capabilities";
+
+let hostAcceptsTabFileNames = false;
+test.beforeAll(async () => {
+  hostAcceptsTabFileNames = await canUseTabInFileName();
+});
 
 const run = promisify(execFile);
 
@@ -80,8 +86,26 @@ test("tree summaries report per-file line counts, renames and binary files", asy
   await writeFile(join(repo, "edited.txt"), "one\n2\nthree\n");
   await rename(join(repo, "moved.txt"), join(repo, "renamed.txt"));
   await writeFile(join(repo, "image.bin"), Buffer.from([0, 1, 2, 0]));
-  await writeFile(join(repo, "tab\tname.txt"), "x\n");
   await git("add", "-A");
+  if (hostAcceptsTabFileNames) {
+    await writeFile(join(repo, "tab\tname.txt"), "x\n");
+    await git("add", "-A");
+  } else {
+    // NTFS rejects a tab in a filename, and Git's default core.protectNTFS refuses
+    // to index the path either. The tree still legitimately carries it, so stage the
+    // same bytes under the tab path with NTFS protection off for this one call.
+    const staged = join(repo, "tab-source.txt");
+    await writeFile(staged, "x\n");
+    const blob = (await git("hash-object", "-w", staged)).stdout.trim();
+    await git(
+      "-c",
+      "core.protectNTFS=false",
+      "update-index",
+      "--add",
+      "--cacheinfo",
+      `100644,${blob},tab\tname.txt`,
+    );
+  }
   const after = (await git("write-tree")).stdout.trim();
   expect(await summarizeGitTreeChanges(repo, before, after)).toEqual([
     { path: "edited.txt", lines: { added: 2, removed: 1 } },

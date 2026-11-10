@@ -8,6 +8,12 @@ import type { CatalogStorage, WorktreeCatalogEntry } from "@pi-gui/catalogs";
 import type { WorkspaceRef } from "@pi-gui/session-driver";
 import { appWorktreeRootMatcher } from "../../electron/platform/worktrees/app-worktree-roots";
 import { GitWorktreeManager } from "../../electron/platform/worktrees/worktree-manager";
+import { canCreateSymlinks } from "../helpers/platform-capabilities";
+
+let hostCreatesSymlinks = false;
+test.beforeAll(async () => {
+  hostCreatesSymlinks = await canCreateSymlinks();
+});
 
 const execFileAsync = promisify(execFile);
 
@@ -246,11 +252,13 @@ test("app worktree paths are matched inside the profile root only, even before i
     expect(await isAppWorktreePath(join(root, "worktrees", "..", "repo"))).toBe(false);
     // Git reports resolved paths; a root reached through a symlink must still match.
     await mkdir(join(root, "real", "worktrees", "repo", "task-2"), { recursive: true });
-    await symlink(join(root, "real"), join(root, "linked"));
-    const throughLink = appWorktreeRootMatcher(join(root, "linked", "worktrees"));
-    expect(
-      await throughLink(await realpath(join(root, "real", "worktrees", "repo", "task-2"))),
-    ).toBe(true);
+    if (hostCreatesSymlinks) {
+      await symlink(join(root, "real"), join(root, "linked"));
+      const throughLink = appWorktreeRootMatcher(join(root, "linked", "worktrees"));
+      expect(
+        await throughLink(await realpath(join(root, "real", "worktrees", "repo", "task-2"))),
+      ).toBe(true);
+    }
   } finally {
     await rm(root, { recursive: true, force: true });
   }
