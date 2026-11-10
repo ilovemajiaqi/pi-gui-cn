@@ -30,6 +30,6 @@
     "@pi-gui/session-driver": "workspace:*"
   },
   "devDependencies": {
-    "@earendil-works/pi-ai": "^1.4.0"
+    "@earendil-works/pi-ai": "^1.5.0"
   }
 }
