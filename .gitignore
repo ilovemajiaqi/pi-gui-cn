@@ -9,6 +9,8 @@ out/
 # so the video project can be re-rendered from a clean checkout).
 !promo/remotion/out/
 !promo/remotion/out/**
+# Pixel-scan scratch output (ffmpeg rawvideo dumps), never deliverables.
+*.raw
 # QA stills / review evidence are local artifacts, not deliverables.
 promo/remotion/out/qa/
 promo/remotion/out/recheck/
