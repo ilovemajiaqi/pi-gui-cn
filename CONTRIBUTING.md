@@ -88,6 +88,13 @@ English is the key source and the fallback locale; Simplified Chinese lives in
 - Keep unrelated changes out of the PR.
 - Update [`CHANGELOG.md`](./CHANGELOG.md) when the change is user-visible.
 
+## Releases
+
+Windows releases are built and published from this repository; see
+[`docs/releasing.md`](./docs/releasing.md) for the versioning, packaging, update
+channel, and signing-secret notes. In particular, keep `publish.owner`/`publish.repo`
+and the update checker pointed at `ilovemajiaqi/pi-gui-cn`.
+
 ## Community guidelines
 
 - Be respectful and assume good intent; see [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
