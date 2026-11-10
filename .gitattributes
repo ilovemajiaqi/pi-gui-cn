@@ -1,0 +1,31 @@
+# Normalize every text file to LF in the repository, and check it out as LF on
+# every platform. Prettier pins `endOfLine: "lf"`, so a host-level
+# `core.autocrlf=true` otherwise makes `pnpm format:check` fail on 700+ unchanged
+# files while CI (Linux, no autocrlf) stays green — a false red that hides real
+# formatting problems.
+* text=auto eol=lf
+
+# Windows scripts must keep CRLF for cmd/PowerShell to parse them when a user
+# double-clicks one from a checkout.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets: never diff, never convert.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.icns binary
+*.ico binary
+*.mp3 binary
+*.mp4 binary
+*.webm binary
+*.raw binary
+*.node binary
+*.wasm binary
+*.zip binary
+
+# The lockfile is machine-read; a stray conversion would invalidate it.
+pnpm-lock.yaml text eol=lf
