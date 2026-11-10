@@ -29,11 +29,11 @@ pi-gui 是 pi 编码代理（Codex 风格）的桌面图形客户端。本仓库
 
 ## 🎬 宣传片
 
-[![pi-gui-zh 宣传片](./promo/assets/readme/shot-brand.jpg)](./promo/remotion/out/promo.mp4)
+[![pi-gui-zh 宣传片](./promo/assets/readme/shot-brand.jpg)](https://ilovemajiaqi.github.io/pi-gui-cn/promo/player.html)
 
-50 秒全中文界面实录：并行会话、命令面板、变更审查、内置终端与定时任务，以及全片高潮——**语言切换即时生效**。
+50 秒全中文界面实录：并行会话、命令面板、变更审查、内置终端与定时任务，以及全片高潮——**语言切换即时生效**。点击封面即可在线播放。
 
-- [带 BGM 版](./promo/remotion/out/promo.mp4) · [无 BGM 版（保留音效，方便自配音乐）](./promo/remotion/out/promo-nobgm.mp4)
+- [带 BGM 版](https://ilovemajiaqi.github.io/pi-gui-cn/promo/player.html) · [无 BGM 版（保留音效，方便自配音乐）](https://ilovemajiaqi.github.io/pi-gui-cn/promo/player.html?v=nobgm)
 - 画面全部来自真实运行的桌面 app；演示项目「星尘笔记」为虚构数据，不含任何真实会话。
 - 工程在 [`promo/remotion`](./promo/remotion)（Remotion + [video-shotcraft](https://github.com/Vincentwei1021/video-shotcraft)），从产品检查、分镜、BGM 卡拍到终检的全过程记录在 [`promo/DESIGN-SPEC.md`](./promo/DESIGN-SPEC.md)。
 

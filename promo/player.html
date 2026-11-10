@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>pi-gui-zh 宣传片 · 50 秒看完中文版</title>
+    <meta
+      name="description"
+      content="pi coding agent 桌面客户端 pi-gui-zh 的 50 秒全中文界面实录：并行会话、命令面板、变更审查、内置终端与语言切换。"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0d10;
+        --panel: #12151a;
+        --line: #262b33;
+        --text: #f2f4f7;
+        --muted: #9aa4b2;
+        --accent: #e5484d;
+        --accent-soft: rgba(229, 72, 77, 0.14);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+      body {
+        background:
+          radial-gradient(900px 480px at 50% -10%, rgba(229, 72, 77, 0.16), transparent 70%),
+          radial-gradient(700px 400px at 90% 110%, rgba(68, 132, 255, 0.1), transparent 70%),
+          var(--bg);
+        color: var(--text);
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          "PingFang SC",
+          "Hiragino Sans GB",
+          "Microsoft YaHei",
+          sans-serif;
+        line-height: 1.6;
+      }
+      main {
+        width: min(1080px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 48px 0 56px;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 42px;
+      }
+      .brand {
+        color: var(--text);
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        text-decoration: none;
+      }
+      .brand span {
+        color: var(--accent);
+      }
+      .tag {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 3px 10px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      h1 {
+        margin: 0 0 14px;
+        font-size: clamp(30px, 5vw, 54px);
+        line-height: 1.12;
+        letter-spacing: -0.035em;
+      }
+      h1 em {
+        color: var(--accent);
+        font-style: normal;
+      }
+      .lede {
+        max-width: 720px;
+        margin: 0 0 30px;
+        color: var(--muted);
+        font-size: clamp(15px, 2vw, 18px);
+      }
+      .player {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--panel);
+        padding: 10px;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      }
+      video {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border-radius: 12px;
+        background: #000;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 6px 4px;
+      }
+      button {
+        appearance: none;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+        padding: 6px 14px;
+        transition:
+          background 0.15s ease,
+          border-color 0.15s ease,
+          color 0.15s ease;
+      }
+      button:hover {
+        border-color: #3a424e;
+        color: var(--text);
+      }
+      button.active {
+        border-color: rgba(229, 72, 77, 0.55);
+        background: var(--accent-soft);
+        color: #ffb4b6;
+      }
+      button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .hint {
+        margin-left: auto;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 26px;
+      }
+      .links a {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        color: var(--text);
+        font-size: 14px;
+        padding: 9px 14px;
+        text-decoration: none;
+        transition:
+          background 0.15s ease,
+          border-color 0.15s ease;
+      }
+      .links a:hover {
+        border-color: #3a424e;
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .note {
+        margin: 26px 0 0;
+        color: #6f7885;
+        font-size: 12px;
+      }
+      @media (max-width: 640px) {
+        main {
+          width: min(100% - 24px, 1080px);
+          padding-top: 28px;
+        }
+        header {
+          margin-bottom: 28px;
+        }
+        .hint {
+          margin-left: 0;
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <a class="brand" href="https://github.com/ilovemajiaqi/pi-gui-cn">
+          pi-gui<span>-zh</span>
+        </a>
+        <span class="tag">50 秒 · 全中文界面实录</span>
+      </header>
+
+      <h1>把 pi coding agent<br />装进一块<em>中文桌面</em></h1>
+      <p class="lede">
+        并行会话、命令面板、变更审查、内置终端与定时任务，以及全片高潮——语言切换即时生效。
+        所有画面都来自真实运行的桌面 app。
+      </p>
+
+      <div class="player">
+        <video
+          id="video"
+          controls
+          playsinline
+          preload="metadata"
+          poster="assets/readme/shot-brand.jpg"
+          src="remotion/out/promo.mp4"
+        >
+          你的浏览器不支持 HTML5 视频，请
+          <a href="remotion/out/promo.mp4">直接下载</a>。
+        </video>
+        <div class="controls">
+          <button type="button" data-version="bgm" aria-pressed="true">带 BGM</button>
+          <button type="button" data-version="nobgm" aria-pressed="false">无 BGM</button>
+          <span class="hint">1080p · 50 秒 · 画面来自真实运行的 pi-gui-zh</span>
+        </div>
+      </div>
+
+      <nav class="links" aria-label="相关链接">
+        <a href="https://github.com/ilovemajiaqi/pi-gui-cn">GitHub 仓库</a>
+        <a href="https://github.com/ilovemajiaqi/pi-gui-cn/releases">下载 Windows 版</a>
+        <a href="https://github.com/minghinmatthewlam/pi-gui">上游 pi-gui</a>
+      </nav>
+
+      <p class="note">演示项目「星尘笔记」为虚构数据，不含任何真实会话、密钥或个人信息。</p>
+    </main>
+
+    <script>
+      const versions = {
+        bgm: "remotion/out/promo.mp4",
+        nobgm: "remotion/out/promo-nobgm.mp4",
+      };
+      const video = document.querySelector("#video");
+      const buttons = Array.from(document.querySelectorAll("[data-version]"));
+      const requested = new URLSearchParams(location.search).get("v");
+      let current = requested === "nobgm" ? "nobgm" : "bgm";
+
+      function selectVersion(name, autoplay) {
+        if (!versions[name]) name = "bgm";
+        current = name;
+        buttons.forEach((button) => {
+          const active = button.dataset.version === name;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+        if (video.getAttribute("src") !== versions[name]) {
+          video.setAttribute("src", versions[name]);
+          video.load();
+        }
+        const url = new URL(location.href);
+        if (name === "nobgm") url.searchParams.set("v", "nobgm");
+        else url.searchParams.delete("v");
+        history.replaceState(null, "", url);
+        if (autoplay) video.play().catch(() => {});
+      }
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => selectVersion(button.dataset.version, true));
+      });
+      selectVersion(current, false);
+    </script>
+  </body>
+</html>
