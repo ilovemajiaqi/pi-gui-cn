@@ -12,7 +12,18 @@ import type {
 import type { SessionSchemaInfo } from "@pi-gui/session-driver";
 export type { SessionSchemaInfo } from "@pi-gui/session-driver";
 export type SessionStatus = "idle" | "running" | "failed";
-export type { SessionRole, TimelineToolCall, TranscriptMessage } from "./timeline-types";
+export type {
+  BuiltinToolLabel,
+  SessionRole,
+  TimelineActivity,
+  TimelineActivityKind,
+  TimelineMetrics,
+  TimelineSummary,
+  TimelineSummaryKind,
+  TimelineToolCall,
+  TimelineTone,
+  TranscriptMessage,
+} from "./timeline-types";
 import type { TranscriptMessage } from "./timeline-types";
 import type { ScheduledTaskRecord } from "./scheduled-tasks";
 import type { DesktopLocale } from "./ipc";

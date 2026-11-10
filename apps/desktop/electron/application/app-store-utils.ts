@@ -556,7 +556,7 @@ export function makeActivityItem(
   label: string,
   options: Pick<
     Extract<TranscriptMessage, { kind: "activity" }>,
-    "detail" | "metadata" | "tone"
+    "detail" | "metadata" | "tone" | "activity" | "timestamp" | "durationMs"
   > = {},
 ): TranscriptMessage {
   return {
@@ -564,14 +564,17 @@ export function makeActivityItem(
     id: randomUUID(),
     createdAt: new Date().toISOString(),
     label,
-    ...options,
+    ...withoutUndefined(options),
   };
 }
 
 export function makeSummaryItem(
   label: string,
   options: Partial<
-    Pick<Extract<TranscriptMessage, { kind: "summary" }>, "metadata" | "presentation">
+    Pick<
+      Extract<TranscriptMessage, { kind: "summary" }>,
+      "metadata" | "presentation" | "summary" | "metrics" | "timestamp"
+    >
   > = {},
 ): TranscriptMessage {
   return {
@@ -580,7 +583,12 @@ export function makeSummaryItem(
     createdAt: new Date().toISOString(),
     label,
     presentation: options.presentation ?? "inline",
-    ...(options.metadata ? { metadata: options.metadata } : {}),
+    ...withoutUndefined({
+      metadata: options.metadata,
+      summary: options.summary,
+      metrics: options.metrics,
+      timestamp: options.timestamp,
+    }),
   };
 }
 
@@ -591,7 +599,7 @@ export function makeToolItem(
   label: string,
   options: Pick<
     Extract<TranscriptMessage, { kind: "tool" }>,
-    "detail" | "metadata" | "input" | "output"
+    "detail" | "metadata" | "input" | "output" | "toolLabel"
   > = {},
 ): TranscriptMessage {
   return {
@@ -602,8 +610,19 @@ export function makeToolItem(
     status,
     label,
     createdAt: new Date().toISOString(),
-    ...options,
+    ...withoutUndefined(options),
   };
+}
+
+/**
+ * Drops keys whose value is `undefined` so an absent optional field stays absent
+ * rather than becoming an own property a structural comparison would see.
+ */
+function withoutUndefined<T extends Readonly<Record<string, unknown>>>(
+  source: T,
+): { [Key in keyof T]?: Exclude<T[Key], undefined> } {
+  const entries = Object.entries(source).filter(([, value]) => value !== undefined);
+  return Object.fromEntries(entries) as { [Key in keyof T]?: Exclude<T[Key], undefined> };
 }
 
 export function previewFromTranscript(

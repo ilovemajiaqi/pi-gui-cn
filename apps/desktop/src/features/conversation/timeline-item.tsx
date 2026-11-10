@@ -19,6 +19,14 @@ import { useTranslation } from "../../i18n";
 import type { Translate } from "../../i18n/translate";
 import { useRunningLabel } from "./hooks/use-running-label";
 import {
+  activityLabel,
+  activityMetadata,
+  formatDuration,
+  summaryLabel,
+  summaryMetadata,
+  toolRowLabel,
+} from "./timeline-label";
+import {
   AnnotationMarkers,
   type AnnotationMarker,
   type OpenAnnotation,
@@ -271,11 +279,16 @@ function TimelineMessage({
 }
 
 function TimelineActivityItem({ item }: { readonly item: TimelineActivity }) {
+  const { t, locale } = useTranslation();
+  const label = activityLabel(item, t);
+  const metadata = activityMetadata(item, locale, t, (durationMs) =>
+    formatDuration(durationMs, locale),
+  );
   return (
     <div className={`timeline-activity timeline-activity--${item.tone ?? "neutral"}`}>
-      <span className="timeline-activity__label">{item.label}</span>
+      <span className="timeline-activity__label">{label}</span>
       {item.detail ? <span className="timeline-activity__detail">{item.detail}</span> : null}
-      {item.metadata ? <span className="timeline-activity__meta">{item.metadata}</span> : null}
+      {metadata ? <span className="timeline-activity__meta">{metadata}</span> : null}
     </div>
   );
 }
@@ -450,7 +463,9 @@ function buildCompactLabel(
       return t("conversation.timeline.edited", { file: shortenPath(filename) });
     }
   }
-  return item.label;
+  // A built-in tool row names what it did from its kind, so it reads in the active
+  // language; an extension's tool keeps the label it registered.
+  return toolRowLabel(item, t);
 }
 
 function extractFilename(input: unknown): string {
@@ -504,11 +519,13 @@ function statusLabel(status: "running" | "success" | "error", t: Translate) {
 }
 
 function TimelineTurnMarkerItem({ item }: { readonly item: TimelineTurnMarker }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   return (
     <div className="timeline-turn-marker" data-testid="timeline-turn-marker">
       <span className="timeline-turn-marker__label">
-        {t("conversation.timeline.workedFor", { duration: formatWorkedDuration(item.durationMs) })}
+        {t("conversation.timeline.workedFor", {
+          duration: formatDuration(item.durationMs, locale),
+        })}
       </span>
     </div>
   );
@@ -523,35 +540,23 @@ function TimelineWorkingItem({ item }: { readonly item: TimelineWorkingIndicator
   );
 }
 
-function formatWorkedDuration(durationMs: number): string {
-  const totalSeconds = Math.max(1, Math.round(durationMs / 1000));
-  if (totalSeconds < 60) {
-    return `${totalSeconds}s`;
-  }
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  if (minutes < 60) {
-    return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
-  }
-  const hours = Math.floor(minutes / 60);
-  const remMinutes = minutes % 60;
-  return remMinutes > 0 ? `${hours}h ${remMinutes}m` : `${hours}h`;
-}
-
 function TimelineSummaryItem({ item }: { readonly item: TimelineSummary }) {
+  const { t, locale } = useTranslation();
+  const label = summaryLabel(item, locale, t);
+  const metadata = summaryMetadata(item, locale);
   if (item.presentation === "divider") {
     return (
       <div className="timeline-summary">
-        <span>{item.label}</span>
-        {item.metadata ? <span className="timeline-summary__meta">{item.metadata}</span> : null}
+        <span>{label}</span>
+        {metadata ? <span className="timeline-summary__meta">{metadata}</span> : null}
       </div>
     );
   }
 
   return (
     <div className="timeline-activity timeline-activity--summary">
-      <span className="timeline-activity__label">{item.label}</span>
-      {item.metadata ? <span className="timeline-activity__meta">{item.metadata}</span> : null}
+      <span className="timeline-activity__label">{label}</span>
+      {metadata ? <span className="timeline-activity__meta">{metadata}</span> : null}
     </div>
   );
 }

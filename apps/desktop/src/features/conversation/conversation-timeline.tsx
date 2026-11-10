@@ -9,6 +9,7 @@ import {
 } from "react";
 import type {
   DisplayTimelineItem,
+  TimelineMetrics,
   TimelineTranscriptItem,
 } from "../../../contracts/timeline-types";
 import type { ScheduledTaskOrigin } from "../../../contracts/scheduled-tasks";
@@ -405,17 +406,31 @@ function isSameDisplayItem(a: DisplayTimelineItem, b: DisplayTimelineItem): bool
       a.status === b.status &&
       a.toolName === b.toolName &&
       a.label === b.label &&
+      a.toolLabel === b.toolLabel &&
       a.detail === b.detail &&
       a.metadata === b.metadata
     );
   }
   if (a.kind === "activity" && b.kind === "activity") {
     return (
-      a.label === b.label && a.detail === b.detail && a.metadata === b.metadata && a.tone === b.tone
+      a.label === b.label &&
+      a.activity === b.activity &&
+      a.timestamp === b.timestamp &&
+      a.durationMs === b.durationMs &&
+      a.detail === b.detail &&
+      a.metadata === b.metadata &&
+      a.tone === b.tone
     );
   }
   if (a.kind === "summary" && b.kind === "summary") {
-    return a.label === b.label && a.metadata === b.metadata && a.presentation === b.presentation;
+    return (
+      a.label === b.label &&
+      a.summary === b.summary &&
+      a.timestamp === b.timestamp &&
+      sameMetrics(a.metrics, b.metrics) &&
+      a.metadata === b.metadata &&
+      a.presentation === b.presentation
+    );
   }
   if (a.kind === "turn-marker" && b.kind === "turn-marker") {
     return a.durationMs === b.durationMs;
@@ -436,6 +451,18 @@ function isSameDisplayItem(a: DisplayTimelineItem, b: DisplayTimelineItem): bool
 
 function rowBottom(row: TimelineRow | undefined): number {
   return row ? row.top + row.height : 0;
+}
+
+/** A run summary's counts, compared by value: each update rebuilds the object. */
+function sameMetrics(a: TimelineMetrics | undefined, b: TimelineMetrics | undefined): boolean {
+  if (a === b) {
+    return true;
+  }
+  return (
+    a?.toolCount === b?.toolCount &&
+    a?.searchCount === b?.searchCount &&
+    a?.fileCount === b?.fileCount
+  );
 }
 
 function areMeasuredTimelineItemPropsEqual(

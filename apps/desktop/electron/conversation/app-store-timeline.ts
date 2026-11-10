@@ -1,7 +1,12 @@
 import { isCardEntryItem, sessionKey } from "@pi-gui/session-driver";
 import type { SessionTranscriptItem, SessionTranscriptPin } from "@pi-gui/session-driver";
 import type { SessionDriverEvent, SessionQueuedMessage, SessionRef } from "@pi-gui/session-driver";
-import type { TranscriptMessage } from "../../contracts/desktop-state";
+import type {
+  BuiltinToolLabel,
+  TimelineMetrics,
+  TimelineToolCall,
+  TranscriptMessage,
+} from "../../contracts/desktop-state";
 import {
   extensionToolRowLabel,
   toolInputSummary,
@@ -53,20 +58,18 @@ export function timelineFromDriverTranscript(
     }
     const detail = detailFromOutput(item.output);
     const extensionLabel = extensionToolLabels.get(item.toolName);
+    // A folder extension's tool keeps the label it registered; only our own tools get a kind.
+    const resolved =
+      extensionLabel === undefined
+        ? describeToolLabel(item.toolName, item.input)
+        : { label: extensionToolRowLabel(extensionLabel, item.input), toolLabel: undefined };
     return {
-      ...makeToolItem(
-        item.callId,
-        item.toolName,
-        item.status,
-        extensionLabel === undefined
-          ? toolLabel(item.toolName, item.input)
-          : extensionToolRowLabel(extensionLabel, item.input),
-        {
-          ...(detail !== undefined ? { detail } : {}),
-          ...(item.input !== undefined ? { input: item.input } : {}),
-          ...(item.output !== undefined ? { output: item.output } : {}),
-        },
-      ),
+      ...makeToolItem(item.callId, item.toolName, item.status, resolved.label, {
+        ...(detail !== undefined ? { detail } : {}),
+        ...(item.input !== undefined ? { input: item.input } : {}),
+        ...(item.output !== undefined ? { output: item.output } : {}),
+        ...(resolved.toolLabel ? { toolLabel: resolved.toolLabel } : {}),
+      }),
       createdAt: item.createdAt,
     };
   });
@@ -193,7 +196,11 @@ export function applyTimelineEvent(
     case "sessionOpened":
       state.pendingAssistantMessageBySession.delete(key);
       transcript.push(
-        makeActivityItem("Resumed session", { metadata: relativeDetail(event.timestamp) }),
+        makeActivityItem("Resumed session", {
+          activity: "resumed",
+          metadata: relativeDetail(event.timestamp),
+          timestamp: event.timestamp,
+        }),
       );
       break;
     case "sessionUpdated":
@@ -240,16 +247,20 @@ export function applyTimelineEvent(
         metrics.fileCount += 1;
       }
       state.runMetricsBySession.set(key, metrics);
+      const resolved =
+        extensionLabel === undefined
+          ? describeToolLabel(event.toolName, event.input)
+          : { label: extensionToolRowLabel(extensionLabel, event.input), toolLabel: undefined };
       upsertToolRow(
         transcript,
         event.callId,
         event.toolName,
         "running",
-        extensionLabel === undefined
-          ? toolLabel(event.toolName, event.input)
-          : extensionToolRowLabel(extensionLabel, event.input),
+        resolved.label,
         undefined,
         event.input,
+        undefined,
+        resolved.toolLabel,
       );
       break;
     }
@@ -281,7 +292,14 @@ export function applyTimelineEvent(
       if (metrics) {
         const label = summaryLabel(metrics);
         if (label) {
-          transcript.push(makeSummaryItem(label, { presentation: "inline" }));
+          transcript.push(
+            makeSummaryItem(label, {
+              presentation: "inline",
+              summary: "runSummary",
+              metrics: runMetricsSnapshot(metrics),
+              timestamp: event.timestamp,
+            }),
+          );
         }
         // No "Worked for" row here: the renderer derives one per turn from
         // timestamps and places it above the turn's final reply.
@@ -289,7 +307,9 @@ export function applyTimelineEvent(
         transcript.push(
           makeSummaryItem("Completed", {
             presentation: "divider",
+            summary: "completed",
             metadata: relativeDetail(event.timestamp),
+            timestamp: event.timestamp,
           }),
         );
       }
@@ -302,19 +322,31 @@ export function applyTimelineEvent(
         : undefined;
       const failureLabel = clearerRunFailureLabel(event.error.message, latestToolError);
       const failureDetail = event.error.code;
+      // The failure sentence belongs to the runtime, so it stays as written; the kind only
+      // marks it as a run failure, and the duration lets the renderer phrase the elapsed time.
+      const durationMs = metrics
+        ? Math.max(0, Date.parse(event.timestamp) - Date.parse(metrics.startedAt))
+        : undefined;
       clearRunState(key, event.sessionRef, state);
       transcript.push(
         makeActivityItem(failureLabel, {
           tone: "error",
           metadata: metrics ? workedForLabel(metrics.startedAt, event.timestamp) : undefined,
           detail: failureDetail,
+          ...(metrics ? { timestamp: event.timestamp, durationMs } : {}),
         }),
       );
       break;
     }
     case "sessionClosed":
       clearRunState(key, event.sessionRef, state);
-      transcript.push(makeActivityItem("Stopped", { metadata: relativeDetail(event.timestamp) }));
+      transcript.push(
+        makeActivityItem("Stopped", {
+          activity: "stopped",
+          metadata: relativeDetail(event.timestamp),
+          timestamp: event.timestamp,
+        }),
+      );
       break;
     case "transcriptItemAppended": {
       // A pin shows above the composer, so it never ends or moves a streaming reply.
@@ -394,10 +426,14 @@ function upsertToolRow(
   detail?: string,
   input?: unknown,
   output?: unknown,
+  toolLabel?: BuiltinToolLabel,
 ) {
   const index = transcript.findIndex((item) => item.kind === "tool" && item.callId === callId);
   const existing = index >= 0 ? transcript[index] : undefined;
   const existingTool = existing?.kind === "tool" ? existing : undefined;
+  // A row that arrives before its toolStarted keeps a neutral "pending" kind: the run is
+  // working, and the renderer phrases that itself instead of reading this sentence.
+  const kind = toolLabel ?? existingTool?.toolLabel ?? "pending";
   const next = makeToolItem(
     callId,
     toolName ?? existingTool?.toolName ?? "tool",
@@ -408,6 +444,7 @@ function upsertToolRow(
       metadata: existingTool?.metadata,
       input: input ?? existingTool?.input,
       output: output ?? existingTool?.output,
+      toolLabel: kind,
     },
   );
 
@@ -429,33 +466,56 @@ function clearRunState(key: string, sessionRef: SessionRef, state: TimelineRunti
   state.runMetricsBySession.delete(key);
 }
 
-function toolLabel(toolName: string, input: unknown): string {
+/**
+ * The English label a built-in tool row carries in the store, plus the kind the renderer
+ * phrases in the active locale. Both are written: the label keeps previews, stored
+ * transcripts and older readers working, the kind lets a language switch re-phrase history.
+ */
+function describeToolLabel(
+  toolName: string,
+  input: unknown,
+): { label: string; toolLabel: BuiltinToolLabel } {
   const detail = toolInputSummary(input);
   if (toolName === createChildThreadToolName) {
-    return detail ? `Started child thread: ${detail}` : "Started child thread";
+    return {
+      label: detail ? `Started child thread: ${detail}` : "Started child thread",
+      toolLabel: "createChildThread",
+    };
   }
   if (toolName === listThreadsToolName) {
-    return "Listed threads";
+    return { label: "Listed threads", toolLabel: "listThreads" };
   }
   if (toolName === readThreadToolName) {
-    return detail ? `Read thread: ${detail}` : "Read thread";
+    return {
+      label: detail ? `Read thread: ${detail}` : "Read thread",
+      toolLabel: "readThread",
+    };
   }
   if (toolName === sendMessageToThreadToolName) {
-    return detail ? `Sent message to thread: ${detail}` : "Sent message to thread";
+    return {
+      label: detail ? `Sent message to thread: ${detail}` : "Sent message to thread",
+      toolLabel: "sendMessageToThread",
+    };
   }
   if (toolName === archiveChildThreadsToolName) {
-    return "Archived child threads";
+    return { label: "Archived child threads", toolLabel: "archiveChildThreads" };
   }
   if (looksLikeSearch(toolName, input)) {
-    return detail ? `Searched ${detail}` : `Searched with ${toolName}`;
+    return {
+      label: detail ? `Searched ${detail}` : `Searched with ${toolName}`,
+      toolLabel: "search",
+    };
   }
   if (looksLikeFileExplore(toolName, input)) {
     if (toolName.toLowerCase() === "read") {
-      return detail ? `Read ${detail}` : "Read a file";
+      return { label: detail ? `Read ${detail}` : "Read a file", toolLabel: "read" };
     }
-    return detail ? `Explored ${detail}` : `Explored files with ${toolName}`;
+    return {
+      label: detail ? `Explored ${detail}` : `Explored files with ${toolName}`,
+      toolLabel: "explore",
+    };
   }
-  return detail ? `Ran ${toolName}: ${detail}` : `Ran ${toolName}`;
+  return { label: detail ? `Ran ${toolName}: ${detail}` : `Ran ${toolName}`, toolLabel: "run" };
 }
 
 function progressLabel(progress: number | undefined): string | undefined {
@@ -533,6 +593,15 @@ function summaryLabel(metrics: RunMetrics): string | undefined {
     parts.push(`Used ${metrics.toolCount} tool${metrics.toolCount === 1 ? "" : "s"}`);
   }
   return parts.length > 0 ? parts.join(", ") : undefined;
+}
+
+/** The counts a run summary row needs to phrase itself in the reader's language. */
+function runMetricsSnapshot(metrics: RunMetrics): TimelineMetrics {
+  return {
+    toolCount: metrics.toolCount,
+    searchCount: metrics.searchCount,
+    fileCount: metrics.fileCount,
+  };
 }
 
 function workedForLabel(startedAt: string, endedAt: string): string {
