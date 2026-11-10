@@ -52,14 +52,17 @@
   --radius-pill: 999px;
   --radius-round: 50%;
 
-  /* ---- Type scale (compact, px-based like Codex) ------------------------- */
-  --text-xs: 11px;
-  --text-sm: 12px;
-  --text-base: 14px;
-  --text-md: 15px;
-  --text-lg: 16px;
-  --text-xl: 20px;
-  --text-2xl: 28px;
+  /* ---- Type scale (compact, like Codex) ---------------------------------- */
+  /* In rem so the user-facing UI font size setting (a root font-size)
+   * rescales token-based text exactly like the literal px sizes that the
+   * build converts to rem. 1rem = 16px at the default root size. */
+  --text-xs: 0.6875rem;
+  --text-sm: 0.75rem;
+  --text-base: 0.875rem;
+  --text-md: 0.9375rem;
+  --text-lg: 1rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.75rem;
 
   --leading-tight: 1.25;
   --leading-snug: 1.375;

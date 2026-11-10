@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RuntimeSnapshot } from "@pi-gui/session-driver/runtime-types";
 import {
+  DEFAULT_UI_FONT_SIZE,
   getSelectedSession,
   getSelectedWorkspace,
   type AppView,
@@ -157,6 +158,10 @@ export default function App() {
       snapshot?.enableTransparency ?? false,
     );
   }, [snapshot?.enableTransparency]);
+
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${snapshot?.uiFontSize ?? DEFAULT_UI_FONT_SIZE}px`;
+  }, [snapshot?.uiFontSize]);
 
   const activeTheme = useActiveTheme();
   const extensionViewTheme = useMemo<ExtensionViewTheme>(

@@ -94,6 +94,13 @@ export function expectBoolean(value: unknown, name: string): boolean {
   return value;
 }
 
+export function expectNumber(value: unknown, name: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new TypeError(`${name} must be a finite number`);
+  }
+  return value;
+}
+
 function expectOptionalBoolean(value: unknown, name: string): boolean | undefined {
   return value === undefined ? undefined : expectBoolean(value, name);
 }

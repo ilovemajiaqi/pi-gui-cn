@@ -42,6 +42,16 @@ export type WorkspaceKind = "primary" | "worktree";
 export type WorktreeStatus = "ready" | "missing" | "error";
 export type NewThreadEnvironment = "local" | "worktree";
 export type ThemeMode = "system" | "light" | "dark";
+
+/** UI font size bounds for the appearance setting (Codex uses 11–16 px). */
+export const UI_FONT_SIZE_MIN = 12;
+export const UI_FONT_SIZE_MAX = 20;
+export const DEFAULT_UI_FONT_SIZE = 16;
+
+export function clampUiFontSize(value: number): number {
+  if (!Number.isFinite(value)) return DEFAULT_UI_FONT_SIZE;
+  return Math.min(UI_FONT_SIZE_MAX, Math.max(UI_FONT_SIZE_MIN, Math.round(value)));
+}
 export const themePresetIds = [
   "default",
   "catppuccin",
@@ -528,6 +538,8 @@ export interface DesktopAppState {
   /** Folder groups the user collapsed in the sidebar, by workspace id. */
   readonly collapsedWorkspaceIds: readonly string[];
   readonly enableTransparency: boolean;
+  /** Root font size in px the renderer applies to the whole UI (Codex-style). */
+  readonly uiFontSize: number;
   readonly startupDiagnostics: readonly StartupDiagnostic[];
   readonly revision: number;
   readonly lastError?: string;
@@ -587,6 +599,7 @@ export function createEmptyDesktopAppState(): DesktopAppState {
     threadGrouping: "time",
     collapsedWorkspaceIds: [],
     enableTransparency: false,
+    uiFontSize: DEFAULT_UI_FONT_SIZE,
     startupDiagnostics: [],
     revision: 0,
   };

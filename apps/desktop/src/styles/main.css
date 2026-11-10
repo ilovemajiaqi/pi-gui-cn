@@ -2354,6 +2354,28 @@
   font-size: 12.5px;
 }
 
+/* Numeric input with a trailing unit suffix (UI font size in px). */
+.settings-font-size-control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.settings-font-size-control .settings-text-input {
+  width: 96px;
+  padding-right: 30px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.settings-font-size-control__unit {
+  position: absolute;
+  right: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  pointer-events: none;
+}
+
 .custom-endpoint-model-list__item {
   display: flex;
   flex: 1;

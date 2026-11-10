@@ -454,6 +454,8 @@ contextBridge.exposeInMainWorld("piApp", {
       desktopIpc.setIntegratedTerminalShell,
       shellPath,
     ) as Promise<DesktopAppState>,
+  setUiFontSize: (px: number) =>
+    ipcRenderer.invoke(desktopIpc.setUiFontSize, px) as Promise<DesktopAppState>,
   setEnableTransparency: (enabled: boolean) =>
     ipcRenderer.invoke(desktopIpc.setEnableTransparency, enabled) as Promise<DesktopAppState>,
   setThemePresetId: (presetId: ThemePresetId) =>

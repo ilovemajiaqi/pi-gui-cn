@@ -41,6 +41,7 @@ interface SettingsViewProps {
   readonly themeMode: "system" | "light" | "dark";
   readonly themePresetId: ThemePresetId;
   readonly enableTransparency: boolean;
+  readonly uiFontSize: number;
   readonly onSetModelSettingsScopeMode: (mode: ModelSettingsScopeMode) => void;
   readonly onSetDefaultModel: (provider: string, modelId: string) => void;
   readonly onSetThinkingLevel: (
@@ -61,6 +62,7 @@ interface SettingsViewProps {
   readonly onSetThemeMode: (mode: "system" | "light" | "dark") => void;
   readonly onSetThemePresetId: (presetId: ThemePresetId) => void;
   readonly onSetEnableTransparency: (enabled: boolean) => void;
+  readonly onSetUiFontSize: (px: number) => void;
   readonly mcpActions: McpSettingsActions;
 }
 
@@ -79,6 +81,8 @@ export function SettingsView({
   themeMode,
   themePresetId,
   enableTransparency,
+  uiFontSize,
+  onSetUiFontSize,
   onSetModelSettingsScopeMode,
   onSetDefaultModel,
   onSetThinkingLevel,
@@ -149,6 +153,8 @@ export function SettingsView({
               onSetThemePresetId={onSetThemePresetId}
               enableTransparency={enableTransparency}
               onSetEnableTransparency={onSetEnableTransparency}
+              uiFontSize={uiFontSize}
+              onSetUiFontSize={onSetUiFontSize}
             />
           ) : null}
 

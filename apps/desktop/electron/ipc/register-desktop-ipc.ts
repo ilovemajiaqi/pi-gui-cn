@@ -46,6 +46,7 @@ import {
   expectNavigateSessionTreeOptions,
   expectNonEmptyString,
   expectNotificationPreferences,
+  expectNumber,
   expectOptionalDeliverOptions,
   expectOptionalString,
   expectOptionalThinkingLevel,
@@ -166,6 +167,7 @@ type SettingsOwner = Pick<
   | "setNotificationPreferences"
   | "setIntegratedTerminalShell"
   | "setEnableTransparency"
+  | "setUiFontSize"
   | "getSkillFilePath"
   | "getExtensionFilePath"
 >;
@@ -684,6 +686,9 @@ export function registerDesktopIpc({
     run(event, () =>
       owners.settings.setIntegratedTerminalShell(expectString(rawShellPath, "shellPath")),
     ),
+  );
+  ipcMain.handle(desktopIpc.setUiFontSize, (event, rawSize: unknown) =>
+    run(event, () => owners.settings.setUiFontSize(expectNumber(rawSize, "px"))),
   );
   ipcMain.handle(desktopIpc.setEnableTransparency, async (event, rawEnabled: unknown) => {
     const window = senderWindow(windows, event);

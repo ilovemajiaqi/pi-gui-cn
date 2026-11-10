@@ -66,6 +66,7 @@ import {
   type TranscriptMessage,
   type WorkspaceRecord,
   type WorkspaceSessionTarget,
+  clampUiFontSize,
   isThemeMode,
   isThemePresetId,
   type CreateScheduledTaskInput,
@@ -1484,6 +1485,22 @@ export class DesktopAppStore {
     return this.emit();
   }
 
+  async setUiFontSize(rawSize: number): Promise<DesktopAppState> {
+    await this.initialize();
+    const uiFontSize = clampUiFontSize(rawSize);
+    if (this.state.uiFontSize === uiFontSize) {
+      return structuredClone(this.state);
+    }
+    this.state = {
+      ...this.state,
+      uiFontSize,
+      lastError: undefined,
+      revision: this.state.revision + 1,
+    };
+    await this.persistUiState();
+    return this.emit();
+  }
+
   async setThemeMode(themeMode: ThemeMode): Promise<DesktopAppState> {
     await this.initialize();
     if (!isThemeMode(themeMode)) {
@@ -2319,6 +2336,10 @@ export class DesktopAppStore {
       threadGrouping: persisted.threadGrouping ?? "time",
       collapsedWorkspaceIds: persisted.collapsedWorkspaceIds ?? [],
       enableTransparency: persisted.enableTransparency ?? this.state.enableTransparency,
+      uiFontSize:
+        persisted.uiFontSize === undefined
+          ? this.state.uiFontSize
+          : clampUiFontSize(persisted.uiFontSize),
       ...this.orchestrationChildrenState(persisted.orchestrationChildren ?? []),
     };
 
@@ -4184,6 +4205,7 @@ export class DesktopAppStore {
       collapsedWorkspaceIds:
         this.state.collapsedWorkspaceIds.length > 0 ? this.state.collapsedWorkspaceIds : undefined,
       enableTransparency: this.state.enableTransparency,
+      uiFontSize: this.state.uiFontSize,
       orchestrationChildren: orchestration.toPersistedOrchestrationChildren(
         this.state.orchestrationChildren,
       ),

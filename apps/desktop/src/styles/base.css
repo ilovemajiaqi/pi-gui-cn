@@ -31,6 +31,12 @@
   box-sizing: border-box;
 }
 
+/* Root font size drives every rem-based font-size (the whole type scale):
+ * the appearance setting writes this inline, like Codex's UI font size. */
+html {
+  font-size: 16px;
+}
+
 html,
 body,
 #root {

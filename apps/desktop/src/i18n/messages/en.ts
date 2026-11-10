@@ -188,6 +188,10 @@ export const en = {
   "settings.appearance.transparency.description":
     "Let desktop colors show through supported surfaces.",
   "settings.appearance.transparency.label": "Window transparency",
+  "settings.appearance.fontSize.title": "UI font size",
+  "settings.appearance.fontSize.description":
+    "Base text size for the whole interface, in pixels (12 to 20).",
+  "settings.appearance.fontSize.label": "UI font size",
   "settings.appearance.preset.default": "The pi-gui palette.",
   "settings.appearance.preset.catppuccin": "Soft pastel Latte and Mocha variants.",
   "settings.appearance.preset.tokyo-night": "A cool editor palette with a bright Day variant.",

@@ -462,6 +462,7 @@ export function SecondarySurfaces({
           themeMode={snapshot.themeMode}
           themePresetId={snapshot.themePresetId}
           enableTransparency={snapshot.enableTransparency}
+          uiFontSize={snapshot.uiFontSize}
           onLoginProvider={handleLoginProvider}
           onSelectSection={onSelectSettingsSection}
           onLogoutProvider={handleLogoutProvider}
@@ -485,6 +486,13 @@ export function SecondarySurfaces({
             void updateSnapshot(setSnapshot, () => api.setEnableTransparency(enabled)).catch(
               (error: unknown) => {
                 console.error("[renderer] setEnableTransparency failed", error);
+              },
+            );
+          }}
+          onSetUiFontSize={(px) => {
+            void updateSnapshot(setSnapshot, () => api.setUiFontSize(px)).catch(
+              (error: unknown) => {
+                console.error("[renderer] setUiFontSize failed", error);
               },
             );
           }}

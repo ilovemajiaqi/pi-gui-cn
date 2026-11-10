@@ -12,7 +12,12 @@ import type {
   ThreadGrouping,
 } from "../../contracts/desktop-state";
 import { isDesktopLocale, type DesktopLocale } from "../../contracts/ipc";
-import { isThemeMode, isThemePresetId, isThreadGrouping } from "../../contracts/desktop-state";
+import {
+  clampUiFontSize,
+  isThemeMode,
+  isThemePresetId,
+  isThreadGrouping,
+} from "../../contracts/desktop-state";
 import type { ExtensionFlagValues } from "@pi-gui/session-driver";
 import type { ModelSettingsSnapshot } from "@pi-gui/session-driver/runtime-types";
 import { readJsonWithBackup, writeFileAtomicQueued } from "./atomic-file-write";
@@ -54,6 +59,7 @@ export interface PersistedUiState {
   readonly collapsedWorkspaceIds?: readonly string[];
   readonly allowMultiple?: boolean;
   readonly enableTransparency?: boolean;
+  readonly uiFontSize?: number;
   readonly themeMode?: ThemeMode;
   readonly themePresetId?: ThemePresetId;
   /**
@@ -145,6 +151,8 @@ export function decodePersistedUiState(parsed: unknown): LegacyPersistedUiState 
       typeof candidate.allowMultiple === "boolean" ? candidate.allowMultiple : undefined,
     enableTransparency:
       typeof candidate.enableTransparency === "boolean" ? candidate.enableTransparency : undefined,
+    uiFontSize:
+      typeof candidate.uiFontSize === "number" ? clampUiFontSize(candidate.uiFontSize) : undefined,
     themeMode: toThemeMode(candidate.themeMode),
     themePresetId: toThemePresetId(candidate.themePresetId),
     locale: toDesktopLocale(candidate.locale),
@@ -240,6 +248,7 @@ function validateUiState(value: unknown): Record<string, unknown> {
       "collapsedWorkspaceIds",
       "allowMultiple",
       "enableTransparency",
+      "uiFontSize",
       "themeMode",
       "themePresetId",
       "locale",

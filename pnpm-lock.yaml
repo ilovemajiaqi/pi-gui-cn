@@ -356,6 +356,9 @@ importers:
       playwright:
         specifier: ^1.58.2
         version: 1.58.2
+      postcss-pxtorem:
+        specifier: ^6.1.0
+        version: 6.1.0(postcss@8.5.32)
       shiki:
         specifier: 4.4.3
         version: 4.4.3
@@ -4143,6 +4146,11 @@ packages:
   postcss-modules-values@4.0.0:
     resolution: {integrity: sha512-RDxHkAiEGI78gS2ofyvCsu7iycRv7oqw5xMWn9iMoR0N/7mf9D50ecQqUo5BZ9Zh2vH4bCUR/ktCqbB9m8vJjQ==}
     engines: {node: ^10 || ^12 || >= 14}
+    peerDependencies:
+      postcss: ^8.5.32
+
+  postcss-pxtorem@6.1.0:
+    resolution: {integrity: sha512-ROODSNci9ADal3zUcPHOF/K83TiCgNSPXQFSbwyPHNV8ioHIE4SaC+FPOufd8jsr5jV2uIz29v1Uqy1c4ov42g==}
     peerDependencies:
       postcss: ^8.5.32
 
@@ -9276,6 +9284,10 @@ snapshots:
   postcss-modules-values@4.0.0(postcss@8.5.32):
     dependencies:
       icss-utils: 5.1.0(postcss@8.5.32)
+      postcss: 8.5.32
+
+  postcss-pxtorem@6.1.0(postcss@8.5.32):
+    dependencies:
       postcss: 8.5.32
 
   postcss-selector-parser@7.1.1:

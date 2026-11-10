@@ -1,7 +1,11 @@
-import type { ThemeMode, ThemePresetId } from "../../../contracts/desktop-state";
+import {
+  clampUiFontSize,
+  type ThemeMode,
+  type ThemePresetId,
+} from "../../../contracts/desktop-state";
 import { SettingsSelect, SettingsSwitch, type SettingsSegmentedOption } from "./settings-controls";
 import { SettingsGroup, SettingsRow } from "./settings-utils";
-import type { CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { themePreset, themePresets, themeSwatches, themeTokensFor } from "../../../contracts/theme";
 import { LOCALES, useI18n, type LocalePreference, type MessageKey } from "../../i18n";
 import { useActiveTheme } from "../../ui/active-theme";
@@ -13,6 +17,8 @@ interface SettingsAppearanceSectionProps {
   readonly onSetThemePresetId: (presetId: ThemePresetId) => void;
   readonly enableTransparency: boolean;
   readonly onSetEnableTransparency: (enabled: boolean) => void;
+  readonly uiFontSize: number;
+  readonly onSetUiFontSize: (px: number) => void;
 }
 
 /** Preset copy lives in the message catalogs, so the picker reads in the chosen language. */
@@ -34,8 +40,18 @@ export function SettingsAppearanceSection({
   onSetThemePresetId,
   enableTransparency,
   onSetEnableTransparency,
+  uiFontSize,
+  onSetUiFontSize,
 }: SettingsAppearanceSectionProps) {
   const { t, preference, setPreference } = useI18n();
+  const [fontSizeDraft, setFontSizeDraft] = useState(() => String(uiFontSize));
+  useEffect(() => {
+    setFontSizeDraft(String(uiFontSize));
+  }, [uiFontSize]);
+  const commitFontSize = () => {
+    const parsed = Number.parseFloat(fontSizeDraft);
+    onSetUiFontSize(Number.isFinite(parsed) ? clampUiFontSize(parsed) : uiFontSize);
+  };
   const { variant } = useActiveTheme();
   const themeModes: readonly { readonly mode: ThemeMode; readonly label: MessageKey }[] = [
     { mode: "system", label: "settings.appearance.mode.system" },
@@ -122,6 +138,31 @@ export function SettingsAppearanceSection({
             label={t("settings.appearance.transparency.label")}
             onChange={onSetEnableTransparency}
           />
+        </SettingsRow>
+        <SettingsRow
+          title={t("settings.appearance.fontSize.title")}
+          description={t("settings.appearance.fontSize.description")}
+        >
+          <span className="settings-font-size-control">
+            <input
+              aria-label={t("settings.appearance.fontSize.label")}
+              className="settings-text-input settings-text-input--number"
+              inputMode="numeric"
+              spellCheck={false}
+              type="text"
+              value={fontSizeDraft}
+              onBlur={commitFontSize}
+              onChange={(event) => setFontSizeDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.currentTarget.blur();
+                }
+              }}
+            />
+            <span aria-hidden="true" className="settings-font-size-control__unit">
+              px
+            </span>
+          </span>
         </SettingsRow>
       </SettingsGroup>
     </>
