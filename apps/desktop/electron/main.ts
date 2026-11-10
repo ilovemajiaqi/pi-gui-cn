@@ -56,7 +56,7 @@ import { checkForUpdate, initUpdateChecker, openReleasesPage } from "./platform/
 import { ThemeManager } from "./platform/theme-manager";
 import { LocaleManager } from "./platform/locale-manager";
 import { createMainTranslator } from "./platform/main-messages";
-import { installMacApplicationMenu } from "./platform/menus/macos-menu";
+import { installApplicationMenu as installMenu } from "./platform/menus/application-menu";
 import { EditorService } from "./platform/editors/editor-service";
 import { windowBackgroundFor } from "../contracts/theme";
 import { TerminalService } from "./platform/terminal-service";
@@ -841,10 +841,7 @@ async function runManualUpdateCheck(): Promise<void> {
 }
 
 function installApplicationMenu(locale: DesktopLocale): void {
-  if (process.platform !== "darwin") {
-    return;
-  }
-  installMacApplicationMenu(createMainTranslator(locale), {
+  installMenu(createMainTranslator(locale), {
     appName: app.name,
     checkForUpdates: () => {
       void runManualUpdateCheck().catch((error: unknown) => {
