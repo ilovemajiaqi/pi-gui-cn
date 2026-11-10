@@ -4,3 +4,42 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # One entry covers the whole pnpm workspace: Dependabot walks
+  # pnpm-workspace.yaml from the root lockfile. promo/remotion installs its own
+  # lockfile outside the workspace, so it needs its own entry.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+      production-minor-patch:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Electron major upgrades change the Chromium and Node ABI the packaged
+      # app ships with; they need a packaged smoke run, not a bot PR.
+      - dependency-name: electron
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "@earendil-works/pi-coding-agent"
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: npm
+    directory: /promo/remotion
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
