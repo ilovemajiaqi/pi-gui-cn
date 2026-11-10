@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.1",
   "license": "MIT",
-  "packageManager": "pnpm@10.25.0",
+  "packageManager": "pnpm@10.34.9",
   "scripts": {
     "dev": "pnpm --filter @pi-gui/desktop dev",
     "build": "pnpm --filter @pi-gui/desktop run build && pnpm --filter @pi-gui/website run build",
@@ -44,7 +44,7 @@
     "@types/node": "^24.0.0",
     "@typescript-eslint/parser": "8.70.0",
     "eslint": "10.10.0",
-    "pnpm": "10.25.0",
+    "pnpm": "10.34.9",
     "prettier": "3.9.8",
     "typescript": "^5.9.3",
     "typescript-eslint": "8.70.0",
@@ -54,5 +54,28 @@
     "apps/*",
     "packages/*",
     "video"
-  ]
+  ],
+  "pnpm": {
+    "overrides": {
+      "tar": "^7.5.22",
+      "postcss": "^8.5.32",
+      "ws": "^8.22.2",
+      "picomatch": "^4.0.7",
+      "nanoid": "^3.3.20",
+      "browserslist": "^4.29.5",
+      "source-map-js": "^1.2.2",
+      "fast-uri": "^3.1.9",
+      "basic-ftp": "^6.2.6",
+      "sharp": "^0.35.5",
+      "zod": "^4.6.7",
+      "undici": "^8.12.4",
+      "lodash": "^4.18.0",
+      "tmp": "^0.2.6",
+      "form-data": "^4.0.6",
+      "js-yaml": "^4.3.2",
+      "ip-address": "^10.3.1",
+      "@xmldom/xmldom": "^0.8.15",
+      "builder-util-runtime": "^9.7.0"
+    }
+  }
 }

@@ -46,6 +46,9 @@
 /video/test-results/
 /video/playwright-report/
 **/*.tsbuildinfo
+# Next.js rewrites this on every build and apps/website/.gitignore ignores it, so a
+# local `pnpm build` must not be able to fail `format:check`.
+next-env.d.ts
 .artifacts/
 .cursor/
 .pnpm-store/
