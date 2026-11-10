@@ -8,14 +8,22 @@ import { assertWorkflowActionPolicy, isAction } from "./workflow-action-policy.m
 
 const repoRoot = fileURLToPath(new URL("../", import.meta.url));
 
+const CHECKOUT = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1";
+const PNPM = "pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1";
+const SETUP_NODE = "actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0";
+const UPLOAD = "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2";
+const DOWNLOAD = "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2";
+const RELEASE = "softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4";
+const CLAUDE = "anthropics/claude-code-action@4fa93a88de49bbef68b10eb15aabedf28ca0e1ed # v1.0.271";
+
 test("isAction matches the action name and ignores the ref", () => {
-  assert.equal(isAction("actions/upload-artifact@v7", "actions/upload-artifact"), true);
+  assert.equal(isAction(CHECKOUT, "actions/checkout"), true);
   assert.equal(isAction("actions/upload-artifact@v4", "actions/upload-artifact"), true);
-  assert.equal(isAction("softprops/action-gh-release@v3", "actions/upload-artifact"), false);
+  assert.equal(isAction(RELEASE, "actions/upload-artifact"), false);
   assert.equal(isAction(undefined, "actions/upload-artifact"), false);
 });
 
-test("the repository workflows match the Node 24 action policy", async () => {
+test("the repository workflows pin every action to a released commit", async () => {
   await assertWorkflowActionPolicy(repoRoot);
 });
 
@@ -23,41 +31,61 @@ test("valid seven-action corpus passes", async () => {
   await assertWorkflowActionPolicy(await writeFixture(validWorkflow()));
 });
 
-test("stale Node 20 majors fail", async () => {
-  const root = await writeFixture(
-    validWorkflow().replace("actions/checkout@v7", "actions/checkout@v4"),
+test("a moving major tag is rejected", async () => {
+  const root = await writeFixture(validWorkflow().replace(CHECKOUT, "actions/checkout@v7"));
+  await assert.rejects(
+    () => assertWorkflowActionPolicy(root),
+    /actions\/checkout must be pinned to a commit SHA/,
   );
-  await assert.rejects(() => assertWorkflowActionPolicy(root), /actions\/checkout@v7/);
 });
 
-test("setup-node v5 is not an allowed major", async () => {
-  const root = await writeFixture(
-    validWorkflow().replace("actions/setup-node@v7", "actions/setup-node@v5"),
+test("a full version tag is rejected too", async () => {
+  const root = await writeFixture(validWorkflow().replace(CHECKOUT, "actions/checkout@v7.0.1"));
+  await assert.rejects(
+    () => assertWorkflowActionPolicy(root),
+    /actions\/checkout must be pinned to a commit SHA/,
   );
-  await assert.rejects(() => assertWorkflowActionPolicy(root), /setup-node@v7/);
 });
 
-test("download-artifact must pair with upload-artifact v7 as v8", async () => {
+test("a SHA for an older release fails", async () => {
   const root = await writeFixture(
-    validWorkflow().replace("actions/download-artifact@v8", "actions/download-artifact@v7"),
+    validWorkflow().replace(
+      CHECKOUT,
+      "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0",
+    ),
   );
-  await assert.rejects(() => assertWorkflowActionPolicy(root), /download-artifact@v8/);
+  await assert.rejects(() => assertWorkflowActionPolicy(root), /expected actions\/checkout@/);
+});
+
+test("download-artifact must pair with upload-artifact as v8", async () => {
+  const root = await writeFixture(
+    validWorkflow().replace(
+      DOWNLOAD,
+      "actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0",
+    ),
+  );
+  await assert.rejects(
+    () => assertWorkflowActionPolicy(root),
+    /expected actions\/download-artifact@/,
+  );
+});
+
+test("a pinned SHA without its version comment fails", async () => {
+  const root = await writeFixture(
+    validWorkflow().replace(CHECKOUT, "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"),
+  );
+  await assert.rejects(() => assertWorkflowActionPolicy(root), /must carry "# v7\.0\.1"/);
+});
+
+test("a version comment that does not match the SHA fails", async () => {
+  const root = await writeFixture(validWorkflow().replace(/# v7\.0\.1/g, "# v7.0.0"));
+  await assert.rejects(() => assertWorkflowActionPolicy(root), /must carry "# v7\.0\.1"/);
 });
 
 test("unknown remote actions fail closed", async () => {
   const root = await writeFixture(`${validWorkflow()}      - uses: actions/cache@v4
 `);
   await assert.rejects(() => assertWorkflowActionPolicy(root), /unknown remote action/);
-});
-
-test("SHA refs are not accepted", async () => {
-  const root = await writeFixture(
-    validWorkflow().replace(
-      "actions/checkout@v7",
-      "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
-    ),
-  );
-  await assert.rejects(() => assertWorkflowActionPolicy(root), /expected actions\/checkout@v7/);
 });
 
 test("setup-node must keep application Node 22", async () => {
@@ -74,16 +102,16 @@ test("jobs that install pnpm must cache pnpm and jobs that do not must omit cach
       `  preflight:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: ${CHECKOUT}
+      - uses: ${SETUP_NODE}
         with:
           node-version: 22
 `,
       `  preflight:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: ${CHECKOUT}
+      - uses: ${SETUP_NODE}
         with:
           node-version: 22
           cache: pnpm
@@ -102,20 +130,20 @@ jobs:
   gate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: ${CHECKOUT}
+      - uses: ${PNPM}
+      - uses: ${SETUP_NODE}
         with:
           node-version: 22
           cache: pnpm
-      - uses: actions/upload-artifact@v7
+      - uses: ${UPLOAD}
         with:
           path: out
-      - uses: actions/download-artifact@v8
+      - uses: ${DOWNLOAD}
         with:
           name: out
-      - uses: softprops/action-gh-release@v3
-      - uses: anthropics/claude-code-action@v1
+      - uses: ${RELEASE}
+      - uses: ${CLAUDE}
 `);
   await assert.rejects(
     () => assertWorkflowActionPolicy(root),
@@ -130,25 +158,25 @@ jobs:
   gate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: ${CHECKOUT}
+      - uses: ${PNPM}
+      - uses: ${SETUP_NODE}
         with:
           node-version: 22
           cache: pnpm
-      - uses: actions/upload-artifact@v7
+      - uses: ${UPLOAD}
         with:
           path: out
-      - uses: actions/download-artifact@v8
+      - uses: ${DOWNLOAD}
         with:
           name: out
-      - uses: softprops/action-gh-release@v3
-      - uses: anthropics/claude-code-action@v1
+      - uses: ${RELEASE}
+      - uses: ${CLAUDE}
   preflight:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: ${CHECKOUT}
+      - uses: ${SETUP_NODE}
         with:
           node-version: 22
 `;
