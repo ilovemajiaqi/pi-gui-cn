@@ -5,6 +5,17 @@ import { dirname } from "node:path";
 const writeQueueByPath = new Map<string, Promise<void>>();
 
 /**
+ * Bounded retry budget for replacing an existing file on platforms that refuse
+ * to rename over one. A reader holding the destination open releases it in
+ * microseconds, so a handful of short retries clears the window without letting
+ * a genuinely stuck handle block the write for long.
+ */
+const RENAME_REPLACE_ATTEMPTS = 5;
+const RENAME_REPLACE_DELAY_MS = 2;
+/** A concurrent replace holds the sharing lock far longer than a rename retry needs. */
+const READ_LOCK_RETRY_ATTEMPTS = 10;
+
+/**
  * Write a file durably via temp-file + rename, serializing concurrent writes to
  * the same path. The temp file is fsync'd before it is renamed into place and
  * the containing directory is fsync'd afterwards, so a crash or power loss can
@@ -114,7 +125,7 @@ type ReadParseResult =
 async function tryReadParse(filePath: string): Promise<ReadParseResult> {
   let raw: Buffer;
   try {
-    raw = await readFile(filePath);
+    raw = await readFileWithRetry(filePath);
   } catch (error) {
     if (isMissingFileError(error)) return { status: "missing" };
     throw error;
@@ -124,6 +135,27 @@ async function tryReadParse(filePath: string): Promise<ReadParseResult> {
     return { status: "ok", value: JSON.parse(raw.toString("utf8")) as unknown, contents: raw };
   } catch {
     return { status: "corrupt" };
+  }
+}
+
+/**
+ * Read a file that may be replaced concurrently. The rename is atomic, so a
+ * reader never sees a half-written file, but Windows additionally fails an open
+ * with a sharing violation (EPERM/EBUSY) for the instant a replace is in flight.
+ * That is a transient lock, not a corrupt or missing file: retrying returns the
+ * old or the new complete bytes, and surfacing it instead would turn a routine
+ * background save into a spurious read failure.
+ */
+async function readFileWithRetry(filePath: string): Promise<Buffer> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await readFile(filePath);
+    } catch (error) {
+      if (!isTransientLockError(error) || attempt >= READ_LOCK_RETRY_ATTEMPTS) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, RENAME_REPLACE_DELAY_MS));
+    }
   }
 }
 
@@ -163,19 +195,29 @@ async function promoteToTarget(
 }
 
 async function renameReplace(src: string, dest: string): Promise<void> {
-  try {
-    await rename(src, dest);
-    return;
-  } catch (error) {
-    if (!isReplaceRenameError(error)) {
-      throw error;
+  // Windows refuses to replace a file another process has open, and fails with
+  // EPERM/EEXIST for the instant a reader holds it. Unlinking first would clear
+  // the error but open a window where readers see ENOENT — breaking the one
+  // guarantee this module exists to provide. Retry the rename instead: the
+  // reader closes the handle and the same atomic replace succeeds.
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      await rename(src, dest);
+      return;
+    } catch (error) {
+      if (!isReplaceRenameError(error) || attempt >= RENAME_REPLACE_ATTEMPTS) {
+        // Last resort: the platform will not replace in place. Only now is the
+        // destination removed, keeping the no-ENOENT window as short as possible.
+        if (isReplaceRenameError(error) && attempt >= RENAME_REPLACE_ATTEMPTS) {
+          await cleanupTempFile(dest);
+          await rename(src, dest);
+          return;
+        }
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, RENAME_REPLACE_DELAY_MS));
     }
   }
-
-  // Windows rename cannot atomically replace an existing file; remove the
-  // destination first, then rename into the now-free path.
-  await cleanupTempFile(dest);
-  await rename(src, dest);
 }
 
 async function fsyncDir(dir: string): Promise<void> {
@@ -202,6 +244,21 @@ function isReplaceRenameError(error: unknown): boolean {
     error !== null &&
     "code" in error &&
     (error.code === "EEXIST" || error.code === "EPERM")
+  );
+}
+
+/**
+ * Windows sharing violations. A replace in flight — or another process briefly
+ * holding the file — surfaces as EPERM or EBUSY rather than ENOENT, so callers
+ * that must distinguish "try again" from "the file is gone or corrupt" check
+ * this first.
+ */
+function isTransientLockError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error.code === "EPERM" || error.code === "EBUSY" || error.code === "EACCES")
   );
 }
 
