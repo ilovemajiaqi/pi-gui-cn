@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 报告安全漏洞
+    url: https://github.com/ilovemajiaqi/pi-gui-cn/security/advisories/new
+    about: 请勿在公开 Issue 中披露安全漏洞，使用仅维护者可见的私密渠道。
+  - name: 💬 提问与讨论
+    url: https://github.com/ilovemajiaqi/pi-gui-cn/discussions
+    about: 使用问题、经验交流与开放讨论请前往 Discussions。
+  - name: ⬆️ 上游 pi-gui
+    url: https://github.com/minghinmatthewlam/pi-gui/issues
+    about: 与中文本地化无关的上游功能或运行时问题，请提交到上游仓库。

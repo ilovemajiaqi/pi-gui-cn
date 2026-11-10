@@ -1,0 +1,133 @@
+name: 🐞 Bug 报告
+description: 报告一个可复现的缺陷或异常行为
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！提交前请先搜索[现有 Issue](https://github.com/ilovemajiaqi/pi-gui-cn/issues)，并阅读 [SUPPORT.md](https://github.com/ilovemajiaqi/pi-gui-cn/blob/main/SUPPORT.md)。
+        **安全漏洞请不要在这里提交**，请使用[私密报告渠道](https://github.com/ilovemajiaqi/pi-gui-cn/security/advisories/new)。
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: 提交前检查
+      options:
+        - label: 我已搜索现有 Issue，确认这不是重复问题
+          required: true
+        - label: 我已尝试最新版本或 `main` 分支
+          required: true
+        - label: 我已移除日志与截图中的 API Key、Token 和会话内容
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述
+      description: 简明说明发生了什么，以及它造成了什么影响
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 请提供最小、稳定的复现路径
+      placeholder: |
+        1. 打开 …
+        2. 点击 …
+        3. 观察到 …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 截图 / 录屏
+      description: 界面问题请附截图或录屏，可直接拖拽上传
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 环境信息
+
+  - type: input
+    id: version
+    attributes:
+      label: 应用版本
+      description: 可在安装包文件名或应用内“关于”中查看
+      placeholder: 例如 1.0.1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: 操作系统
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS（Apple Silicon）
+        - macOS（Intel）
+        - Linux
+        - 其他
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: 安装方式
+      options:
+        - Releases 安装包（NSIS）
+        - Releases 便携版
+        - 从源码运行（pnpm dev）
+        - 其他
+    validations:
+      required: true
+
+  - type: dropdown
+    id: locale
+    attributes:
+      label: 界面语言
+      options:
+        - 简体中文
+        - English
+        - 跟随系统
+        - 其他
+
+  - type: input
+    id: provider
+    attributes:
+      label: Provider / 模型
+      description: 如问题与特定 provider 或模型相关；请勿填写密钥
+      placeholder: 例如 Anthropic / Claude Sonnet
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志与错误信息
+      description: 请粘贴相关终端输出或错误栈（先脱敏）
+      render: shell
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 其他上下文
+      description: 最近是否升级、是否只在中文界面出现、是否影响上游英文版等

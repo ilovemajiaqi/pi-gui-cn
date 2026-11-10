@@ -4,20 +4,25 @@
 
 **[pi coding agent](https://github.com/earendil-works/pi) 桌面客户端 pi-gui 的完整简体中文版**
 
+[![CI](https://github.com/ilovemajiaqi/pi-gui-cn/actions/workflows/ci.yml/badge.svg)](https://github.com/ilovemajiaqi/pi-gui-cn/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0.1-blue)](./CHANGELOG.md)
 [![Upstream](https://img.shields.io/badge/upstream-pi--gui-0969da)](https://github.com/minghinmatthewlam/pi-gui)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 [![简体中文](https://img.shields.io/badge/语言-简体中文-c01d2f)](#-功能特性)
-![平台](https://img.shields.io/badge/平台-Windows%20%7C%20macOS%20%7C%20Linux-bfc7d7)
 
-*基于上游 [minghinmatthewlam/pi-gui](https://github.com/minghinmatthewlam/pi-gui) · 英文说明见上游 README*
+_基于上游 [minghinmatthewlam/pi-gui](https://github.com/minghinmatthewlam/pi-gui) · 英文说明见上游 README_
 
 </div>
 
 ---
 
+> [!NOTE]
+> 本仓库是社区维护的**非官方简体中文版**，与上游 pi-gui 项目没有隶属关系。我们跟随上游版本同步，但可能滞后；与本地化无关的运行时问题请优先反馈给[上游](https://github.com/minghinmatthewlam/pi-gui/issues)。
+
 ## 📖 简介
 
-pi-gui 是 pi 编码代理(Codex 风格)的桌面图形客户端。本仓库在上游架构内完成了**全界面、真切换**的简体中文本地化:
+pi-gui 是 pi 编码代理（Codex 风格）的桌面图形客户端。本仓库在上游架构内完成了**全界面、真切换**的简体中文本地化：
 
 - **不是运行时补丁，也不是机器翻译挂件**——全部文案走上游自研的 locale catalog（`apps/desktop/src/i18n/`），源码级接入，约 770 条词条，覆盖率 100%。
 - **随时切换**：Settings → Appearance → Language（外观 → 语言）在中英文之间即时切换，所有界面立即生效，缺失词条自动回退英文。
@@ -35,22 +40,26 @@ pi-gui 是 pi 编码代理(Codex 风格)的桌面图形客户端。本仓库在�
 
 ## 🖼️ 界面预览
 
-| 会话时间线（并行线程） | 变更审查（行级 diff） |
-| --- | --- |
+| 会话时间线（并行线程）                                | 变更审查（行级 diff）                              |
+| ----------------------------------------------------- | -------------------------------------------------- |
 | ![会话时间线](./promo/assets/readme/shot-threads.jpg) | ![变更审查](./promo/assets/readme/shot-review.jpg) |
-| **命令面板（Ctrl+K）** | **语言切换即时生效** |
-| ![命令面板](./promo/assets/readme/shot-palette.jpg) | ![语言切换](./promo/assets/readme/shot-hero.jpg) |
+| **命令面板（Ctrl+K）**                                | **语言切换即时生效**                               |
+| ![命令面板](./promo/assets/readme/shot-palette.jpg)   | ![语言切换](./promo/assets/readme/shot-hero.jpg)   |
 
 ## 📚 目录
 
+- [📖 简介](#-简介)
 - [🎬 宣传片](#-宣传片)
 - [🖼️ 界面预览](#️-界面预览)
 - [✨ 功能特性](#-功能特性)
 - [📦 安装](#-安装)
 - [🚀 使用](#-使用)
+- [❓ 常见问题](#-常见问题)
 - [🔧 实现要点](#-实现要点)
+- [🧭 项目状态](#-项目状态)
 - [🗺️ 路线图](#️-路线图)
 - [🤝 参与贡献](#-参与贡献)
+- [💬 社区与支持](#-社区与支持)
 - [🙏 致谢](#-致谢)
 - [📄 许可证](#-许可证)
 
@@ -65,21 +74,28 @@ pi-gui 本体功能（并行会话线程、git worktree 隔离、变更审查、
 
 ## 📦 安装
 
+### 环境要求
+
+| 项目     | 要求                                            |
+| -------- | ----------------------------------------------- |
+| 操作系统 | Windows 10/11 x64、macOS 12+、主流 Linux 发行版 |
+| Node.js  | 20 或更高版本                                   |
+| 包管理器 | pnpm 10（通过 corepack 管理）                   |
+
 ### 方式一：下载安装包（推荐）
 
-前往 [Releases](../../releases) 下载对应平台安装包：
+前往 [Releases](https://github.com/ilovemajiaqi/pi-gui-cn/releases) 下载对应平台安装包：
 
-| 平台 | 文件 | 说明 |
-| --- | --- | --- |
-| Windows x64 | `pi-gui-x-x64-setup.exe` | NSIS 安装器（推荐） |
-| Windows x64 | `pi-gui-x-x64-portable.exe` | 免安装便携版 |
-| macOS / Linux | 见上游 Releases | 本分支发布流水线沿用上游配置 |
+| 平台          | 文件                        | 说明                         |
+| ------------- | --------------------------- | ---------------------------- |
+| Windows x64   | `pi-gui-*-x64-setup.exe`    | NSIS 安装器（推荐）          |
+| Windows x64   | `pi-gui-*-x64-portable.exe` | 免安装便携版                 |
+| macOS / Linux | 见上游 Releases             | 本仓库发布流水线沿用上游配置 |
 
 > 安装包未做代码签名，首次运行如遇 SmartScreen 提示，选择“更多信息 → 仍要运行”。
+> 如果当前版本尚未提供安装包，请使用下面的源码构建方式。
 
 ### 方式二：从源码构建
-
-依赖：Node.js 20+ 与 pnpm（corepack 管理）。
 
 ```sh
 corepack enable
@@ -95,6 +111,7 @@ pnpm package:win      # Windows，产物在 apps/desktop/release/
 > export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
 > export ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/
 > ```
+>
 > 若 winCodeSign 因符号链接权限失败，以 `-c.toolsets.winCodeSign=1.1.0` 走新版工具集。
 
 ## 🚀 使用
@@ -103,14 +120,53 @@ pnpm package:win      # Windows，产物在 apps/desktop/release/
 2. 语言偏好即时生效并跨窗口同步；更新对话框与系统通知同样跟随。
 3. 会话数据与上游/官方版完全兼容（存储于 `~/.pi`），可放心交替使用。
 
+## ❓ 常见问题
+
+<details>
+<summary><b>中文版和官方版的数据互通吗？</b></summary>
+
+互通。会话、配置与凭据仍由 pi 运行时管理，默认位于 `~/.pi`，两个版本可以交替使用。升级或切换前建议自行备份重要会话。
+</details>
+
+<details>
+<summary><b>为什么切换语言后还有少量英文？</b></summary>
+
+可能是新增词条尚未翻译，或属于第三方 provider/工具输出。缺失词条会自动回退英文，不会出现空白。欢迎按 [CONTRIBUTING.md](./CONTRIBUTING.md) 补充 `apps/desktop/src/i18n/messages/zh-CN.ts`。
+</details>
+
+<details>
+<summary><b>Windows 提示“未知发布者”怎么办？</b></summary>
+
+安装包未做代码签名。确认文件来自本仓库 Releases 后，点击“更多信息 → 仍要运行”。请勿从第三方网盘或转载站下载。
+</details>
+
+<details>
+<summary><b>中文版会上报额外数据吗？</b></summary>
+
+本仓库没有新增遥测。应用与模型 provider 的网络通信、更新检查等行为与上游一致；API Key 由 pi 运行时管理，不会写入本仓库的日志或构建产物。
+</details>
+
+<details>
+<summary><b>上游更新后，中文版会同步吗？</b></summary>
+
+会尽力跟随，但可能存在延迟。同步策略见[项目状态](#-项目状态)；急需新功能时可先使用上游英文版，或提交 Issue 提醒同步。
+</details>
+
 ## 🔧 实现要点
 
-| 机制 | 说明 |
-| --- | --- |
-| locale catalog | 英文 `messages/en.ts` 为键源与回退，其他语言是 `Partial<Messages>`；插值、CLDR 复数、RTL 一应俱全（详见 `apps/desktop/src/i18n/AGENTS.md`） |
-| 防回退门禁 | `tests/unit/renderer-copy.spec.ts` 用 TS AST 扫描 8 个已翻译界面的 JSX，残留硬编码英文即失败 |
-| main 进程通道 | `getLocale` / `setLocale` / `localeChanged` 三条窄 IPC + `LocaleManager`（仿 theme-manager），偏好持久化于 `ui-state.json`（schema v20），macOS 菜单随语言整体重建 |
-| e2e 稳定性 | 测试启动固定 `--lang=en-US`，断言英文界面，与上游 CI 环境一致，不受开发机系统语言影响 |
+| 机制           | 说明                                                                                                                                                               |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| locale catalog | 英文 `messages/en.ts` 为键源与回退，其他语言是 `Partial<Messages>`；插值、CLDR 复数、RTL 一应俱全（详见 `apps/desktop/src/i18n/AGENTS.md`）                        |
+| 防回退门禁     | `tests/unit/renderer-copy.spec.ts` 用 TS AST 扫描 8 个已翻译界面的 JSX，残留硬编码英文即失败                                                                       |
+| main 进程通道  | `getLocale` / `setLocale` / `localeChanged` 三条窄 IPC + `LocaleManager`（仿 theme-manager），偏好持久化于 `ui-state.json`（schema v20），macOS 菜单随语言整体重建 |
+| e2e 稳定性     | 测试启动固定 `--lang=en-US`，断言英文界面，与上游 CI 环境一致，不受开发机系统语言影响                                                                              |
+
+## 🧭 项目状态
+
+- **维护模式**：以本地化、兼容性修复和上游同步为主，不改变 `pi` 运行时行为。
+- **同步策略**：优先跟进上游新版本与新增界面词条；较大的上游重构会先保证可构建、可启动，再补齐翻译。
+- **质量门禁**：`pnpm check`（格式、lint、架构守卫、类型、单元测试）与桌面 e2e 均需通过；UI 改动要求在真实 Electron 界面验证。
+- **版本号**：与上游桌面端版本保持一致，本项目自身的修复记录在 [CHANGELOG.md](./CHANGELOG.md)。
 
 ## 🗺️ 路线图
 
@@ -119,14 +175,25 @@ pnpm package:win      # Windows，产物在 apps/desktop/release/
 - [ ] 补全 e2e 对双语界面的兼容策略
 - [ ] 跟随上游版本节奏同步新增界面词条
 
+想参与其中一项？欢迎先在 [Discussions](https://github.com/ilovemajiaqi/pi-gui-cn/discussions) 或 Issue 中认领。
+
 ## 🤝 参与贡献
 
-欢迎纠错与补充翻译！
+欢迎纠错、补充翻译和提交兼容性修复！请先阅读 [CONTRIBUTING.md](./CONTRIBUTING.md) 与 [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)。
 
-1. 查看 [`CONTRIBUTING.md`](./CONTRIBUTING.md) 与上游贡献规范；
-2. 词条位于 `apps/desktop/src/i18n/messages/en.ts`（键源）与 `messages/zh-CN.ts`（中文）；
-3. 检查工具：`pnpm i18n:check zh-CN` 列出缺失或仍为英文的词条；
-4. 提交前请通过 `pnpm check`（格式化、lint、架构守卫、类型、单元测试）。
+1. 词条位于 `apps/desktop/src/i18n/messages/en.ts`（键源）与 `messages/zh-CN.ts`（中文）；
+2. 检查工具：`pnpm i18n:check zh-CN` 列出缺失或仍为英文的词条；
+3. 提交前请通过 `pnpm check`（格式化、lint、架构守卫、类型、单元测试）；
+4. 提交 PR 时请使用仓库的 [PR 模板](./.github/PULL_REQUEST_TEMPLATE.md)，说明验证方式。
+
+## 💬 社区与支持
+
+| 需求           | 渠道                                                                                                           |
+| -------------- | -------------------------------------------------------------------------------------------------------------- |
+| 使用问题与交流 | [Discussions](https://github.com/ilovemajiaqi/pi-gui-cn/discussions)                                           |
+| Bug 与功能建议 | [Issues](https://github.com/ilovemajiaqi/pi-gui-cn/issues)（请使用模板）                                       |
+| 安全漏洞       | [私密报告](https://github.com/ilovemajiaqi/pi-gui-cn/security/advisories/new)，见 [SECURITY.md](./SECURITY.md) |
+| 更多帮助       | [SUPPORT.md](./SUPPORT.md)                                                                                     |
 
 ## 🙏 致谢
 
@@ -136,4 +203,4 @@ pnpm package:win      # Windows，产物在 apps/desktop/release/
 
 ## 📄 许可证
 
-[MIT](./LICENSE) © Matthew Lam 及上游贡献者 · 本仓库的翻译与本地化改动在同等 MIT 协议下提供。
+[MIT](./LICENSE) © Matthew Lam、pi-gui-zh 贡献者及上游贡献者。本仓库的翻译与本地化改动在同等 MIT 协议下提供；上游原始版权声明已保留在 [LICENSE](./LICENSE) 中。

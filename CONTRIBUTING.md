@@ -1,7 +1,12 @@
-# Contributing to pi-gui
+# Contributing to pi-gui-zh
 
-Thanks for your interest in improving pi-gui. This guide covers local setup, the
-test lanes, and what "done" means for a change.
+Thanks for your interest in improving pi-gui-zh. This guide covers local setup,
+the test lanes, and what "done" means for a change. Contributions and reviews are
+welcome in English or Chinese.
+
+By participating, you agree to follow our [Code of Conduct](./CODE_OF_CONDUCT.md).
+For security issues, use the private process in [SECURITY.md](./SECURITY.md) rather
+than a public issue.
 
 ## Prerequisites
 
@@ -59,11 +64,38 @@ for the full lane list and platform-specific packaging notes.
 Repo-wide conventions live in [`AGENTS.md`](./AGENTS.md) (the root `CLAUDE.md` is a
 symlink to it). Path-scoped guidance lives in nested `AGENTS.md` files.
 
+## Translating the UI
+
+English is the key source and the fallback locale; Simplified Chinese lives in
+`apps/desktop/src/i18n/messages/zh-CN.ts`.
+
+- Add or update the English copy in `messages/en.ts` first.
+- Translate the new keys in `messages/zh-CN.ts` (`Partial<Messages>`, so partial
+  translations are valid and fall back to English).
+- Run `pnpm i18n:check zh-CN` to list missing entries and untranslated strings.
+- Keep product terms consistent with the glossary in the README and existing
+  translations (会话 / 工作树 / 审查 / 上下文窗口 / 思考深度). Keep Git and
+  technical proper nouns in their conventional form.
+- `renderer-copy.spec.ts` fails on hardcoded English in translated JSX, so new UI
+  copy must go through the catalog rather than inline strings.
+
 ## Pull requests
 
-- Describe what changed and how you verified it.
+- Fill in the pull request template: what changed, why, and how it was verified.
 - Make sure `pnpm typecheck`, `pnpm lint`, and the relevant test lane pass.
+- UI changes need a screenshot or recording and a manual check on the real
+  Electron surface.
 - Keep unrelated changes out of the PR.
+- Update [`CHANGELOG.md`](./CHANGELOG.md) when the change is user-visible.
+
+## Community guidelines
+
+- Be respectful and assume good intent; see [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
+- Search existing issues and discussions before opening a new one.
+- Report vulnerabilities privately via [SECURITY.md](./SECURITY.md).
+- Questions about upstream behavior belong in the
+  [upstream issue tracker](https://github.com/minghinmatthewlam/pi-gui/issues);
+  mention whether the problem also occurs in the English build.
 
 ## License
 
