@@ -173,3 +173,54 @@ test("an onChange listener can unsubscribe", async () => {
 
   expect(changes).toEqual(["zh-CN"]);
 });
+
+test("a failed persist still switches the language, and the failure reaches the caller", async () => {
+  const writeError = new Error("ui-state.json is read-only");
+  const manager = new LocaleManager("en", {
+    persist: () => Promise.reject(writeError),
+  });
+  const changes: DesktopLocale[] = [];
+  manager.onChange((locale) => changes.push(locale));
+  const tracked = windowStub();
+  track(manager, tracked.window);
+
+  // Rejecting here rather than swallowing keeps the IPC caller able to report the
+  // failed write; the switch itself has already happened by then.
+  await expect(manager.setLocale("zh-CN")).rejects.toThrow(writeError);
+
+  expect(manager.getLocale()).toBe("zh-CN");
+  expect(changes).toEqual(["zh-CN"]);
+  expect(tracked.sent).toEqual([{ channel: desktopIpc.localeChanged, payload: "zh-CN" }]);
+});
+
+test("a failed persist does not leave the next change pointing at the old locale", async () => {
+  let failNext = true;
+  const manager = new LocaleManager("en", {
+    persist: (locale) =>
+      failNext && locale === "zh-CN" ? Promise.reject(new Error("disk full")) : Promise.resolve(),
+  });
+  const changes: DesktopLocale[] = [];
+  manager.onChange((locale) => changes.push(locale));
+
+  await expect(manager.setLocale("zh-CN")).rejects.toThrow("disk full");
+  failNext = false;
+  await manager.setLocale("en");
+
+  // The in-memory locale is the source of truth for the next comparison, so the
+  // failed attempt must not make main believe it is still on English.
+  expect(manager.getLocale()).toBe("en");
+  expect(changes).toEqual(["zh-CN", "en"]);
+});
+
+test("persist: false never calls the store, so a broken store cannot block the switch", async () => {
+  const manager = new LocaleManager("en", {
+    persist: () => Promise.reject(new Error("should not be called")),
+  });
+  const changes: DesktopLocale[] = [];
+  manager.onChange((locale) => changes.push(locale));
+
+  await manager.setLocale("zh-CN", { persist: false });
+
+  expect(manager.getLocale()).toBe("zh-CN");
+  expect(changes).toEqual(["zh-CN"]);
+});

@@ -44,12 +44,25 @@ export class LocaleManager {
       return;
     }
     this.locale = locale;
+    let persistError: unknown;
     if (options.persist !== false) {
-      await this.persist?.(locale);
+      try {
+        await this.persist?.(locale);
+      } catch (error) {
+        // A failed write must not stop the switch. The renderer already applied the
+        // language and the only copy the user sees is the one on screen, so falling
+        // back to the old locale here would leave main rendering menus and dialogs
+        // in a language the rest of the window is no longer using. The error still
+        // reaches the caller, which is how the write's failure stays visible.
+        persistError = error;
+      }
     }
     this.broadcast();
     for (const listener of this.listeners) {
       listener(locale);
+    }
+    if (persistError !== undefined) {
+      throw persistError;
     }
   }
 
