@@ -6,12 +6,31 @@
 
 ## [Unreleased]
 
-### 计划中
+### 修复
 
-- 繁体中文（`zh-Hant`）语言包；
-- 将 i18n 改动拆分回馈上游；
-- 补全 e2e 对双语界面的兼容策略；
-- 跟随上游版本节奏同步新增界面词条。
+- Windows 上已删除/新增文件的行级 diff 永远为空：`git-review.ts` 用 `os.devNull`（Windows 为 `\\.\nul`）当“文件缺失”哨兵传给 `git diff --no-index`，git 无法访问该路径并以状态码 1 结束，而错误处理只拦截大于 1 的退出码，空输出被当作成功返回。改用平台正确的空设备名，并把“无输出但有错误”也判为失败；
+- Windows 上 `ui-state.json` 的并发读取会在原子替换瞬间失败：`atomic-file-write.ts` 先删除目标再重命名，中间存在 `ENOENT` 窗口。改为有界重试重命名，读取端对瞬时锁错误同样重试；
+- `@pi-gui/catalogs` 的原子写入在 Windows 上并发时必然 `EPERM`：补上与桌面端一致的有界重试；
+- 切换语言时若偏好写盘失败，主进程会整段跳过广播，导致界面已切换而菜单、对话框、通知仍停在旧语言。现在先广播再把失败抛回调用方；
+- 两个扩展示例的假 `gh` 通过 shebang 执行，Windows 上会落到真实 `gh` CLI 并因未登录而失败。改为显式用当前 Node 启动同一个脚本；
+- `verify-linux-release.test.mjs` 假设 `bash` 在 PATH 上，Git for Windows 的 bash 位于 `Git\bin`，测试必然 `ENOENT`。改为能力探针，真正找到时照常执行。
+
+### 变更
+
+- 相对时间与时间线时刻改由 `Intl` 按当前语言格式化：侧栏此前在中文界面显示 `5m`，时间线显示 12 小时制；
+- 标点门禁补上句号；渲染层文案扫描不再漏掉 `main.tsx`、i18n 运行时与 `ui/` 下的 8 个文件；
+- macOS 菜单从 `main.ts` 抽成纯模板 + 薄安装器，非 macOS 平台显式 `setApplicationMenu(null)`；
+- `app-store.ts` 的 17 个模块级纯函数迁至 `app-store-free-functions.ts` 并补齐单测；
+- 全部 GitHub Actions 钉到 40 位 commit SHA 并附版本注释，守卫反过来强制校验；各工作流权限收敛到最小集；
+- Dependabot 覆盖 pnpm workspace 与 `promo/remotion`，并忽略 `electron` 与 `pi-coding-agent` 的大版本（会改变打包产物的 ABI）；
+- `.gitattributes` 统一 `eol=lf`，`*.ps1`/`*.cmd`/`*.bat` 例外。
+
+### 新增
+
+- `windows-guards` CI 任务：在 `windows-latest` 上跑完整守卫与单元测试。此前没有任何 Windows runner 执行过它们；
+- `desktop-locale` CI 任务：独立跑三条语言相关 e2e，并新增对主进程重建的菜单与系统通知的覆盖；
+- CodeQL 工作流（`javascript-typescript`，`security-extended`）；
+- `apps/desktop/tests/helpers/platform-capabilities.ts`：符号链接、NTFS 保留字符、可执行位的能力探针。
 
 ## [1.0.1] - 2026-11-10
 

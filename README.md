@@ -51,6 +51,7 @@ pi-gui 是 pi 编码代理（Codex 风格）的桌面图形客户端。本仓库
 - [🎬 宣传片](#-宣传片)
 - [🖼️ 界面预览](#️-界面预览)
 - [✨ 功能特性](#-功能特性)
+- [🔩 本地化之外的改动](#-本地化之外的改动)
 - [📦 安装](#-安装)
 - [🚀 使用](#-使用)
 - [❓ 常见问题](#-常见问题)
@@ -70,6 +71,35 @@ pi-gui 本体功能（并行会话线程、git worktree 隔离、变更审查、
 - **语言切换真实生效**——切换后整个应用（含主进程对话框与通知）即时变更；多窗口同步；跟随系统语言自动选择。
 - **翻译防回退门禁**——`renderer-copy.spec.ts` 以 TypeScript AST 检查全部已翻译界面的 JSX，硬编码英文一律构建失败，词条永不漂移。
 - **翻译质量**——按桌面应用语境统一术语（会话/工作树/审查/上下文窗口/思考深度…），保留 Git 与技术专名；完整术语表与中文标点规则见 [docs/i18n-glossary.md](./docs/i18n-glossary.md)，`scripts/check-zh-copy.mjs` 会拦下半角标点与 `...`。
+
+## 🔩 本地化之外的改动
+
+中文化之外的改动都只为两件事服务：让 Windows 上真正能用，以及让回归能被自动拦住。没有新增功能，也不改变 `pi` 运行时行为。
+
+### 修掉的真实缺陷
+
+| 缺陷                                                                                 | 影响                                                       |
+| ------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| `git-review.ts` 用 `os.devNull` 当“文件缺失”哨兵，Windows 下是 `\\.\nul`，git 打不开 | 已删除/新增文件的行级 diff 永远为空                        |
+| `atomic-file-write.ts` 与 `@pi-gui/catalogs` 的原子替换无重试                        | 并发读写偶发 `ENOENT` / `EPERM`，目录写入在 Windows 上必挂 |
+| `LocaleManager.setLocale` 写盘失败时不广播                                           | 界面已切成中文，菜单与通知仍是英文                         |
+| 两个扩展示例的假 `gh` 依赖 shebang                                                   | Windows 上落到真实 `gh` CLI，示例测试全部失败              |
+| `verify-linux-release.test.mjs` 假设 PATH 里有 bash                                  | Git for Windows 的 bash 在 `Git\bin`，测试必然 `ENOENT`    |
+
+平台能力差异（符号链接、NTFS 保留字符、可执行位）统一走 `apps/desktop/tests/helpers/platform-capabilities.ts` 的能力探针，缺能力时带原因跳过，而不是把断言删掉或放宽超时。
+
+### 质量门禁
+
+- **Windows 上真的跑测试**——新增 `windows-guards` job，跑完整的守卫与单元测试。此前没有任何 Windows runner 执行过它们，上面那一串缺陷正是这样攒出来的。
+- **locale 独立车道**——`desktop-locale` job 单独跑三条语言相关 e2e，覆盖主进程重建的菜单与通知；回归会自己报名，而不是变成“4 个分片里第 3 个失败”。
+- **CodeQL**（`javascript-typescript`，`security-extended`）与 **Dependabot**（pnpm workspace + GitHub Actions）接管依赖与静态检查。
+- **所有 `uses:` 钉到 40 位 commit SHA** 并附版本注释，`scripts/workflow-action-policy.mjs` 强制校验；工作流权限统一收敛到最小集。
+
+### 结构收敛
+
+- macOS 菜单从 `main.ts` 抽成纯模板 + 薄安装器：那 90 行模板此前被编译进 Windows/Linux 产物却因首行平台判断从不执行，且导入即触发主进程开窗副作用，无法被任何测试触达。
+- `app-store.ts` 的 17 个模块级纯函数迁到 `app-store-free-functions.ts` 并补齐单测；中枢类本身仍待拆分，见[路线图](#️-路线图)。
+- `.gitattributes` 统一 `eol=lf`，消除跨平台 CRLF 噪声；`pnpm check` 从“Windows 上跑不完”变为全绿。
 
 ## 📦 安装
 
@@ -164,13 +194,15 @@ pnpm package:win      # Windows，产物在 apps/desktop/release/
 
 - **维护模式**：以本地化、兼容性修复和上游同步为主，不改变 `pi` 运行时行为。
 - **同步策略**：优先跟进上游新版本与新增界面词条；较大的上游重构会先保证可构建、可启动，再补齐翻译。
-- **质量门禁**：`pnpm check`（格式、lint、架构守卫、类型、`i18n:check:strict`、单元测试）与桌面 e2e 均需通过；UI 改动要求在真实 Electron 界面验证。
+- **质量门禁**：`pnpm check`（格式、lint、架构守卫、类型、`i18n:check:strict`、单元测试）在 Linux、macOS、Windows 三个平台都跑；桌面 e2e 与 locale e2e 独立成车道。UI 改动要求在真实 Electron 界面验证。
 - **版本号**：与上游桌面端版本保持一致，本项目自身的修复记录在 [CHANGELOG.md](./CHANGELOG.md)。
 
 ## 🗺️ 路线图
 
+- [ ] 继续拆分 `app-store.ts`（约 4900 行）：视图投影、发布通道、持久化编排、会话事件、设置与 UI 偏好各自独立
 - [ ] 将三个 i18n 提交拆分回馈上游（`threads/app` → `其余 renderer 面` → `main locale 通道`）
 - [ ] 繁体中文（`zh-Hant`）语言包（catalog 已支持 script 级匹配）
+- [ ] 发布产物增加构建 provenance 证明
 - [ ] 补全 e2e 对双语界面的兼容策略
 - [ ] 跟随上游版本节奏同步新增界面词条
 
