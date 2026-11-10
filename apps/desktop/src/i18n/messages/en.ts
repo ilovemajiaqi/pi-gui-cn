@@ -242,6 +242,8 @@ export const en = {
   "settings.shortcuts.commandPalette": "Command palette",
   "settings.shortcuts.goToFile": "Go to file",
   "settings.shortcuts.openSettings": "Open settings",
+  "settings.shortcuts.openFolder": "Open folder",
+  "settings.shortcuts.shortcutPanel": "Keyboard shortcuts panel",
   "settings.shortcuts.toggleSidebar": "Toggle sidebar",
   "settings.shortcuts.toggleSidePanel": "Toggle side panel",
   "settings.shortcuts.newWindow": "New window",

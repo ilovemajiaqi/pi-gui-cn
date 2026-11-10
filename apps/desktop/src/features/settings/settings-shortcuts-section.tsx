@@ -28,6 +28,8 @@ const SHORTCUT_GROUPS: readonly ShortcutGroup[] = [
       { titleKey: "settings.shortcuts.commandPalette", modifiers: ["Mod"], key: "K" },
       { titleKey: "settings.shortcuts.goToFile", modifiers: ["Mod"], key: "P" },
       { titleKey: "settings.shortcuts.openSettings", modifiers: ["Mod"], key: "," },
+      { titleKey: "settings.shortcuts.shortcutPanel", modifiers: ["Mod"], key: "/" },
+      { titleKey: "settings.shortcuts.openFolder", modifiers: ["Mod"], key: "O" },
       { titleKey: "settings.shortcuts.toggleSidebar", modifiers: ["Mod"], key: "B" },
       { titleKey: "settings.shortcuts.toggleSidePanel", modifiers: ["Mod", "Alt"], key: "B" },
       { titleKey: "settings.shortcuts.newWindow", modifiers: ["Mod", "Shift"], key: "N" },

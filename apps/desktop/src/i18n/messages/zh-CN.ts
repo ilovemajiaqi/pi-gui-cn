@@ -218,6 +218,8 @@ export const zhCN: Partial<Messages> = {
   "settings.shortcuts.commandPalette": "命令面板",
   "settings.shortcuts.goToFile": "跳转到文件",
   "settings.shortcuts.openSettings": "打开设置",
+  "settings.shortcuts.openFolder": "打开文件夹",
+  "settings.shortcuts.shortcutPanel": "键盘快捷键面板",
   "settings.shortcuts.toggleSidebar": "切换侧栏",
   "settings.shortcuts.toggleSidePanel": "切换侧边面板",
   "settings.shortcuts.newWindow": "新建窗口",

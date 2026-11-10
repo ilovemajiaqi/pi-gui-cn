@@ -260,6 +260,7 @@ export const desktopIpc = {
 
 export const desktopCommands = {
   openSettings: "open-settings",
+  openKeyboardShortcuts: "open-keyboard-shortcuts",
   openNewThread: "open-new-thread",
   toggleTerminal: "toggle-terminal",
   toggleSidePanel: "toggle-side-panel",
@@ -629,6 +630,10 @@ export function getDesktopCommandFromShortcut(
 
   if (!input.shift && isComma) {
     return desktopCommands.openSettings;
+  }
+
+  if (!input.shift && (input.key === "/" || input.code === "Slash")) {
+    return desktopCommands.openKeyboardShortcuts;
   }
 
   if (!input.shift && isJ) {

@@ -225,6 +225,8 @@ export function useDesktopCommands(input: DesktopCommandsInput) {
 
   const handlers: Record<PiDesktopCommand, CommandHandler> = {
     [desktopCommands.openSettings]: () => input.openSettings(selectedRootWorkspaceId),
+    [desktopCommands.openKeyboardShortcuts]: () =>
+      input.openSettings(selectedRootWorkspaceId, "shortcuts"),
     [desktopCommands.openNewThread]: openNewThread,
     [desktopCommands.toggleTerminal]: () => toggleWorkbenchTool("terminal"),
     [desktopCommands.toggleSidePanel]: toggleSidePanel,
