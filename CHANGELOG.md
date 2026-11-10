@@ -4,7 +4,9 @@
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [Unreleased]
+## [1.0.2] - 2026-11-10
+
+Windows 上的可用性修复、质量门禁补强与依赖安全升级。首个把「本地化」与「让 Windows 真正能用」分开记录的版本。
 
 ### 修复
 
@@ -34,7 +36,7 @@
 
 ### 安全
 
-- 依赖升级清掉 4 个 critical 与全部非 Electron 的 high 公告：`next` 15.5.29、`undici` 8.12.4、`vite` 6.4.6、`pnpm` 10.34.9，另通过 `pnpm.overrides` 提升 `tar`、`postcss`、`ws`、`zod`、`sharp`、`picomatch`、`nanoid`、`browserslist`、`source-map-js`、`fast-uri`、`basic-ftp`、`lodash`、`tmp`、`form-data`、`js-yaml`、`ip-address`、`@xmldom/xmldom`、`builder-util-runtime` 等传递依赖。本机 `pnpm audit` 由 223 降至 56。剩余 high 全部来自 `electron` 37 与 `electron-builder` 26 自身，需要跨主版本升级才能消除。
+- 依赖升级清掉 4 个 critical 与全部非 Electron 的 high 公告：`next` 15.5.29、`undici` 8.12.4、`vite` 6.4.6、`pnpm` 10.34.9，另通过 `pnpm.overrides` 提升 `tar`、`postcss`、`ws`、`zod`、`sharp`、`picomatch`、`nanoid`、`browserslist`、`source-map-js`、`fast-uri`、`basic-ftp`、`lodash`、`tmp`、`form-data`、`js-yaml`、`ip-address`、`@xmldom/xmldom`、`builder-util-runtime` 等传递依赖。本机 `pnpm audit` 由 223 降至 55。剩余 high 全部来自 `electron` 37 与 `electron-builder` 26 自身，需要跨主版本升级才能消除。
 
 ## [1.0.1] - 2026-11-10
 
@@ -60,5 +62,6 @@
 - 命令面板动作使用当前语言，而不是启动时的语言；
 - 移除早期的运行时中文字符串补丁，全部文案统一走上游 locale catalog。
 
-[Unreleased]: https://github.com/ilovemajiaqi/pi-gui-cn/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/ilovemajiaqi/pi-gui-cn/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/ilovemajiaqi/pi-gui-cn/releases/tag/v1.0.2
 [1.0.1]: https://github.com/ilovemajiaqi/pi-gui-cn/releases/tag/v1.0.1
