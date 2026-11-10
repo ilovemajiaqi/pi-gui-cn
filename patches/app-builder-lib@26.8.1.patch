@@ -22,11 +22,78 @@ index 17e0c1e7be271b7bce8a7671bfe9d0760a0c9f9a..9a8176dba866a13da1a2e90af2ac289c
      }
      return {
          keychainFile,
+diff --git a/out/node-module-collector/pnpmNodeModulesCollector.js b/out/node-module-collector/pnpmNodeModulesCollector.js
+index 602599280ab621d078748187bb6b4ae9431c1739..a59d4b5d40a1deda17b47a27c10911224f7bf52b 100644
+--- a/out/node-module-collector/pnpmNodeModulesCollector.js
++++ b/out/node-module-collector/pnpmNodeModulesCollector.js
+@@ -70,8 +70,61 @@ class PnpmNodeModulesCollector extends nodeModulesCollector_1.NodeModulesCollect
+     parseDependenciesTree(jsonBlob) {
+         // pnpm returns an array of dependency trees
+         const dependencyTree = this.extractJsonFromPollutedOutput(jsonBlob);
++        mergeDeduplicatedSubtrees(dependencyTree[0]);
+         return dependencyTree[0];
+     }
+ }
+ exports.PnpmNodeModulesCollector = PnpmNodeModulesCollector;
++// pnpm `list --json` renders the full subtree of a package version only at one
++// occurrence; other occurrences of the same `name@version` are emitted without
++// their children. `extractProductionDependencyGraph` keys the production graph
++// by `name@version` and keeps only the first occurrence it processes, so when
++// the childless occurrence wins, every transitive dependency below the richer
++// occurrence silently disappears from the packaged app (e.g. `which` -> `isexe`
++// crashing the main process with "Cannot find module"). Re-attach the richest
++// known subtree to every occurrence of the same package version before the
++// production graph is extracted.
++function mergeDeduplicatedSubtrees(tree) {
++    if (!tree || typeof tree !== "object") {
++        return;
++    }
++    const childrenOf = dep => (dep && typeof dep === "object" && dep.dependencies && typeof dep.dependencies === "object")
++        ? dep.dependencies
++        : null;
++    const richest = new Map();
++    const visit = (node, seen) => {
++        if (!node || typeof node !== "object" || seen.has(node)) {
++            return;
++        }
++        seen.add(node);
++        for (const map of [node.dependencies, node.optionalDependencies]) {
++            for (const [name, dep] of Object.entries(map || {})) {
++                const children = childrenOf(dep);
++                const id = `${name}@${dep.version}`;
++                const known = richest.get(id);
++                if (children && Object.keys(children).length > 0 && (!known || !childrenOf(known))) {
++                    richest.set(id, dep);
++                }
++                visit(dep, seen);
++            }
++        }
++    };
++    visit(tree, new Set());
++    const apply = (node, seen) => {
++        if (!node || typeof node !== "object" || seen.has(node)) {
++            return;
++        }
++        seen.add(node);
++        for (const map of [node.dependencies, node.optionalDependencies]) {
++            for (const [name, dep] of Object.entries(map || {})) {
++                const known = richest.get(`${name}@${dep.version}`);
++                if (known && known !== dep && !childrenOf(dep)) {
++                    map[name] = known;
++                }
++                apply(map[name], seen);
++            }
++        }
++    };
++    apply(tree, new Set());
++}
+ //# sourceMappingURL=pnpmNodeModulesCollector.js.map
+\ No newline at end of file
 diff --git a/templates/nsis/multiUser.nsh b/templates/nsis/multiUser.nsh
 index c345dee7a888323198897dbab393bd167aedd9b8..bea7c4dafcbba9771fbdca58d0998ea56997d7fa 100644
 --- a/templates/nsis/multiUser.nsh
 +++ b/templates/nsis/multiUser.nsh
-@@ -28,14 +28,16 @@ Var installMode
+@@ -28,15 +28,17 @@ Var installMode
        StrCpy $INSTDIR $perUserInstallationFolder
      ${else}
        StrCpy $0 "$LocalAppData\Programs"
@@ -47,3 +114,4 @@ index c345dee7a888323198897dbab393bd167aedd9b8..bea7c4dafcbba9771fbdca58d0998ea5
 +      Pop $1
        StrCpy $INSTDIR "$0\${APP_FILENAME}"
      ${endif}
+ 
