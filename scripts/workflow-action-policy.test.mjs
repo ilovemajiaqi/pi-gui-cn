@@ -15,6 +15,9 @@ const UPLOAD = "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
 const DOWNLOAD = "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2";
 const RELEASE = "softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4";
 const CLAUDE = "anthropics/claude-code-action@4fa93a88de49bbef68b10eb15aabedf28ca0e1ed # v1.0.271";
+const CODEQL_INIT = "github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3";
+const CODEQL_ANALYZE =
+  "github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3";
 
 test("isAction matches the action name and ignores the ref", () => {
   assert.equal(isAction(CHECKOUT, "actions/checkout"), true);
@@ -142,9 +145,7 @@ jobs:
       - uses: ${DOWNLOAD}
         with:
           name: out
-      - uses: ${RELEASE}
-      - uses: ${CLAUDE}
-`);
+      - uses: \n      - uses: \n      - uses: \n      - uses: \n`);
   await assert.rejects(
     () => assertWorkflowActionPolicy(root),
     /FORCE_JAVASCRIPT_ACTIONS_TO_NODE24/,
@@ -172,6 +173,10 @@ jobs:
           name: out
       - uses: ${RELEASE}
       - uses: ${CLAUDE}
+      - uses: ${CODEQL_INIT}
+        with:
+          languages: javascript-typescript
+      - uses: ${CODEQL_ANALYZE}
   preflight:
     runs-on: ubuntu-latest
     steps:

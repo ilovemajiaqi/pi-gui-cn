@@ -30,6 +30,16 @@ const ACTION_POLICY = Object.freeze({
     sha: "4fa93a88de49bbef68b10eb15aabedf28ca0e1ed",
     version: "v1.0.271",
   },
+  // CodeQL ships several entry points under one repository; each `uses:` names a
+  // subpath, so every subpath needs its own pin.
+  "github/codeql-action/init": {
+    sha: "33d7b85da1a04171e211befe2c739303b9a4c066",
+    version: "v4.39.3",
+  },
+  "github/codeql-action/analyze": {
+    sha: "33d7b85da1a04171e211befe2c739303b9a4c066",
+    version: "v4.39.3",
+  },
 });
 
 const COMMIT_SHA = /^[0-9a-f]{40}$/;

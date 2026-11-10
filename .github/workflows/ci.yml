@@ -10,6 +10,12 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# Every job here only reads the repository. Stating that at the workflow level
+# means a job that forgets its own permissions block still cannot write, instead
+# of silently inheriting whatever the repository default happens to be.
+permissions:
+  contents: read
+
 jobs:
   ci-required:
     name: CI required

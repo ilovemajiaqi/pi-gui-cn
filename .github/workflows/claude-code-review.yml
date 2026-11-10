@@ -13,6 +13,10 @@ concurrency:
   group: claude-review-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+# Read-only by default; the review job asks for the one write it needs.
+permissions:
+  contents: read
+
 jobs:
   review:
     # Fork PRs get no secrets, and must never get the subscription token.
@@ -20,9 +24,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
+      # The review only reads the checkout and posts a review comment, so contents
+      # stays read. issues: read was declared but the flow never reads issues; the
+      # inline comments it writes go through pull-requests: write.
       contents: read
       pull-requests: write
-      issues: read
       id-token: write
     steps:
       # The upstream token is optional in forks. Without it the action fails

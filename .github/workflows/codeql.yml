@@ -1,0 +1,76 @@
+name: CodeQL
+
+# Static analysis for the TypeScript/JavaScript surface. This is a second opinion,
+# not the primary defence: the guards in scripts/ and the typed ESLint rules know
+# things this cannot (see the note at the bottom of this file).
+#
+# GitHub Actions billing must be unlocked for this to run at all; until then the
+# workflow is committed but unverified.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    # Weekly, Monday 03:23 UTC. Off-peak minute, away from the top-of-hour queue.
+    - cron: "23 3 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - javascript-typescript
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          languages: ${{ matrix.language }}
+          # The repository has no single build that produces every package at once,
+          # and CodeQL's autobuild cannot drive this pnpm workspace. Without a build
+          # there is no type information, which is the main limitation below.
+          build-mode: none
+          # security-extended, not security-and-quality: the quality queries would
+          # flag every long method in app-store.ts and bury the real findings.
+          queries: security-extended
+
+      - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+# What this workflow cannot see, so nobody treats a clean run as proof:
+#
+# 1. build-mode: none means no type information. Dataflow through the contracts
+#    Pick<DesktopAppStore, ...> types and the pi-sdk-driver generics is invisible.
+# 2. Electron's trust boundary is not a CodeQL concept. That ipcMain.handle must
+#    reject a sender that is not the main frame is enforced by
+#    scripts/ipc-main-frame-boundary.test.mjs and by request-validation.ts.
+# 3. Channel names are runtime values (desktopIpc.x), so a tainted argument
+#    crossing channels reads as a property access, not a string literal.
+# 4. Packaging and dependencies are out of scope: electron-builder.yml, the
+#    patchedDependencies patch, native modules, and CVEs belong to P4 (Dependabot)
+#    and P3 (action pinning).
+# 5. A fork pull request gets a read-only token, so SARIF upload fails there.
+#    Every push today comes from the owner, so that has not bitten yet; if outside
+#    PRs are opened, split this into pull_request plus a workflow_run uploader.

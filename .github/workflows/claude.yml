@@ -11,6 +11,10 @@ on:
   pull_request_review:
     types: [submitted]
 
+# Read-only by default; the single job below asks for the writes it actually needs.
+permissions:
+  contents: read
+
 jobs:
   claude:
     if: |
@@ -20,11 +24,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
+      # Claude commits to a branch and comments on the PR or issue it was asked
+      # about, so those three writes are load-bearing. id-token: write is what
+      # lets the action fetch its OIDC token; the GitHub App auth path requires it.
+      # actions: read was listed here but nothing asked for workflow logs (no
+      # additional_permissions input), so it was removed rather than left as a
+      # permission nobody would notice being wrong.
       contents: write
       pull-requests: write
       issues: write
       id-token: write
-      actions: read
     steps:
       # Optional in forks: skip cleanly instead of failing when the token is absent.
       - name: Check whether Claude is configured
