@@ -76,11 +76,15 @@ English is the key source and the fallback locale; Simplified Chinese lives in
   a report and always exits 0; `pnpm i18n:check:strict` is the gate that `pnpm check`
   runs, and it fails on a missing key or on a value that still reads English unless
   `apps/desktop/src/i18n/allowlist.json` excuses that key with a reason.
-- Keep product terms consistent with the glossary in the README and existing
-  translations (会话 / 工作树 / 审查 / 上下文窗口 / 思考深度). Keep Git and
-  technical proper nouns in their conventional form.
+- Keep product terms consistent with the glossary in
+  [`docs/i18n-glossary.md`](./docs/i18n-glossary.md) and existing translations
+  (会话 / 工作树 / 审查 / 上下文窗口 / 思考深度). Keep Git and technical proper nouns in
+  their conventional form.
 - Write Chinese copy with full-width punctuation (`，。：；！？（）`、`“”`、`…`) and
   keep half-width punctuation inside code, paths, URLs, shortcuts and versions.
+  `scripts/check-zh-copy.mjs` (part of `pnpm check:architecture`) fails on half-width
+  punctuation next to Chinese text and on `...` where `…` is meant, so run it before
+  opening a PR.
 - `renderer-copy.spec.ts` walks every `.tsx` under each translated surface, nested
   directories included, and fails on hardcoded English in JSX text or in a
   copy-bearing attribute (`title`, `alt`, `aria-label`, `summary`, …), so new UI copy

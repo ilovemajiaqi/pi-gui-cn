@@ -122,6 +122,9 @@ language the app is showing. Pass `locale` from `useTranslation()` to `Intl`.
 
 ## Conventions
 
+- Chinese terminology and punctuation are specified in
+  [`docs/i18n-glossary.md`](../../../../docs/i18n-glossary.md); `scripts/check-zh-copy.mjs`
+  enforces the mechanical half, `scripts/check-i18n-keys.mjs` the key shape.
 - Labels are written in the language itself: `"简体中文"`, not `"Chinese"`.
 - Match system tags through `languageTagParts()` (`{ primary, script, region }`), not
   `startsWith`, so a script-sensitive locale (`zh-Hant`, `sr-Latn`) can claim its own
