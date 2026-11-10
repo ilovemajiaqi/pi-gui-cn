@@ -103,3 +103,28 @@ export function translatorFor(
 
 /** The default locale's translator, used wherever no locale is known. */
 export const translate: Translate = translatorFor(defaultLocale);
+
+const englishKeys: ReadonlySet<string> = new Set(Object.keys(catalogs[defaultLocale]));
+
+/** Whether `value` names a message this app ships, so `t` can render it. */
+export function isMessageKey(value: string): value is MessageKey {
+  return englishKeys.has(value);
+}
+
+/**
+ * Renders an error for display. The app's own failures travel as message keys and are
+ * translated; anything else — an extension host's error, a provider's response, an
+ * OS-level failure — is already the words the user needs and passes through untouched.
+ *
+ * Never cast an error to `MessageKey`: a cast lies to `t`, which would then render the
+ * key itself for an external string. This narrows at runtime instead.
+ */
+export function translateError(
+  error: unknown,
+  t: Translate = translate,
+  params?: TranslateParams,
+): string {
+  const message =
+    error instanceof Error ? error.message : typeof error === "string" ? error : String(error);
+  return isMessageKey(message) ? t(message, params) : message;
+}

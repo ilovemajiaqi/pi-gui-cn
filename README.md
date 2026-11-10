@@ -23,7 +23,7 @@ _基于上游 [minghinmatthewlam/pi-gui](https://github.com/minghinmatthewlam/pi
 
 pi-gui 是 pi 编码代理（Codex 风格）的桌面图形客户端。本仓库在上游架构内完成了**全界面、真切换**的简体中文本地化：
 
-- **不是运行时补丁，也不是机器翻译挂件**——全部文案走上游自研的 locale catalog（`apps/desktop/src/i18n/`），源码级接入，约 770 条词条，覆盖率 100%。
+- **不是运行时补丁，也不是机器翻译挂件**——全部文案走上游自研的 locale catalog（`apps/desktop/src/i18n/`），源码级接入：主题栏、侧边栏、会话时间线、设置、终端、扩展、定时任务、命令面板等主要界面全部由 catalog 驱动；命令、路径、模型 id、`[bash]` 等工具名与 `OAuth` 等协议名按惯例保留原文，动态时间与数量在渲染层按当前语言格式化。
 - **随时切换**：Settings → Appearance → Language（外观 → 语言）在中英文之间即时切换，所有界面立即生效，缺失词条自动回退英文。
 - **跨进程一致**：除渲染进程界面外，原生菜单（macOS）、更新对话框、系统通知也通过 locale IPC 通道跟随当前语言。
 
@@ -153,18 +153,18 @@ pnpm package:win      # Windows，产物在 apps/desktop/release/
 
 ## 🔧 实现要点
 
-| 机制           | 说明                                                                                                                                                               |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| locale catalog | 英文 `messages/en.ts` 为键源与回退，其他语言是 `Partial<Messages>`；插值、CLDR 复数、RTL 一应俱全（详见 `apps/desktop/src/i18n/AGENTS.md`）                        |
-| 防回退门禁     | `tests/unit/renderer-copy.spec.ts` 用 TS AST 扫描 8 个已翻译界面的 JSX，残留硬编码英文即失败                                                                       |
-| main 进程通道  | `getLocale` / `setLocale` / `localeChanged` 三条窄 IPC + `LocaleManager`（仿 theme-manager），偏好持久化于 `ui-state.json`（schema v20），macOS 菜单随语言整体重建 |
-| e2e 稳定性     | 测试启动固定 `--lang=en-US`，断言英文界面，与上游 CI 环境一致，不受开发机系统语言影响                                                                              |
+| 机制           | 说明                                                                                                                                                                                                               |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| locale catalog | 英文 `messages/en.ts` 为键源与回退，其他语言是 `Partial<Messages>`；插值、CLDR 复数、RTL 一应俱全（详见 `apps/desktop/src/i18n/AGENTS.md`）                                                                        |
+| 防回退门禁     | `tests/unit/renderer-copy.spec.ts` 用 TS AST 递归扫描各已译界面的 JSX（含嵌套子目录）与 `title`/`alt`/`aria-*`/`summary` 等属性，残留硬编码英文即失败；`pnpm i18n:check:strict` 再拦缺失词条与仍与英文完全相同的值 |
+| main 进程通道  | `getLocale` / `setLocale` / `localeChanged` 三条窄 IPC + `LocaleManager`（仿 theme-manager），偏好持久化于 `ui-state.json`（schema v20），macOS 菜单随语言整体重建                                                 |
+| e2e 稳定性     | 测试启动固定 `--lang=en-US`，断言英文界面，与上游 CI 环境一致，不受开发机系统语言影响                                                                                                                              |
 
 ## 🧭 项目状态
 
 - **维护模式**：以本地化、兼容性修复和上游同步为主，不改变 `pi` 运行时行为。
 - **同步策略**：优先跟进上游新版本与新增界面词条；较大的上游重构会先保证可构建、可启动，再补齐翻译。
-- **质量门禁**：`pnpm check`（格式、lint、架构守卫、类型、单元测试）与桌面 e2e 均需通过；UI 改动要求在真实 Electron 界面验证。
+- **质量门禁**：`pnpm check`（格式、lint、架构守卫、类型、`i18n:check:strict`、单元测试）与桌面 e2e 均需通过；UI 改动要求在真实 Electron 界面验证。
 - **版本号**：与上游桌面端版本保持一致，本项目自身的修复记录在 [CHANGELOG.md](./CHANGELOG.md)。
 
 ## 🗺️ 路线图
@@ -181,8 +181,8 @@ pnpm package:win      # Windows，产物在 apps/desktop/release/
 欢迎纠错、补充翻译和提交兼容性修复！请先阅读 [CONTRIBUTING.md](./CONTRIBUTING.md) 与 [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)。
 
 1. 词条位于 `apps/desktop/src/i18n/messages/en.ts`（键源）与 `messages/zh-CN.ts`（中文）；
-2. 检查工具：`pnpm i18n:check zh-CN` 列出缺失或仍为英文的词条；
-3. 提交前请通过 `pnpm check`（格式化、lint、架构守卫、类型、单元测试）；
+2. 检查工具：`pnpm i18n:check zh-CN` 列出缺失或仍为英文的词条；`pnpm i18n:check:strict` 对缺失词条和仍与英文相同的值报错（技术专名由 `apps/desktop/src/i18n/allowlist.json` 逐条说明原因）；
+3. 提交前请通过 `pnpm check`（格式化、lint、架构守卫、类型、`i18n:check:strict`、单元测试）；
 4. 提交 PR 时请使用仓库的 [PR 模板](./.github/PULL_REQUEST_TEMPLATE.md)，说明验证方式。
 
 ## 💬 社区与支持

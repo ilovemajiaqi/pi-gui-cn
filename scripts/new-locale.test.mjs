@@ -183,3 +183,65 @@ test("scaffolding leaves plural variants out, reads single-quoted copy, and --ch
   assert.match(check, /ja: 1 keys still read English:/);
   assert.match(check, /b\.count_other {2}←/);
 });
+
+test("--strict fails on missing plain keys and on copy that is still English", (t) => {
+  const root = scaffold(t);
+  assert.equal(run(root, "fr", "Français").status, 0);
+
+  // The scaffold is English copy, so strict mode is red until it is translated.
+  const untranslated = run(root, "--check", "--strict", "fr");
+  assert.equal(untranslated.status, 1);
+  assert.match(untranslated.stdout, /fr: 3 keys still read English:/);
+  assert.match(untranslated.stderr, /3 keys still read English/);
+  // Non-strict stays a report: the same catalog still exits 0.
+  assert.equal(run(root, "--check", "fr").status, 0);
+
+  const localePath = path.join(root, "apps/desktop/src/i18n/messages/fr.ts");
+  const translated = localeOf(root, "fr")
+    .replace('"a.simple": "Simple"', '"a.simple": "Simple (fr)"')
+    .replace(
+      '"b.wrapped":\n    "A value Prettier wrapped onto its own line"',
+      '"b.wrapped": "Valeur"',
+    )
+    .replace('"c.last": "Last"', '"c.last": "Dernier"');
+  writeFileSync(localePath, translated);
+  assert.equal(run(root, "--check", "--strict", "fr").status, 0);
+
+  // A plain key left out is a strict failure even when nothing reads English.
+  writeFileSync(localePath, translated.replace('  "a.simple": "Simple (fr)",\n', ""));
+  const missing = run(root, "--check", "--strict", "fr");
+  assert.equal(missing.status, 1);
+  assert.match(missing.stdout, /a\.simple {2}\(missing\)/);
+  // `--strict` may come on either side of the tag.
+  assert.equal(run(root, "--check", "fr", "--strict").status, 1);
+});
+
+test("--strict excuses allowlisted keys, but every excuse needs a reason", (t) => {
+  const root = scaffold(t);
+  assert.equal(run(root, "fr", "Français").status, 0);
+  const allowlistPath = path.join(root, "apps/desktop/src/i18n/allowlist.json");
+  const localePath = path.join(root, "apps/desktop/src/i18n/messages/fr.ts");
+  writeFileSync(
+    localePath,
+    localeOf(root, "fr")
+      .replace(
+        '"b.wrapped":\n    "A value Prettier wrapped onto its own line"',
+        '"b.wrapped": "Valeur"',
+      )
+      .replace('"c.last": "Last"', '"c.last": "Dernier"'),
+  );
+
+  // "Simple" stays English on purpose; only the allowlist should clear it.
+  assert.equal(run(root, "--check", "--strict", "fr").status, 1);
+  writeFileSync(allowlistPath, JSON.stringify({ untranslated: { "a.simple": "Fixture term" } }));
+  const excused = run(root, "--check", "--strict", "fr");
+  assert.equal(excused.status, 0);
+  assert.match(excused.stdout, /a\.simple {2}← {2}Simple {2}\(excused: Fixture term\)/);
+  // The plain report still lists it: the allowlist narrows the gate, not the report.
+  assert.match(run(root, "--check", "fr").stdout, /fr: 1 keys still read English:/);
+
+  writeFileSync(allowlistPath, JSON.stringify({ untranslated: { "a.simple": "   " } }));
+  const unreasoned = run(root, "--check", "--strict", "fr");
+  assert.equal(unreasoned.status, 1);
+  assert.match(unreasoned.stderr, /must give every excused key a reason/);
+});

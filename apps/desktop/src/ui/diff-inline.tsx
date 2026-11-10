@@ -79,7 +79,7 @@ function parseDiff(diff: string, unmodifiedGaps: boolean, t: Translate): DiffLin
       if (skipped > 0)
         result.push({
           type: "unmodified",
-          content: t("ui.diff.unmodifiedLines", { count: skipped }),
+          content: t("workbench.diff.unmodifiedLines", { count: skipped }),
         });
       if (deletesOnly) lineNumber += 1;
       nextUnshown = lineNumber;

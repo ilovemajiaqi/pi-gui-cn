@@ -31,16 +31,22 @@ const attributes = new Set([
   "description",
   "label",
   "aria-label",
+  "aria-description",
+  "aria-roledescription",
+  "aria-valuetext",
+  "alt",
   "placeholder",
   "textareaPlaceholder",
   "textareaLabel",
   "body",
   "backLabel",
+  "summary",
 ]);
 const sourceRoot = resolve(__dirname, "../../src");
 /**
- * Surfaces that are fully translated. A directory entry covers every `.tsx` file in
- * it, so a new Settings section is checked without anyone adding it here.
+ * Surfaces that are fully translated. A directory entry covers every `.tsx` file
+ * below it, so a new Settings section or a nested feature folder is checked without
+ * anyone adding it here.
  */
 const translatedSurfaces = [
   "features/settings",
@@ -55,15 +61,20 @@ const translatedSurfaces = [
 
 async function surfaceFiles(): Promise<readonly string[]> {
   const files: string[] = [];
+  const walk = async (directory: string) => {
+    const entries = await readdir(resolve(sourceRoot, directory), { withFileTypes: true });
+    for (const entry of entries) {
+      const relative = `${directory}/${entry.name}`;
+      if (entry.isDirectory()) await walk(relative);
+      else if (entry.name.endsWith(".tsx")) files.push(relative);
+    }
+  };
   for (const surface of translatedSurfaces) {
     if (surface.endsWith(".tsx")) {
       files.push(surface);
       continue;
     }
-    const entries = await readdir(resolve(sourceRoot, surface));
-    files.push(
-      ...entries.filter((name) => name.endsWith(".tsx")).map((name) => `${surface}/${name}`),
-    );
+    await walk(surface);
   }
   return files;
 }

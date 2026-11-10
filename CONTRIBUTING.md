@@ -72,12 +72,22 @@ English is the key source and the fallback locale; Simplified Chinese lives in
 - Add or update the English copy in `messages/en.ts` first.
 - Translate the new keys in `messages/zh-CN.ts` (`Partial<Messages>`, so partial
   translations are valid and fall back to English).
-- Run `pnpm i18n:check zh-CN` to list missing entries and untranslated strings.
+- Run `pnpm i18n:check zh-CN` to list missing entries and untranslated strings. It is
+  a report and always exits 0; `pnpm i18n:check:strict` is the gate that `pnpm check`
+  runs, and it fails on a missing key or on a value that still reads English unless
+  `apps/desktop/src/i18n/allowlist.json` excuses that key with a reason.
 - Keep product terms consistent with the glossary in the README and existing
   translations (会话 / 工作树 / 审查 / 上下文窗口 / 思考深度). Keep Git and
   technical proper nouns in their conventional form.
-- `renderer-copy.spec.ts` fails on hardcoded English in translated JSX, so new UI
-  copy must go through the catalog rather than inline strings.
+- Write Chinese copy with full-width punctuation (`，。：；！？（）`、`“”`、`…`) and
+  keep half-width punctuation inside code, paths, URLs, shortcuts and versions.
+- `renderer-copy.spec.ts` walks every `.tsx` under each translated surface, nested
+  directories included, and fails on hardcoded English in JSX text or in a
+  copy-bearing attribute (`title`, `alt`, `aria-label`, `summary`, …), so new UI copy
+  must go through the catalog rather than inline strings.
+- Dynamic copy (times, durations, counts) is formatted at render time with the active
+  locale's `Intl`; never call `toLocaleString()` without a locale and never hardcode
+  `"en-US"`.
 
 ## Pull requests
 

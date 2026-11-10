@@ -48,14 +48,25 @@ export function resolveLocale(
   return defaultLocale;
 }
 
-export function readStoredLocale(): LocalePreference {
+/**
+ * The stored preference, or `null` when this profile has never recorded one.
+ *
+ * The difference matters after the profile is cleared, restored or migrated: an
+ * untouched profile can adopt the locale main already persisted, while an explicit
+ * `"system"` is a choice and must keep following the OS language.
+ */
+export function readStoredLocaleOrNull(): LocalePreference | null {
   try {
     const raw = localStorage.getItem(LOCALE_STORAGE_KEY);
-    return isLocalePreference(raw) ? raw : "system";
+    return isLocalePreference(raw) ? raw : null;
   } catch {
     // Reading preferences is best-effort; the system language still applies.
-    return "system";
+    return null;
   }
+}
+
+export function readStoredLocale(): LocalePreference {
+  return readStoredLocaleOrNull() ?? "system";
 }
 
 export function writeStoredLocale(preference: LocalePreference): void {

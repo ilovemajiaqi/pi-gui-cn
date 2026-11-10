@@ -12,7 +12,7 @@ import {
   type ToolRef,
 } from "../../../contracts/workbench";
 import type { DesktopExtensionViewInfo } from "../../../contracts/extension-views";
-import { translate, useI18n, type MessageKey, type Translate } from "../../i18n";
+import { translate, translateError, useI18n, type MessageKey, type Translate } from "../../i18n";
 import { CloseIcon, ExtensionIcon, PlusIcon, SidePanelIcon } from "../../ui/icons";
 import { BUILTIN_TOOL_ENTRIES, BUILTIN_TOOLS } from "./builtin-tools";
 import { WorkbenchResizeHandle } from "./workbench-resize-handle";
@@ -249,9 +249,9 @@ export function Workbench({
       </div>
       {error ? (
         <div className="workbench__error" role="status">
-          {/* Workbench errors are message keys (plus the extension host's own error
-              strings, which `t` passes through untouched); the tab-limit key counts. */}
-          <p>{t(error as MessageKey, { count: MAX_WORKBENCH_FILE_TABS })}</p>
+          {/* Workbench errors are message keys; the extension host's own error strings
+              pass through untouched. The tab-limit key counts, so it gets the cap. */}
+          <p>{translateError(error, t, { count: MAX_WORKBENCH_FILE_TABS })}</p>
           {loading && onRetryRestore ? (
             <button className="button" onClick={onRetryRestore} type="button">
               {t("workbench.retryRestoringTabs")}
@@ -356,9 +356,7 @@ export function Workbench({
                 : t("workbench.viewUnavailableTitle")}
             </h2>
             <p>
-              {activeExtension?.error ||
-                extensionViewsError ||
-                t("workbench.savedTabRetained")}
+              {activeExtension?.error || extensionViewsError || t("workbench.savedTabRetained")}
             </p>
             {!extensionViewsLoading && onReloadExtensionViews ? (
               <button className="button" type="button" onClick={onReloadExtensionViews}>

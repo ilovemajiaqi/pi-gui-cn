@@ -22,7 +22,7 @@
 - 全界面简体中文本地化：侧边栏、新建对话、会话时间线、命令面板、分支树、模型/思考深度选择器、上下文用量、文件浏览器、差异审查、集成终端、技能与扩展、定时任务、设置、启动/故障恢复页，以及原生对话框与系统通知；
 - 主进程 locale 通道：`getLocale` / `setLocale` / `localeChanged` 三条窄 IPC 与 `LocaleManager`，偏好持久化于 `ui-state.json`；
 - 语言即时切换：Settings → Appearance → Language，多窗口同步，并跟随系统语言自动选择；
-- 翻译防回退门禁：`renderer-copy.spec.ts` 以 TypeScript AST 扫描已翻译界面的 JSX，残留硬编码英文即失败；
+- 翻译防回退门禁：`renderer-copy.spec.ts` 以 TypeScript AST 递归扫描已翻译界面的 JSX（含嵌套目录）与 `title`/`alt`/`aria-*`/`summary` 等承载文案的属性，残留硬编码英文即失败；`i18n:check:strict` 进一步在 `pnpm check` 中拦下缺失词条与仍为英文的值（可用 `allowlist.json` 附原因豁免）；
 - 简体中文 README、50 秒全中文宣传片与界面截图；
 - 开源社区健康文件：贡献指南、行为准则、安全策略、支持文档、Issue/PR 模板与变更日志。
 

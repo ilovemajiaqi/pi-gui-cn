@@ -11,7 +11,9 @@ import { defaultLocale, textDirectionFor, type AppLocale } from "./catalog";
 import {
   LOCALE_STORAGE_KEY,
   detectSystemLanguages,
+  isLocalePreference,
   readStoredLocale,
+  readStoredLocaleOrNull,
   resolveLocale,
   writeStoredLocale,
   type LocalePreference,
@@ -40,11 +42,14 @@ export {
 export {
   catalogs,
   interpolate,
+  isMessageKey,
   translate,
+  translateError,
   translatorFor,
   type Translate,
   type TranslateParams,
 } from "./translate";
+export { interpolateNodes, type TranslateNodes } from "./rich-text";
 
 interface I18nContextValue {
   readonly locale: AppLocale;
@@ -79,6 +84,28 @@ export function I18nProvider({
     () => resolveLocale(preference, systemLanguages),
     [preference, systemLanguages],
   );
+
+  useEffect(() => {
+    // Hydrate from main when this profile has no recorded choice — a cleared,
+    // restored or migrated profile would otherwise reopen in the OS language
+    // while main's native menus stayed on the persisted one. An explicit
+    // "system" is a choice and keeps following the OS, so it is never replaced.
+    if (initialPreference !== undefined || readStoredLocaleOrNull() !== null) return;
+    let cancelled = false;
+    window.piApp
+      ?.getLocale?.()
+      .then((persisted) => {
+        if (cancelled || !isLocalePreference(persisted)) return;
+        // A choice made while the read was in flight wins.
+        if (readStoredLocaleOrNull() !== null) return;
+        writeStoredLocale(persisted);
+        setPreferenceState(persisted);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [initialPreference]);
 
   useEffect(() => {
     // Every window keeps its own copy of the preference, so follow a choice made in

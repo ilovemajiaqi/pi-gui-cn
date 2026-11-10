@@ -92,8 +92,8 @@ export function SettingsMcpSection({ workspaceId, actions }: SettingsMcpSectionP
   return (
     <>
       <SettingsGroup
-        title={t("ui.servers")}
-        description={t("ui.sharedWithPiInTheTerminalValuePlusThisProjectSPi", {
+        title={t("settings.mcp.title")}
+        description={t("settings.mcp.description", {
           globalConfigPath: globalConfigPath,
         })}
       >
@@ -105,7 +105,7 @@ export function SettingsMcpSection({ workspaceId, actions }: SettingsMcpSectionP
         {snapshot && servers.length === 0 ? (
           <div className="settings-row" data-testid="mcp-servers-empty">
             <span className="settings-row__description">
-              {t("ui.noMCPServersYetServersComeFromValueWhichPiInThe", {
+              {t("settings.mcp.empty", {
                 globalConfigPath: globalConfigPath,
               })}
             </span>
@@ -134,15 +134,15 @@ export function SettingsMcpSection({ workspaceId, actions }: SettingsMcpSectionP
         onAdd={(server) => apply(() => actions.onAddServer(server))}
       />
 
-      <SettingsGroup title={t("ui.codeMode")}>
+      <SettingsGroup title={t("settings.mcp.codeMode")}>
         <SettingsRow
-          title={t("ui.alwaysOn")}
-          description={t("ui.letsTheModelRunScriptsThatCallToolsTurningItOnAlso")}
+          title={t("settings.mcp.alwaysOn")}
+          description={t("settings.mcp.codeModeHint")}
         >
           <SettingsSwitch
             checked={snapshot?.codemodeAlwaysOn ?? false}
             disabled={pending || !snapshot}
-            label={t("ui.codeModeAlwaysOn")}
+            label={t("settings.mcp.codeModeAlwaysOn")}
             onChange={(alwaysOn) => run(() => actions.onSetCodemodeAlwaysOn(alwaysOn))}
           />
         </SettingsRow>
@@ -176,7 +176,7 @@ function McpServerRow({
           <div className="settings-row__description">{server.description}</div>
         ) : null}
         <div className="settings-row__description">
-          {server.scope === "project" ? t("ui.thisProjectValue", { target: target }) : target}
+          {server.scope === "project" ? t("settings.mcp.thisProject", { target: target }) : target}
         </div>
       </div>
       <div className="settings-row__actions">
@@ -193,7 +193,7 @@ function McpServerRow({
         <SettingsSwitch
           checked={server.enabled}
           disabled={disabled}
-          label={t("ui.enableValue4", { name: server.name })}
+          label={t("settings.mcp.enableServer", { name: server.name })}
           onChange={onToggle}
         />
       </div>
@@ -248,12 +248,12 @@ function AddMcpServerForm({
 
   return (
     <SettingsGroup
-      title={t("ui.addServer")}
-      description={t("ui.savedToValue", { configPath: configPath })}
+      title={t("settings.mcp.add")}
+      description={t("settings.mcp.savedTo", { configPath: configPath })}
     >
-      <SettingsRow title={t("ui.name")}>
+      <SettingsRow title={t("settings.mcp.name")}>
         <input
-          aria-label={t("ui.serverName")}
+          aria-label={t("settings.mcp.serverName")}
           className="settings-text-input"
           disabled={disabled}
           placeholder="docs"
@@ -262,23 +262,23 @@ function AddMcpServerForm({
         />
       </SettingsRow>
       <SettingsRow
-        title={t("ui.whatItDoes")}
-        description={t("ui.optionalPiTellsTheModelAboutTheServerWithIt")}
+        title={t("settings.mcp.descriptionLabel")}
+        description={t("settings.mcp.descriptionHint")}
       >
         <input
-          aria-label={t("ui.serverDescription")}
+          aria-label={t("settings.mcp.serverDescription")}
           className="settings-text-input"
           disabled={disabled}
-          placeholder={t("ui.searchesTheTeamSDocs")}
+          placeholder={t("settings.mcp.serverDescriptionPlaceholder")}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
         />
       </SettingsRow>
-      <SettingsRow title={t("ui.type")}>
+      <SettingsRow title={t("settings.mcp.type")}>
         <SettingsSegmented<ServerKind>
-          label={t("ui.serverType")}
+          label={t("settings.mcp.serverType")}
           options={[
-            { value: "command", label: t("ui.command") },
+            { value: "command", label: t("settings.mcp.command") },
             { value: "url", label: "URL" },
           ]}
           value={kind}
@@ -288,11 +288,11 @@ function AddMcpServerForm({
       {kind === "command" ? (
         <>
           <SettingsRow
-            title={t("ui.command")}
-            description={t("ui.startedOnThisMachineForEachThread")}
+            title={t("settings.mcp.command")}
+            description={t("settings.mcp.commandHint")}
           >
             <input
-              aria-label={t("ui.serverCommand")}
+              aria-label={t("settings.mcp.serverCommand")}
               className="settings-text-input"
               disabled={disabled}
               placeholder="npx"
@@ -301,11 +301,11 @@ function AddMcpServerForm({
             />
           </SettingsRow>
           <SettingsRow
-            title={t("ui.arguments")}
-            description={t("ui.separatedBySpacesQuoteAnArgumentThatContainsSpaces")}
+            title={t("settings.mcp.arguments")}
+            description={t("settings.mcp.argumentsHint")}
           >
             <input
-              aria-label={t("ui.serverArguments")}
+              aria-label={t("settings.mcp.serverArguments")}
               className="settings-text-input"
               disabled={disabled}
               placeholder="-y @modelcontextprotocol/server-filesystem ."
@@ -315,9 +315,9 @@ function AddMcpServerForm({
           </SettingsRow>
         </>
       ) : (
-        <SettingsRow title="URL" description={t("ui.aStreamableHTTPServerIfItNeedsASignInTypeMcp")}>
+        <SettingsRow title="URL" description={t("settings.mcp.urlHint")}>
           <input
-            aria-label={t("ui.serverURL")}
+            aria-label={t("settings.mcp.serverUrl")}
             className="settings-text-input"
             disabled={disabled}
             placeholder="https://example.com/mcp"
@@ -327,9 +327,7 @@ function AddMcpServerForm({
         </SettingsRow>
       )}
       <div className="settings-row">
-        <span className="settings-row__description">
-          {t("ui.openThreadsReloadToStartItAddEnvOrHeadersInThe")}
-        </span>
+        <span className="settings-row__description">{t("settings.mcp.reloadHint")}</span>
         <div className="settings-row__control">
           <button
             className="button"
@@ -339,7 +337,7 @@ function AddMcpServerForm({
               submit().catch(() => undefined);
             }}
           >
-            {t("ui.addServer")}
+            {t("settings.mcp.add")}
           </button>
         </div>
       </div>

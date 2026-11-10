@@ -29,15 +29,35 @@ renders in English.
 ## Adding or finishing a language
 
 ```sh
-pnpm i18n:new fr "Français"     # or: node scripts/new-locale.mjs fr "Français"
-pnpm i18n:check fr              # lists keys that are missing or still read English
-pnpm i18n:check                 # the same report for every non-English catalog
+pnpm i18n:new fr "Français"       # or: node scripts/new-locale.mjs fr "Français"
+pnpm i18n:check fr                # lists keys that are missing or still read English
+pnpm i18n:check                   # the same report for every non-English catalog
+pnpm i18n:check:strict            # the gate: exits 1 on unfinished copy
 ```
 
 `i18n:new` writes `messages/fr.ts` (every plain key, English values, as a starting
 point) and registers the locale in `catalog.ts`. Translate the values; delete any entry
-you do not translate rather than leaving it in English. `i18n:check` is a report, not
-a gate: it exits 0 however much is untranslated and is not part of `pnpm check`.
+you do not translate rather than leaving it in English.
+
+`i18n:check` is a report: it exits 0 however much is untranslated. `--strict` (what
+`pnpm check` runs) turns the same report into a gate. It fails on a plain key that is
+missing from a catalog, and on a value that is still byte-for-byte the English copy —
+unless `allowlist.json` excuses that key with a reason.
+
+## Allowlist
+
+`allowlist.json` holds the English values that are not prose and must stay English:
+product terms, protocol names, literal syntax. Shape:
+
+```json
+{ "untranslated": { "settings.provider.status.oauthOnly": "Protocol name, never translated." } }
+```
+
+Every entry needs a reason; an entry without one fails the check. Add a key only when
+the English copy is the correct copy in every language. If a value merely looks
+untranslated (an untranslated sentence, a forgotten key), translate it instead — the
+allowlist is not a way to silence the gate. An allowlisted key still shows up in the
+plain `i18n:check` report, so the report stays a full account of what reads English.
 
 The scaffolded matcher claims every tag with the same primary language. A
 script- or region-specific locale (`zh-Hant`, `pt-PT`) must sit ahead of the broader
@@ -74,6 +94,26 @@ When a locale has no copy for a counted key, the English copy is picked with Eng
 plural rules. A key with no plural variants ignores `count`, so adding plurals to existing copy is
 never a breaking change.
 
+## Where the choice lives
+
+The renderer owns the preference; main owns the resolved locale it needs for native
+menus, dialogs and notifications. They meet in one place:
+
+| Store                           | Holds                                                  |
+| ------------------------------- | ------------------------------------------------------ |
+| `localStorage("pi-gui:locale")` | the choice: `"system"` or a locale id                  |
+| `ui-state.json` → `locale`      | the locale the renderer last resolved, pushed over IPC |
+
+Precedence, in order: an explicit `localStorage` value, then main's persisted locale,
+then `"system"`. The second step only runs when this profile has never recorded a
+choice (`readStoredLocaleOrNull()` returns `null`), which is what keeps a cleared or
+restored profile from reopening in the OS language while main's native menus stay on
+the persisted one. A stored `"system"` is a real choice and is never replaced, so
+system-language users keep following the OS.
+
+`getLocale` is therefore load-bearing: it hydrates that second step. Do not delete it
+without moving the preference into `ui-state.json` itself.
+
 ## Dates, times and numbers
 
 Do not call `toLocaleString()` / `toLocaleDateString()` without a locale, and do not
@@ -90,15 +130,27 @@ language the app is showing. Pass `locale` from `useTranslation()` to `Intl`.
   mirrors it onto `<html dir>`.
 - `tests/unit/i18n.spec.ts` enforces unique ids, tag shape, no keys that English does
   not have, and placeholders matching English. `tests/unit/renderer-copy.spec.ts`
-  fails on literal English in the JSX of translated surfaces; add a surface there once
-  it is translated.
+  walks every `.tsx` file under each translated surface, nested folders included, and
+  fails on literal English in JSX text or in a copy-bearing attribute (`title`, `alt`,
+  `aria-label`, `summary`, …). Add a surface there once it is translated.
 - The provider follows a choice made in another window (`storage` event) and an OS
   language change while the preference is `"system"` (`languagechange`).
 
 ## Coverage
 
-- Translated: Settings (every section and the Settings navigation) and the shell
-  around it (`src/app/secondary-surface.tsx`).
-- Still English: every other renderer surface, and the Electron main process (native
-  menus, dialogs, OS notifications). The preference lives in renderer `localStorage`,
-  which the main process cannot read, so main needs its own locale channel.
+- Renderer: every main surface is translated — threads and the sidebar, the new-thread
+  page, the conversation timeline, composer and search, the workbench and file
+  browser, review and diff, the integrated terminal, extensions and skills, scheduled
+  tasks, the command palette, Settings, and the app shell, recovery and startup views.
+  The JSX guard above holds that line.
+- Main process: native menus, dialogs and OS notifications render through
+  `electron/platform/main-messages.ts`, fed by the locale IPC channel
+  (`getLocale` / `setLocale` / `localeChanged`) rather than renderer `localStorage`.
+- Technical identifiers stay English on purpose: tool names (`[bash]`), protocol names
+  (`OAuth`), commands, paths, model ids. They are not in the catalogs as prose, and any
+  catalog value that must match English is excused in `allowlist.json` with a reason.
+- Dynamic copy — timeline timestamps, durations, counts — is formatted at render time
+  with the active locale's `Intl` rules, so it follows a language switch without new
+  catalog entries.
+- A third-party provider's own output, tool stdout and runtime error text stay as the
+  runtime produced them; only the app's framing around them is translated.

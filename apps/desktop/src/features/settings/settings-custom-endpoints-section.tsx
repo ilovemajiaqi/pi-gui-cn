@@ -1,4 +1,4 @@
-import { useTranslation, type Translate } from "../../i18n";
+import { interpolateNodes, useTranslation, type Translate } from "../../i18n";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   CUSTOM_PROVIDER_ID_PATTERN,
@@ -81,8 +81,8 @@ export function SettingsCustomEndpointsSection({
   return (
     <>
       <SettingsGroup
-        title={t("ui.customEndpoints")}
-        description={t("ui.addOpenAICompatibleEndpointsOllamaVLLMOrYourOwnServerStoredIn")}
+        title={t("settings.endpoints.title")}
+        description={t("settings.endpoints.description")}
       >
         {loadError ? (
           <div className="settings-row">
@@ -91,7 +91,7 @@ export function SettingsCustomEndpointsSection({
         ) : null}
         {entries.length === 0 ? (
           <div className="settings-row">
-            <span className="settings-row__description">{t("ui.noCustomEndpointsYet")}</span>
+            <span className="settings-row__description">{t("settings.endpoints.empty")}</span>
           </div>
         ) : (
           entries.map((entry) => (
@@ -127,14 +127,14 @@ export function SettingsCustomEndpointsSection({
         )}
         <div className="settings-row">
           <div className="settings-row__label">
-            <div className="settings-row__title">{t("ui.addEndpoint")}</div>
+            <div className="settings-row__title">{t("settings.endpoints.add")}</div>
             <div className="settings-row__description">
-              {t("ui.registerALocalOrCustomOpenAICompatibleServer")}
+              {t("settings.endpoints.addDescription")}
             </div>
           </div>
           <div className="settings-row__control">
             <button className="button" type="button" onClick={() => setDialog({ kind: "create" })}>
-              {t("ui.addEndpoint")}
+              {t("settings.endpoints.add")}
             </button>
           </div>
         </div>
@@ -305,16 +305,17 @@ function CustomEndpointDialog({
           data-testid="custom-endpoint-dialog-content"
         >
           <div className="extension-dialog__title" id={titleId}>
-            {isEdit ? t("ui.editCustomEndpoint") : t("ui.addCustomEndpoint")}
+            {isEdit ? t("settings.endpoints.editTitle") : t("settings.endpoints.addTitle")}
           </div>
           <p className="extension-dialog__body">
-            {t("ui.configureAnOpenAICompatibleServerTheEndpointAndAPIKeyAreStored")}
-            <code> ~/.pi/agent/models.json</code>.
+            {interpolateNodes(t("settings.endpoints.formDescription"), {
+              path: <code>~/.pi/agent/models.json</code>,
+            })}
           </p>
           <label className="settings-field">
-            <span>{t("ui.providerID")}</span>
+            <span>{t("settings.endpoints.providerId")}</span>
             <input
-              aria-label={t("ui.providerID")}
+              aria-label={t("settings.endpoints.providerId")}
               autoFocus={!isEdit}
               className="settings-search"
               disabled={isEdit || savePending}
@@ -328,14 +329,14 @@ function CustomEndpointDialog({
               </span>
             ) : (
               <span className="settings-row__description">
-                {t("ui.lowercaseLettersDigitsAndDashesCannotBeChangedLater")}
+                {t("settings.endpoints.providerIdHint")}
               </span>
             )}
           </label>
           <label className="settings-field">
-            <span>{t("ui.baseURL")}</span>
+            <span>{t("settings.endpoints.baseUrl")}</span>
             <input
-              aria-label={t("ui.baseURL")}
+              aria-label={t("settings.endpoints.baseUrl")}
               className="settings-search"
               disabled={savePending}
               placeholder="http://localhost:11434/v1"
@@ -343,12 +344,11 @@ function CustomEndpointDialog({
               onChange={(event) => setBaseUrl(event.target.value)}
             />
             <span className="settings-row__description">
-              {t("ui.includeThe")}
-              <code>/v1</code>
-              {t("ui.suffixOllama")}
-              <code>http://localhost:11434/v1</code>
-              {t("ui.vllm")}
-              <code>http://localhost:8000/v1</code>.
+              {interpolateNodes(t("settings.endpoints.baseUrlHint"), {
+                suffix: <code>/v1</code>,
+                ollama: <code>http://localhost:11434/v1</code>,
+                vllm: <code>http://localhost:8000/v1</code>,
+              })}
             </span>
           </label>
           <label className="settings-field">
@@ -357,15 +357,15 @@ function CustomEndpointDialog({
               aria-label={t("settings.provider.status.apiKey")}
               className="settings-search"
               disabled={savePending}
-              placeholder={t("ui.vllmPassThroughOllamaLeaveBlank")}
+              placeholder={t("settings.endpoints.apiKeyPlaceholder")}
               type="password"
               value={apiKey}
               onChange={(event) => setApiKey(event.target.value)}
             />
             <span className="settings-row__description">
-              {t("ui.requiredByTheStorageFormatForVLLMStartedWith")}
-              <code>--api-key</code>
-              {t("ui.enterThatKeyForOllamaOrOtherServersWithoutAuthLeaveBlank")}
+              {interpolateNodes(t("settings.endpoints.apiKeyHint"), {
+                flag: <code>--api-key</code>,
+              })}
             </span>
           </label>
 
@@ -384,7 +384,9 @@ function CustomEndpointDialog({
                   })
                 }
               >
-                {probePending ? t("ui.detecting") : t("ui.detectModels")}
+                {probePending
+                  ? t("settings.endpoints.detecting")
+                  : t("settings.endpoints.detectModels")}
               </button>
             </div>
             {probeError ? (
@@ -397,9 +399,7 @@ function CustomEndpointDialog({
               onManualAdd={handleManualAdd}
               disabled={savePending}
             />
-            <p className="settings-row__description">
-              {t("ui.toolCallingIsRequiredSmallerModels7BOftenDoNotEmitOpenAI")}
-            </p>
+            <p className="settings-row__description">{t("settings.endpoints.toolCallingHint")}</p>
           </div>
         </div>
 
@@ -429,7 +429,7 @@ function CustomEndpointDialog({
                 })
               }
             >
-              {isEdit ? t("ui.saveChanges") : t("ui.addEndpoint")}
+              {isEdit ? t("settings.endpoints.save") : t("settings.endpoints.add")}
             </button>
           </div>
         </div>
@@ -470,9 +470,7 @@ function ModelChecklist({
   return (
     <div className="settings-disclosure__body">
       {knownIds.size === 0 ? (
-        <p className="settings-row__description">
-          {t("ui.clickDetectModelsOrTypeAModelIDBelowToAddOne")}
-        </p>
+        <p className="settings-row__description">{t("settings.endpoints.modelListHint")}</p>
       ) : (
         <ul className="settings-list custom-endpoint-model-list">
           {[...knownIds]
@@ -481,7 +479,7 @@ function ModelChecklist({
               <li key={id} className="settings-row">
                 <label className="custom-endpoint-model-list__item">
                   <input
-                    aria-label={t("ui.enableValue3", { id: id })}
+                    aria-label={t("settings.endpoints.enableModel", { id: id })}
                     type="checkbox"
                     checked={selectedIds.has(id)}
                     disabled={disabled}
@@ -495,10 +493,10 @@ function ModelChecklist({
       )}
       <div className="settings-row">
         <input
-          aria-label={t("ui.addModelIDManually")}
+          aria-label={t("settings.endpoints.addModelIdManually")}
           className="settings-search"
           disabled={disabled}
-          placeholder={t("ui.addModelIDManually")}
+          placeholder={t("settings.endpoints.addModelIdManually")}
           value={manualDraft}
           onChange={(event) => setManualDraft(event.target.value)}
           onKeyDown={(event) => {
@@ -514,7 +512,7 @@ function ModelChecklist({
           type="button"
           onClick={submitManual}
         >
-          {t("ui.add")}
+          {t("settings.endpoints.addModel")}
         </button>
       </div>
     </div>

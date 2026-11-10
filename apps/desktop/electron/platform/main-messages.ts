@@ -109,7 +109,7 @@ const ZH_CN_MESSAGES: Record<MainMessageKey, string> = {
   "main.menu.reload": "重新加载",
   "main.menu.forceReload": "强制重新加载",
   "main.update.availableTitle": "pi-gui 新版本可用",
-  "main.update.availableBody": "新版本 {latest} 已发布(当前 {current})。点击查看发布页。",
+  "main.update.availableBody": "新版本 {latest} 已发布（当前 {current}）。点击查看发布页。",
   "main.update.availableMessage": "新版本 {latest} 已发布。",
   "main.update.youHave": "当前为 {version}。",
   "main.update.download": "下载",
@@ -122,10 +122,10 @@ const ZH_CN_MESSAGES: Record<MainMessageKey, string> = {
   "main.update.httpStatus": "GitHub Releases 返回了 {status}。",
   "main.update.unreadableResponse": "GitHub Releases 返回了无法解析的响应。",
   "main.update.noVersions": "GitHub Releases 未返回任何已发布版本。",
-  "main.notify.agentFinished": "agent 已完成回复",
+  "main.notify.agentFinished": "智能体已完成回复",
   "main.notify.sessionFallback": "pi 会话",
-  "main.notify.errorPrefix": "错误:",
-  "main.notify.warningPrefix": "警告:",
+  "main.notify.errorPrefix": "错误：",
+  "main.notify.warningPrefix": "警告：",
   "main.notify.needsInput": "需要你的输入",
 };
 

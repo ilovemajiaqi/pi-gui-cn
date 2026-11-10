@@ -3,13 +3,16 @@
  * Scaffolds a new language for the desktop app, and reports how much of one is
  * still English.
  *
- *   node scripts/new-locale.mjs <tag> <label>    e.g. `fr "Français"`
- *   node scripts/new-locale.mjs --check [tag]    lists the copy left to translate
+ *   node scripts/new-locale.mjs <tag> <label>         e.g. `fr "Français"`
+ *   node scripts/new-locale.mjs --check [tag]         lists the copy left to translate
+ *   node scripts/new-locale.mjs --check --strict      exits 1 on unfinished copy
  *
  * Every non-English catalog is a `Partial<Messages>`: a key it leaves out renders
  * the English copy. The generated catalog starts as English copy, as a template
- * for the translator. `--check` is a report, not a gate: it always exits 0, so a
- * missing translation never fails CI.
+ * for the translator. `--check` alone is a report, not a gate: it always exits 0,
+ * so a missing translation never fails CI. `--strict` turns that report into a
+ * gate: a missing plain key, or a value that is still byte-for-byte the English
+ * copy, fails unless `i18n/allowlist.json` excuses the key with a reason.
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -25,7 +28,7 @@ const TAG_PATTERN = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
 
 const PLURAL_VARIANT = /_(zero|one|two|few|many|other)$/;
 
-const USAGE = "Usage: node scripts/new-locale.mjs <tag> <label> | --check [tag]";
+const USAGE = "Usage: node scripts/new-locale.mjs <tag> <label> | --check [--strict] [tag]";
 
 function fail(message) {
   console.error(`${message}\n`);
@@ -66,11 +69,49 @@ function variableName(tag) {
   );
 }
 
-function reportUntranslated(tag) {
+const allowlistPath = path.join(i18nDirectory, "allowlist.json");
+
+/**
+ * Keys a translator deliberately leaves in English, each with the reason it is not
+ * prose to translate: product names, protocol names, literal syntax. Only `--strict`
+ * reads it. A key excused here is excluded from the strict gate but still listed in
+ * the plain report, so the report stays a full account of what reads English.
+ */
+function readAllowlist() {
+  if (!existsSync(allowlistPath)) return new Map();
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(allowlistPath, "utf8"));
+  } catch (error) {
+    fail(`Could not parse ${allowlistPath}: ${error.message}`);
+    return new Map();
+  }
+  const untranslated = parsed?.untranslated;
+  if (untranslated === undefined) return new Map();
+  if (typeof untranslated !== "object" || untranslated === null || Array.isArray(untranslated)) {
+    fail(`${allowlistPath} must shape the excuses as {"untranslated": {"<key>": "<reason>"}}.`);
+    return new Map();
+  }
+  const reasons = new Map();
+  const withoutReason = [];
+  for (const [key, reason] of Object.entries(untranslated)) {
+    if (typeof reason !== "string" || reason.trim() === "") withoutReason.push(key);
+    else reasons.set(key, reason);
+  }
+  if (withoutReason.length > 0) {
+    fail(
+      `${allowlistPath} must give every excused key a reason. Missing: ${withoutReason.join(", ")}.`,
+    );
+  }
+  return reasons;
+}
+
+/** Returns the number of unfinished keys, and prints them unless `strict` excuses them. */
+function reportUntranslated(tag, { strict = false, allowed = new Map() } = {}) {
   const messagesPath = path.join(i18nDirectory, "messages", `${tag}.ts`);
   if (!existsSync(messagesPath)) {
     fail(`No catalog for "${tag}" at ${messagesPath}.`);
-    return;
+    return { pending: 0, failures: 0 };
   }
   const english = readEntries(readFileSync(englishPath, "utf8"));
   const translated = new Map(
@@ -83,17 +124,40 @@ function reportUntranslated(tag) {
   const missing = plainKeys.filter((entry) => !translated.has(entry.key));
   const untouched = english.filter((entry) => translated.get(entry.key) === entry.copy);
   const pending = missing.length + untouched.length;
-  if (pending === 0) {
+  const failures = strict
+    ? missing.length + untouched.filter((entry) => !allowed.has(entry.key)).length
+    : 0;
+
+  const reportedUntouched = strict
+    ? untouched.filter((entry) => !allowed.has(entry.key))
+    : untouched;
+  const excused = strict ? untouched.filter((entry) => allowed.has(entry.key)) : [];
+
+  if (strict) {
+    if (failures === 0) {
+      console.log(
+        excused.length === 0
+          ? `${tag}: every key is translated.`
+          : `${tag}: every key is translated or excused.`,
+      );
+    } else {
+      console.log(`${tag}: ${failures} keys still read English:`);
+    }
+  } else if (pending === 0) {
     console.log(`${tag}: every key is translated.`);
-    return;
+  } else {
+    console.log(`${tag}: ${pending} keys still read English:`);
   }
-  console.log(`${tag}: ${pending} keys still read English:`);
   for (const entry of missing) {
     console.log(`  ${entry.key}  (missing)  ←  ${entry.copy}`);
   }
-  for (const entry of untouched) {
+  for (const entry of reportedUntouched) {
     console.log(`  ${entry.key}  ←  ${entry.copy}`);
   }
+  for (const entry of excused) {
+    console.log(`  ${entry.key}  ←  ${entry.copy}  (excused: ${allowed.get(entry.key)})`);
+  }
+  return { pending, failures };
 }
 
 /** Every catalog other than English, by tag. */
@@ -189,11 +253,21 @@ ${entries}
 
 const args = process.argv.slice(2);
 if (args[0] === "--check") {
-  if (args.length > 2) {
+  const strict = args.includes("--strict");
+  const tags = args.slice(1).filter((argument) => argument !== "--strict");
+  if (tags.length > 1) {
     fail("--check takes at most one tag.");
   } else {
-    for (const tag of args.length === 2 ? [args[1]] : registeredTags()) {
-      reportUntranslated(tag);
+    const allowed = strict ? readAllowlist() : new Map();
+    let failures = 0;
+    for (const tag of tags.length === 1 ? tags : registeredTags()) {
+      failures += reportUntranslated(tag, { strict, allowed }).failures;
+    }
+    // The report stays advisory; only --strict turns it into a gate.
+    if (strict && failures > 0) {
+      console.error(`\n${failures} keys still read English. Translate them, or excuse each one`);
+      console.error(`in ${path.relative(repoRoot, allowlistPath)} with a reason.`);
+      process.exitCode = 1;
     }
   }
 } else if (args.length >= 2) {

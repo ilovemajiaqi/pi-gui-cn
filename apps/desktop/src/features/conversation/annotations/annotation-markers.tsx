@@ -1,4 +1,5 @@
 import { useLayoutEffect, useState, type RefObject } from "react";
+import { useTranslation } from "../../../i18n";
 import { offsetsToRange } from "./text-offsets";
 
 /**
@@ -80,6 +81,7 @@ export function AnnotationMarkers({
   readonly onOpen: OpenAnnotation;
 }) {
   const [placed, setPlaced] = useState<readonly PlacedMarker[]>([]);
+  const { t } = useTranslation();
 
   useLayoutEffect(() => {
     const article = articleRef.current;
@@ -120,7 +122,7 @@ export function AnnotationMarkers({
     <div className="annotation-markers">
       {placed.map((marker) => (
         <button
-          aria-label={`Edit annotation ${marker.number}`}
+          aria-label={t("conversation.annotations.editN", { index: marker.number })}
           className="annotation-marker"
           data-annotation-id={marker.id}
           data-testid="annotation-marker"

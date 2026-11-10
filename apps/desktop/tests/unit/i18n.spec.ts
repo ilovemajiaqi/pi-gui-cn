@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { createElement } from "react";
 import {
   LOCALES,
   appLocaleIds,
@@ -11,8 +12,24 @@ import {
   type MessageKey,
   type Messages,
 } from "../../src/i18n/catalog";
-import { localePreferences, resolveLocale, type LocalePreference } from "../../src/i18n/preference";
-import { catalogs, interpolate, resolveMessage, translatorFor } from "../../src/i18n/translate";
+import {
+  LOCALE_STORAGE_KEY,
+  localePreferences,
+  readStoredLocale,
+  readStoredLocaleOrNull,
+  resolveLocale,
+  writeStoredLocale,
+  type LocalePreference,
+} from "../../src/i18n/preference";
+import {
+  catalogs,
+  interpolate,
+  isMessageKey,
+  resolveMessage,
+  translateError,
+  translatorFor,
+} from "../../src/i18n/translate";
+import { interpolateNodes } from "../../src/i18n/rich-text";
 import { en } from "../../src/i18n/messages/en";
 import { zhCN } from "../../src/i18n/messages/zh-CN";
 
@@ -94,6 +111,46 @@ test("interpolate substitutes known names and leaves unknown ones alone", () => 
   expect(interpolate("no placeholders")).toBe("no placeholders");
 });
 
+test("interpolateNodes keeps one sentence whole while filling in markup", () => {
+  // Every substitute keeps a stable slot between the untouched text slices, so a
+  // reordered translation still puts the caller's node where its placeholder sat.
+  const rendered = interpolateNodes("Stored at {path}.", { path: "ui-state.json" });
+  expect(rendered).toHaveLength(3);
+  expect(rendered[0]).toBe("Stored at ");
+  expect(rendered[2]).toBe(".");
+  // A name the caller did not supply stays visible, exactly like `interpolate`.
+  expect(interpolateNodes("Stored at {path}.", {})).toEqual(["Stored at ", "{path}", "."]);
+  // Languages reorder the sentence, so the markup follows the placeholder.
+  const reordered = interpolateNodes("{path} 里。", { path: createElement("code", null, "x") });
+  expect(reordered).toHaveLength(2);
+  expect(reordered[1]).toBe(" 里。");
+});
+
+test("translateError translates the app's own keys and passes external text through", () => {
+  const zh = translatorFor("zh-CN");
+  // A key the app ships is translated, count included.
+  expect(translateError("workbench.tooManyFileTabs", zh, { count: 8 })).toBe(
+    zh("workbench.tooManyFileTabs", { count: 8 }),
+  );
+  // An Error carrying a key works just as well as the bare string.
+  expect(translateError(new Error("workbench.saveTabsError"), zh)).toBe(
+    zh("workbench.saveTabsError"),
+  );
+  // External failures keep their own words: an extension host, a provider, an OS error.
+  expect(translateError("EACCES: permission denied, open '/tmp/x'", zh)).toBe(
+    "EACCES: permission denied, open '/tmp/x'",
+  );
+  expect(translateError("Request failed with status 401", zh)).toBe(
+    "Request failed with status 401",
+  );
+  // A key-looking string that is not in the catalog is not a key.
+  expect(isMessageKey("workbench.saveTabsError")).toBe(true);
+  expect(isMessageKey("workbench.noSuchKey")).toBe(false);
+  expect(translateError("workbench.noSuchKey", zh)).toBe("workbench.noSuchKey");
+  // Non-string throwables still render something readable.
+  expect(translateError(42, zh)).toBe("42");
+});
+
 test("a counted message picks the CLDR plural form of the active locale", () => {
   const english = translatorFor("en");
   expect(english("models.count", { count: 1 })).toBe("1 model");
@@ -141,6 +198,34 @@ test("the language follows the OS until the user picks one", () => {
   for (const [preference, systemLanguages, expected] of cases) {
     const reason = `${preference} ${systemLanguages}`;
     expect(resolveLocale(preference, systemLanguages), reason).toBe(expected);
+  }
+});
+
+test("an untouched profile is told apart from an explicit system language", () => {
+  // The renderer hydrates from main only when this reads null. A stored "system" is a
+  // choice and must keep following the OS, so the two states cannot collapse.
+  const store = new Map<string, string>();
+  const previous = (globalThis as { localStorage?: unknown }).localStorage;
+  (globalThis as { localStorage?: unknown }).localStorage = {
+    getItem: (key: string) => store.get(key) ?? null,
+    setItem: (key: string, value: string) => void store.set(key, value),
+  };
+  try {
+    expect(readStoredLocaleOrNull()).toBeNull();
+    expect(readStoredLocale()).toBe("system");
+
+    writeStoredLocale("system");
+    expect(readStoredLocaleOrNull()).toBe("system");
+
+    writeStoredLocale("zh-CN");
+    expect(readStoredLocaleOrNull()).toBe("zh-CN");
+    expect(readStoredLocale()).toBe("zh-CN");
+
+    store.set(LOCALE_STORAGE_KEY, "fr");
+    expect(readStoredLocaleOrNull()).toBeNull();
+    expect(readStoredLocale()).toBe("system");
+  } finally {
+    (globalThis as { localStorage?: unknown }).localStorage = previous;
   }
 });
 

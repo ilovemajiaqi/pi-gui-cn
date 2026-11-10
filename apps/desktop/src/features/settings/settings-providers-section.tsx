@@ -115,8 +115,8 @@ export function SettingsProvidersSection({
     <>
       {attentionProviders.length > 0 ? (
         <SettingsGroup
-          title={t("ui.needsAttention")}
-          description={t("ui.yourDefaultModelUsesThisProviderButItIsNotConnected")}
+          title={t("settings.providers.needsAttention")}
+          description={t("settings.providers.defaultNotConnected")}
         >
           {attentionProviders.map((provider) => (
             <ProviderRow key={provider.id} provider={provider} {...rowHandlers} />
@@ -126,12 +126,10 @@ export function SettingsProvidersSection({
 
       <section className="settings-section">
         <h3 className="settings-section__title">
-          {t("ui.connected")}{" "}
+          {t("settings.providers.connected")}{" "}
           <span className="resource-list__count">{connectedProviders.length}</span>
         </h3>
-        <p className="settings-section__description">
-          {t("ui.piPicksModelsFromConnectedProvidersFirst")}
-        </p>
+        <p className="settings-section__description">{t("settings.providers.description")}</p>
         <div className="settings-group">
           {connectedProviders.length > 0 ? (
             connectedProviders.map((provider) => (
@@ -139,9 +137,7 @@ export function SettingsProvidersSection({
             ))
           ) : (
             <div className="settings-row">
-              <span className="settings-row__description">
-                {t("ui.noProvidersConnectedYetSignInOrAddAnAPIKeyBelow")}
-              </span>
+              <span className="settings-row__description">{t("settings.providers.empty")}</span>
             </div>
           )}
         </div>
@@ -156,14 +152,14 @@ export function SettingsProvidersSection({
       <section className="settings-section">
         <div className="settings-section__header">
           <h3 className="settings-section__title">
-            {t("ui.available")}{" "}
+            {t("settings.providers.available")}{" "}
             <span className="resource-list__count">{availableProviders.length}</span>
           </h3>
           <label className="resource-search">
             <SearchIcon />
             <input
-              aria-label={t("ui.searchProviders")}
-              placeholder={t("ui.searchProviders")}
+              aria-label={t("settings.providers.searchPlaceholder")}
+              placeholder={t("settings.providers.searchPlaceholder")}
               spellCheck={false}
               type="search"
               value={providerQuery}
@@ -171,9 +167,7 @@ export function SettingsProvidersSection({
             />
           </label>
         </div>
-        <p className="settings-section__description">
-          {t("ui.signInWithOAuthOrSaveAnAPIKeyToConnectA")}
-        </p>
+        <p className="settings-section__description">{t("settings.providers.connectHint")}</p>
         <div className="settings-group" data-testid="settings-available-providers">
           {shownAvailable.length > 0 ? (
             shownAvailable.map((provider) => (
@@ -183,8 +177,8 @@ export function SettingsProvidersSection({
             <div className="settings-row">
               <span className="settings-row__description">
                 {providerQuery.trim()
-                  ? t("ui.noProvidersMatchValue", { value: providerQuery.trim() })
-                  : t("ui.everyProviderIsConnected")}
+                  ? t("settings.providers.noMatches", { value: providerQuery.trim() })
+                  : t("settings.providers.allConnected")}
               </span>
             </div>
           )}
@@ -195,7 +189,7 @@ export function SettingsProvidersSection({
             type="button"
             onClick={() => setShowAllAvailable(true)}
           >
-            {t("ui.showValueMore2", { hiddenAvailableCount: hiddenAvailableCount })}
+            {t("settings.providers.showMore", { hiddenAvailableCount: hiddenAvailableCount })}
           </button>
         ) : null}
       </section>
@@ -252,11 +246,11 @@ function ProviderApiKeyDialog({
         <div className="extension-dialog__title">{title}</div>
         <p className="extension-dialog__body">{body}</p>
         <input
-          aria-label={t("ui.valueAPIKey", { name: provider.name })}
+          aria-label={t("settings.providers.apiKeyLabel", { name: provider.name })}
           autoFocus
           className="settings-search"
           disabled={pending}
-          placeholder={t("ui.enterAPIKey")}
+          placeholder={t("settings.providers.enterApiKey")}
           type="password"
           value={draft}
           onChange={(event) => onChangeDraft(event.target.value)}
@@ -295,7 +289,7 @@ function ProviderApiKeyDialog({
                 })
               }
             >
-              {t("ui.removeSavedKey")}
+              {t("settings.providers.removeKey")}
             </button>
           ) : null}
           <button
@@ -309,7 +303,7 @@ function ProviderApiKeyDialog({
             }
           >
             {provider.authSource === "auth_file"
-              ? t("ui.saveKey")
+              ? t("settings.providers.saveKey")
               : t("settings.provider.action.setApiKey")}
           </button>
         </div>
