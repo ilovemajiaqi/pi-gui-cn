@@ -6,34 +6,28 @@ import { fileURLToPath } from "node:url";
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
 
+// This fork ships Windows builds from its own Releases page and does not
+// maintain a Homebrew tap, so verify the Chinese install copy rather than the
+// upstream English/Homebrew copy.
 async function main() {
-  const [readme, siteMetadata, websitePage] = await Promise.all([
-    readFile(path.join(repoRoot, "README.md"), "utf8"),
-    readFile(path.join(repoRoot, "apps", "website", "app", "site.ts"), "utf8"),
-    readFile(path.join(repoRoot, "apps", "website", "app", "page.tsx"), "utf8"),
-  ]);
+  const readme = await readFile(path.join(repoRoot, "README.md"), "utf8");
 
   assert.match(
     readme,
-    /Download the latest `\.dmg` \(macOS\), `\.AppImage` or `\.deb` \(Linux\), or `\.exe` \(Windows\) from the\s+\[Releases page\]/,
+    /\[Releases\]\(https:\/\/github\.com\/ilovemajiaqi\/pi-gui-cn\/releases\)/,
+    "README must link to this repository's Releases page",
   );
-  assert.match(readme, /brew install --cask pi-gui/);
-  assert.match(readme, /brew upgrade --cask pi-gui/);
-  assert.doesNotMatch(readme, /Homebrew installation will be published/);
-
-  assert.match(
-    siteMetadata,
-    /Install it from GitHub Releases on macOS, Linux and Windows, or Homebrew on macOS/,
+  assert.match(readme, /pi-gui-\*-x64-setup\.exe/, "README must document the NSIS installer");
+  assert.match(readme, /pi-gui-\*-x64-portable\.exe/, "README must document the portable build");
+  assert.match(readme, /pnpm package:win/, "README must document the Windows source build");
+  assert.match(readme, /SmartScreen/, "README must explain the unsigned-build warning");
+  assert.doesNotMatch(
+    readme,
+    /brew install --cask/,
+    "This fork does not publish a Homebrew tap; do not claim one",
   );
-  assert.match(siteMetadata, /brew install --cask minghinmatthewlam\/tap\/pi-gui/);
-  assert.doesNotMatch(siteMetadata, /source-install today/);
 
-  assert.match(websitePage, /BREW_INSTALL/);
-  assert.match(websitePage, /brew upgrade --cask pi-gui/);
-  assert.match(websitePage, /Building from source is for contributors/);
-  assert.doesNotMatch(websitePage, /Run the beta from source/);
-
-  process.stdout.write("Install copy is aligned across README and website.\n");
+  process.stdout.write("Install copy is aligned with the README.\n");
 }
 
 main().catch((error) => {

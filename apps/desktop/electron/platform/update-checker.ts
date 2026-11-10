@@ -3,8 +3,8 @@ import { createMainTranslator, type MainTranslator } from "./main-messages";
 
 // /releases/latest skips drafts and prereleases, so stable installs are only
 // told about stable releases.
-const RELEASES_URL = "https://api.github.com/repos/minghinmatthewlam/pi-gui/releases/latest";
-const RELEASES_PAGE = "https://github.com/minghinmatthewlam/pi-gui/releases";
+const RELEASES_URL = "https://api.github.com/repos/ilovemajiaqi/pi-gui-cn/releases/latest";
+const RELEASES_PAGE = "https://github.com/ilovemajiaqi/pi-gui-cn/releases";
 
 const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000; // 4 hours
 const INITIAL_DELAY_MS = 15_000; // 15 seconds after launch
