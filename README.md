@@ -203,4 +203,4 @@ pnpm package:win      # Windows，产物在 apps/desktop/release/
 
 ## 📄 许可证
 
-[MIT](./LICENSE) © Matthew Lam、pi-gui-zh 贡献者及上游贡献者。本仓库的翻译与本地化改动在同等 MIT 协议下提供；上游原始版权声明已保留在 [LICENSE](./LICENSE) 中。
+[MIT](./LICENSE) © Matthew Lam、pi-gui-zh 贡献者及上游贡献者。本仓库的翻译与本地化改动在同等 MIT 协议下提供；上游原始版权声明已保留在 [LICENSE](./LICENSE) 中，第三方组件与素材见 [NOTICE.md](./NOTICE.md)。
