@@ -50,6 +50,7 @@ import {
   SettingsIcon,
   SkillIcon,
   ClockIcon,
+  TrashIcon,
   WorktreeIcon,
 } from "../../ui/icons";
 import {
@@ -111,6 +112,8 @@ interface SidebarProps {
     pinned: boolean,
   ) => void;
   readonly onUnarchiveSession: (target: { workspaceId: string; sessionId: string }) => void;
+  /** Opens Settings → Archived threads, where archived threads are managed and purged. */
+  readonly onOpenArchiveSettings: () => void;
   readonly threadShortcutOrderRef: MutableRefObject<readonly ThreadListEntry[] | null>;
 }
 
@@ -172,6 +175,7 @@ export function Sidebar(props: SidebarProps) {
     onSelectSession,
     onSetSessionPinned,
     onUnarchiveSession,
+    onOpenArchiveSettings,
     threadShortcutOrderRef,
   } = props;
   const { t } = useTranslation();
@@ -497,8 +501,9 @@ export function Sidebar(props: SidebarProps) {
             <span>{t("threads.nav.scheduled")}</span>
           </button>
           <button
-            className="sidebar__nav-item"
+            className={`sidebar__nav-item ${activeView === "skills" ? "sidebar__nav-item--active" : ""}`}
             type="button"
+            data-testid="sidebar-skills"
             onClick={() =>
               onOpenSkills(selectedWorkspace?.rootWorkspaceId ?? selectedWorkspace?.id)
             }
@@ -507,8 +512,9 @@ export function Sidebar(props: SidebarProps) {
             <span>{t("threads.nav.skills")}</span>
           </button>
           <button
-            className="sidebar__nav-item"
+            className={`sidebar__nav-item ${activeView === "extensions" ? "sidebar__nav-item--active" : ""}`}
             type="button"
+            data-testid="sidebar-extensions"
             onClick={() =>
               onOpenExtensions(selectedWorkspace?.rootWorkspaceId ?? selectedWorkspace?.id)
             }
@@ -517,8 +523,9 @@ export function Sidebar(props: SidebarProps) {
             <span>{t("threads.nav.extensions")}</span>
           </button>
           <button
-            className="sidebar__nav-item"
+            className={`sidebar__nav-item ${activeView === "settings" ? "sidebar__nav-item--active" : ""}`}
             type="button"
+            data-testid="sidebar-settings"
             onClick={() =>
               onOpenSettings(selectedWorkspace?.rootWorkspaceId ?? selectedWorkspace?.id)
             }
@@ -705,6 +712,7 @@ export function Sidebar(props: SidebarProps) {
                     selectedSession={selectedSession}
                     threadMenu={threadMenu}
                     onUnarchiveSession={onUnarchiveSession}
+                    onOpenArchiveSettings={onOpenArchiveSettings}
                     onSelectSession={onSelectSession}
                     onSetSessionPinned={onSetSessionPinned}
                   />
@@ -1392,6 +1400,7 @@ function ArchivedThreadsSection({
   selectedSession,
   threadMenu,
   onUnarchiveSession,
+  onOpenArchiveSettings,
   onSelectSession,
   onSetSessionPinned,
 }: {
@@ -1402,6 +1411,7 @@ function ArchivedThreadsSection({
   readonly selectedSession: SessionRecord | undefined;
   readonly threadMenu: ThreadMenuState;
   readonly onUnarchiveSession: (target: { workspaceId: string; sessionId: string }) => void;
+  readonly onOpenArchiveSettings: () => void;
   readonly onSelectSession: (target: { workspaceId: string; sessionId: string }) => void;
   readonly onSetSessionPinned: (
     target: { workspaceId: string; sessionId: string },
@@ -1411,21 +1421,32 @@ function ArchivedThreadsSection({
   const { t } = useTranslation();
   return (
     <div className="archived-thread-group">
-      <button
-        aria-expanded={open}
-        className="archived-thread-group__toggle"
-        type="button"
-        onClick={onToggle}
-      >
-        <span
-          aria-hidden="true"
-          className={`archived-thread-group__chevron ${open ? "archived-thread-group__chevron--open" : ""}`}
+      <div className="archived-thread-group__head">
+        <button
+          aria-expanded={open}
+          className="archived-thread-group__toggle"
+          type="button"
+          onClick={onToggle}
         >
-          <ChevronDownIcon />
-        </span>
-        <span>{t("threads.archived")}</span>
-        <span className="archived-thread-group__count">{archivedThreads.length}</span>
-      </button>
+          <span
+            aria-hidden="true"
+            className={`archived-thread-group__chevron ${open ? "archived-thread-group__chevron--open" : ""}`}
+          >
+            <ChevronDownIcon />
+          </span>
+          <span>{t("threads.archived")}</span>
+          <span className="archived-thread-group__count">{archivedThreads.length}</span>
+        </button>
+        {/* Deleting is irreversible, so the sidebar only links to the review surface. */}
+        <button
+          className="archived-thread-group__manage"
+          data-testid="archived-manage"
+          type="button"
+          onClick={onOpenArchiveSettings}
+        >
+          {t("threads.manageArchive")}
+        </button>
+      </div>
       {open ? (
         <div className="session-list session-list--archived">
           {archivedThreads.map((thread) => {
@@ -1646,6 +1667,8 @@ const ThreadSessionRow = forwardRef<HTMLDivElement, ThreadSessionRowProps>(
       !overlay &&
       threadMenu?.openMenu?.surface === "sidebar" &&
       threadMenu.openMenu.sessionId === thread.session.id;
+    // Deletion is irreversible, so the row only asks for confirmation; the dialog owns the rest.
+    const canDelete = !overlay && Boolean(threadMenu);
     const classes = [
       "session-row",
       children.length > 0 && !overlay ? "session-row--parent" : "",
@@ -1806,6 +1829,23 @@ const ThreadSessionRow = forwardRef<HTMLDivElement, ThreadSessionRowProps>(
                   </span>
                 ) : null}
               </span>
+              {canDelete ? (
+                <button
+                  aria-label={t("threads.deleteAria", {
+                    title: thread.session.title,
+                    context: actionContext,
+                  })}
+                  className="icon-button session-row__action session-row__delete-action"
+                  data-testid="session-row-delete"
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    threadMenu?.requestDelete(thread);
+                  }}
+                >
+                  <TrashIcon />
+                </button>
+              ) : null}
             </span>
             {threadMenu && menuOpen ? (
               <div className="session-row__menu-wrap" ref={threadMenu.menuWrapRef}>

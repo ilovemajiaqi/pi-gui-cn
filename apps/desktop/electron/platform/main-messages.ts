@@ -20,6 +20,7 @@ export type MainMessageKey =
   | "main.common.cancel"
   | "main.openWorkspaceFolder"
   | "main.attachFiles"
+  | "main.exportTranscript"
   | "main.menu.checkForUpdates"
   | "main.menu.file"
   | "main.menu.newThread"
@@ -59,6 +60,7 @@ const EN_MESSAGES: Record<MainMessageKey, string> = {
   "main.common.cancel": "Cancel",
   "main.openWorkspaceFolder": "Open workspace folder",
   "main.attachFiles": "Attach files",
+  "main.exportTranscript": "Export thread as Markdown",
   "main.menu.checkForUpdates": "Check for Updates…",
   "main.menu.file": "File",
   "main.menu.newThread": "New Thread",
@@ -100,6 +102,7 @@ const ZH_CN_MESSAGES: Record<MainMessageKey, string> = {
   "main.common.cancel": "取消",
   "main.openWorkspaceFolder": "打开工作区文件夹",
   "main.attachFiles": "附加文件",
+  "main.exportTranscript": "导出会话为 Markdown",
   "main.menu.checkForUpdates": "检查更新…",
   "main.menu.file": "文件",
   "main.menu.newThread": "新会话",

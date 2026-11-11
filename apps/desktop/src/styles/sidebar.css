@@ -757,6 +757,12 @@
   min-width: 52px;
 }
 
+/* Pin, archive and delete share the cluster, so it needs room for three. */
+.session-row:hover:has(.session-row__delete-action) .session-row__trailing,
+.session-row:focus-within:has(.session-row__delete-action) .session-row__trailing {
+  min-width: 74px;
+}
+
 .session-row__trailing:has(.session-row__workspace-icon) {
   padding-left: 18px;
 }
@@ -823,6 +829,12 @@
 .session-row .session-row__action svg {
   width: 16px;
   height: 16px;
+}
+
+/* Destructive, so it never tints the row until the pointer is actually on it. */
+.session-row .session-row__delete-action:hover {
+  color: var(--error);
+  background: var(--danger-tint-bg);
 }
 
 .session-row__menu-wrap {
@@ -910,6 +922,13 @@
   gap: 4px;
 }
 
+.archived-thread-group__head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: space-between;
+}
+
 .archived-thread-group__toggle {
   min-height: 28px;
   padding: 2px 8px;
@@ -947,6 +966,34 @@
 
 .archived-thread-group__count {
   color: var(--muted-subtle);
+}
+
+/* Stays quiet until the group is hovered: managing archived threads is a
+   deliberate detour, not part of the everyday thread list. */
+.archived-thread-group__manage {
+  min-height: 24px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  color: var(--muted-soft);
+  font-size: 11px;
+  font-weight: 560;
+  opacity: 0;
+  transition: opacity var(--motion-base) var(--ease-out);
+}
+
+.archived-thread-group:hover .archived-thread-group__manage,
+.archived-thread-group:focus-within .archived-thread-group__manage {
+  opacity: 1;
+}
+
+.archived-thread-group__manage:hover {
+  background: var(--overlay-hover);
+  color: var(--text-strong);
+}
+
+.archived-thread-group__manage:focus-visible {
+  opacity: 1;
+  box-shadow: 0 0 0 3px var(--focus-ring-color);
 }
 
 .session-list--archived {

@@ -12,6 +12,69 @@ description: End-to-end test the pi-gui Electron desktop app on Windows. Use whe
 - Launch the app for GUI testing: `pnpm --filter @pi-gui/desktop dev`. Optionally set `PI_APP_USER_DATA_DIR` to an isolated temp dir.
 - A working launch prints `starting electron app...` and the renderer dev server (`http://localhost:5173`) and must NOT print `spawn pnpm ENOENT`.
 
+## Low integrity label breaks every child tool — check this first
+
+A Windows process can only write to objects whose integrity level is not higher than its own. When the
+checkout tree carries a `Low Mandatory Level` label, every tool that runs from inside it (`esbuild.exe`,
+`electron.exe`, bundled `node.exe`) inherits Low and is silently denied writes anywhere below Medium,
+including `%TEMP%`. The symptoms look like unrelated broken tooling, so identify the label before
+debugging any of them:
+
+| Symptom                                                                | Real cause                                              |
+| ---------------------------------------------------------------------- | ------------------------------------------------------- |
+| `Failed to write to output file … Access is denied.` from esbuild/vite | esbuild.exe is Low, the output dir is Medium            |
+| `[vite:esbuild-transpile] remove …esbuild-<hash>: Access is denied.`   | same — the temp file it just wrote is Medium            |
+| `electron.exe: bad option: --remote-debugging-port=0`                  | low integrity also breaks the Chromium sandbox helper   |
+| Chromium exits `2147483651` (0x80000003) before a window appears       | the sandbox cannot initialise under the restricted tree |
+| `Lock file can not be created! Error code: 5`                          | the profile dir inherits the label                      |
+
+Diagnose:
+
+```powershell
+icacls . | Select-String 'Mandatory Label'
+foreach ($p in @('apps','node_modules','node_modules\@esbuild\win32-x64\esbuild.exe')) {
+  "$p => $((icacls $p | Select-String 'Mandatory Label').Line.Trim())"
+}
+```
+
+`Mandatory Label\Low Mandatory Level:(OI)(CI)(NW)` on the root means the whole tree is Low. Confirm the
+mechanism by copying `esbuild.exe` outside the checkout (the copy loses the label) and running it against
+`%TEMP%`: if the copy succeeds, the label — not the ACL on the output dir — is the cause.
+
+Repair, from the repo root (propagation is immediate, no `-Recurse` needed):
+
+```powershell
+icacls . /setintegritylevel "(OI)(CI)Medium"
+```
+
+Then verify with `icacls node_modules\@esbuild\win32-x64\esbuild.exe` (expect `Medium:(I)(NW)`) and run a
+build. Reverting is the same command with `"(OI)(CI)Low"`.
+
+The repair is idempotent and safe to repeat. Re-check it whenever builds that used to work suddenly fail
+with the symptoms above: the label can come back after the surrounding tooling restarts, and a tree that
+was already repaired once will silently revert. Re-running the command on an already-Medium tree is a
+no-op. The current state is one command:
+
+```powershell
+(icacls . | Select-String 'Mandatory Label').Line.Trim()
+```
+
+Do NOT chase this with per-tool workarounds — a repo-local `TEMP`, `subst`, copied binaries, or
+`esbuild`'s `write: false` all mask it while leaving the label in place. Those workarounds also put build
+scratch inside the checkout, where `format:check`, `lint` and the typed-lint guards then trip over it.
+
+## `ELECTRON_RUN_AS_NODE` from the surrounding tooling
+
+Tools that embed Electron as a runtime (Playwright's Electron support, `electron-vite`, some IDE task
+runners) export `ELECTRON_RUN_AS_NODE=1` into their children. An inherited value turns `electron.exe`
+into plain Node, so a launch with `--remote-debugging-port=0` dies with
+`bad option: --remote-debugging-port=0` and exit code 9. `pnpm exec electron --version` printing the
+Node version (e.g. `v22.21.1`) instead of the Electron version confirms it.
+
+`apps/desktop/scripts/launcher.mjs` exports `electronLaunchEnv()`, which strips the variable, and the
+dev launcher and `apps/desktop/tests/helpers/electron-app.ts` both launch through it. If a new entry
+point spawns Electron, route it through the same helper instead of clearing the variable by hand.
+
 ## What renders where
 
 - Empty state: sidebar (New thread / Threads / Skills / Extensions / Settings) + "Open a folder to start".

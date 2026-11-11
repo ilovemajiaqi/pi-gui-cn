@@ -48,9 +48,13 @@ test("supports workspace rename and remove from the sidebar menu", async () => {
       })
       .toBe("Renamed workspace");
 
-    const acceptRemoval = window.waitForEvent("dialog").then((dialog) => dialog.accept());
+    // Removing a workspace asks in an in-app dialog, so the confirmation is addressable copy.
     await window.getByRole("button", { name: "Workspace actions for Renamed workspace" }).click();
-    await Promise.all([window.getByRole("button", { name: "Remove" }).click(), acceptRemoval]);
+    await window.getByRole("button", { name: "Remove" }).click();
+    const removeDialog = window.getByTestId("workspace-remove-dialog");
+    await expect(removeDialog).toBeVisible();
+    await removeDialog.getByTestId("workspace-remove-dialog-confirm").click();
+    await expect(removeDialog).toHaveCount(0);
 
     await expect
       .poll(async () => {

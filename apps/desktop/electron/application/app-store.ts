@@ -66,6 +66,7 @@ import {
   type TranscriptMessage,
   type WorkspaceRecord,
   type WorkspaceSessionTarget,
+  clampArchiveRetentionDays,
   clampUiFontSize,
   isThemeMode,
   isThemePresetId,
@@ -74,9 +75,11 @@ import {
   type UpdateScheduledTaskInput,
 } from "../../contracts/desktop-state";
 import { isDesktopLocale, type DesktopLocale } from "../../contracts/ipc";
+import type { TranscriptExportDocument } from "../../contracts/transcript-export";
 import {
   applyTimelineEvent,
   appendAssistantDelta,
+  appendAssistantThinkingDelta,
   clearActiveAssistantMessage,
   timelineFromDriverTranscript,
 } from "../conversation/app-store-timeline";
@@ -191,6 +194,10 @@ type SessionEventListener = (
   event: SessionDriverEvent,
   state: DesktopAppState,
 ) => void | Promise<void>;
+
+/** How often the archive purge re-checks age. Retention is measured in days, so hours suffice. */
+const ARCHIVE_SWEEP_INTERVAL_MS = 60 * 60 * 1000;
+
 type ExtensionUiDialogRequest = Extract<
   SessionDriverEvent,
   { type: "hostUiRequest" }
@@ -303,6 +310,7 @@ export class DesktopAppStore {
   private scheduledOrchestrationSupervisionRunAt: string | undefined;
   private scheduledTaskTimer: NodeJS.Timeout | undefined;
   private scheduledTaskWakeAt: string | undefined;
+  private archiveSweepTimer: NodeJS.Timeout | undefined;
   private readonly extensionDialogTimeoutTimers = new Map<string, NodeJS.Timeout>();
   private readonly restoredSelectedSessionKeysAwaitingSelection = new Set<string>();
   private initPromise: Promise<void> | undefined;
@@ -519,6 +527,8 @@ export class DesktopAppStore {
       }),
       lastRunOutcome: (ref) => this.sessionState.lastRunOutcomeBySession.get(sessionKey(ref)),
       archiveIdleSession: async (ref, expect) => {
+        await this.scheduledTaskOwner.pauseTasksForSession(ref);
+        this.scheduleScheduledTasks();
         await this.workspaceOwner.archiveIdleSession(ref, expect);
       },
       orchestrationChildren: () => this.state.orchestrationChildren,
@@ -867,6 +877,55 @@ export class DesktopAppStore {
     this.scheduledTaskTimer.unref?.();
   }
 
+  /**
+   * Deletes archived threads whose last activity is older than `archiveRetentionDays`. The sweep
+   * only ever touches threads the user archived: an active thread is never a candidate, and a
+   * retention of 0 (the default) disables it entirely.
+   */
+  async sweepArchivedSessions(now: Date = new Date()): Promise<DesktopAppState> {
+    await this.initialize();
+    const retentionDays = this.state.archiveRetentionDays;
+    if (retentionDays <= 0) {
+      return structuredClone(this.state);
+    }
+    const cutoff = now.getTime() - retentionDays * 24 * 60 * 60 * 1000;
+    const targets = this.state.workspaces.flatMap((workspace) =>
+      workspace.sessions
+        .filter((session) => session.archivedAt && Date.parse(session.archivedAt) <= cutoff)
+        .map((session) => ({ workspaceId: workspace.id, sessionId: session.id })),
+    );
+    if (targets.length === 0) {
+      return structuredClone(this.state);
+    }
+
+    let last: DesktopAppState = structuredClone(this.state);
+    for (const target of targets) {
+      last = await this.deleteSession(target);
+    }
+    return last;
+  }
+
+  private scheduleArchiveSweep(): void {
+    if (this.archiveSweepTimer) {
+      clearTimeout(this.archiveSweepTimer);
+      this.archiveSweepTimer = undefined;
+    }
+    if (this.state.archiveRetentionDays <= 0) {
+      return;
+    }
+    // One sweep per hour: retention is a day-scale policy, so a coarse wake-up is enough and
+    // keeps a large archive from being re-listed on every state change.
+    this.archiveSweepTimer = setTimeout(() => {
+      this.archiveSweepTimer = undefined;
+      void this.sweepArchivedSessions()
+        .catch((error: unknown) => {
+          console.error("[app-store] sweepArchivedSessions failed", error);
+        })
+        .finally(() => this.scheduleArchiveSweep());
+    }, ARCHIVE_SWEEP_INTERVAL_MS);
+    this.archiveSweepTimer.unref?.();
+  }
+
   private async persistScheduledTasks(): Promise<void> {
     if (!this.scheduledTasksWritable) {
       return;
@@ -1031,11 +1090,20 @@ export class DesktopAppStore {
   }
 
   async archiveSession(target: WorkspaceSessionTarget): Promise<DesktopAppState> {
+    // An archived thread cannot host a run, so its task is paused rather than left to fail.
+    await this.scheduledTaskOwner.pauseTasksForSession(toSessionRef(target));
+    this.scheduleScheduledTasks();
     return this.workspaceOwner.archiveSession(target);
   }
 
   async unarchiveSession(target: WorkspaceSessionTarget): Promise<DesktopAppState> {
     return this.workspaceOwner.unarchiveSession(target);
+  }
+
+  async deleteSession(target: WorkspaceSessionTarget): Promise<DesktopAppState> {
+    await this.scheduledTaskOwner.deleteTasksForSession(toSessionRef(target));
+    this.scheduleScheduledTasks();
+    return this.workspaceOwner.deleteSession(target);
   }
 
   async markSessionRead(target: WorkspaceSessionTarget): Promise<DesktopAppState> {
@@ -1170,6 +1238,10 @@ export class DesktopAppStore {
     options?: { readonly deliverAs?: "steer" | "followUp" },
   ): Promise<DesktopAppState> {
     return this.conversationOwner.submitComposer(sessionRef, textInput, options);
+  }
+
+  buildTranscriptExport(sessionRef: SessionRef | undefined): TranscriptExportDocument | undefined {
+    return this.conversationOwner.buildTranscriptExport(sessionRef);
   }
 
   composerSubmitNeedsSenderView(sessionRef: SessionRef | undefined, textInput: string): boolean {
@@ -1498,6 +1570,23 @@ export class DesktopAppStore {
       revision: this.state.revision + 1,
     };
     await this.persistUiState();
+    return this.emit();
+  }
+
+  async setArchiveRetentionDays(rawDays: number): Promise<DesktopAppState> {
+    await this.initialize();
+    const archiveRetentionDays = clampArchiveRetentionDays(rawDays);
+    if (this.state.archiveRetentionDays === archiveRetentionDays) {
+      return structuredClone(this.state);
+    }
+    this.state = {
+      ...this.state,
+      archiveRetentionDays,
+      lastError: undefined,
+      revision: this.state.revision + 1,
+    };
+    await this.persistUiState();
+    this.scheduleArchiveSweep();
     return this.emit();
   }
 
@@ -2283,6 +2372,7 @@ export class DesktopAppStore {
       this.startSelectedSessionHydration(restoredSessionRef, { markViewed: false });
       this.scheduleOrchestrationSupervision();
       this.scheduleScheduledTasks();
+      this.scheduleArchiveSweep();
       this.publishStartupDiagnostics(startupDiagnostics);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -2340,6 +2430,10 @@ export class DesktopAppStore {
         persisted.uiFontSize === undefined
           ? this.state.uiFontSize
           : clampUiFontSize(persisted.uiFontSize),
+      archiveRetentionDays:
+        persisted.archiveRetentionDays === undefined
+          ? this.state.archiveRetentionDays
+          : clampArchiveRetentionDays(persisted.archiveRetentionDays),
       ...this.orchestrationChildrenState(persisted.orchestrationChildren ?? []),
     };
 
@@ -3556,6 +3650,14 @@ export class DesktopAppStore {
             event.text,
           );
           break;
+        case "assistantThinkingDelta":
+          appendAssistantThinkingDelta(
+            this.sessionState.transcriptCache,
+            this.sessionState.activeAssistantMessageBySession,
+            event.sessionRef,
+            event.text,
+          );
+          break;
         case "sessionOpened":
         case "runCompleted":
           this.updateSessionConfig(event.sessionRef, event.snapshot.config);
@@ -4206,6 +4308,8 @@ export class DesktopAppStore {
         this.state.collapsedWorkspaceIds.length > 0 ? this.state.collapsedWorkspaceIds : undefined,
       enableTransparency: this.state.enableTransparency,
       uiFontSize: this.state.uiFontSize,
+      archiveRetentionDays:
+        this.state.archiveRetentionDays > 0 ? this.state.archiveRetentionDays : undefined,
       orchestrationChildren: orchestration.toPersistedOrchestrationChildren(
         this.state.orchestrationChildren,
       ),

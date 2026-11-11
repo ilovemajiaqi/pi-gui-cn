@@ -644,6 +644,52 @@ export class SessionSupervisor {
     });
   }
 
+  /**
+   * Permanently removes one session: it stops whatever the thread is doing, forgets the runtime
+   * record, then drops the catalog entry and the transcript file itself. Archiving only marks the
+   * entry; this is the destructive path, so the caller owns the confirmation.
+   */
+  async deleteSession(sessionRef: SessionRef): Promise<void> {
+    await this.runWorkspaceMutation(sessionRef.workspaceId, async () => {
+      const key = sessionKey(sessionRef);
+      const record = this.records.get(key);
+      const sessionFile = record?.sessionFile ?? (await this.resolveSessionFilePath(sessionRef));
+
+      if (record) {
+        record.closed = true;
+        record.runningRunId = undefined;
+        record.status = "idle";
+        this.clearExtensionUiState(record);
+        this.cancelPendingHostUiRequests(record);
+        if (record.session) {
+          try {
+            await record.session.abort();
+          } catch {
+            // Best effort: a failing abort must not block the delete.
+          }
+          record.unsubscribeAgent?.();
+          record.unsubscribeAgent = undefined;
+        }
+        await this.disposeRecordRuntimeSafely(record);
+        record.listeners.clear();
+        this.records.delete(key);
+      }
+      this.stopMarkWrites.delete(key);
+      this.failedStopMarkWrites.delete(key);
+
+      await this.catalogs.sessions.deleteSession(sessionRef);
+
+      if (sessionFile) {
+        try {
+          await unlink(sessionFile);
+        } catch (error) {
+          // The entry is already gone, so a missing file is the desired end state.
+          if (!isMissingFileError(error)) throw error;
+        }
+      }
+    });
+  }
+
   async getTranscript(sessionRef: SessionRef): Promise<SessionTranscriptItem[]> {
     const record = this.records.get(sessionKey(sessionRef));
     if (record && record.session && !record.closed) {
@@ -2816,6 +2862,20 @@ export class SessionSupervisor {
           return toDriverEvents(
             {
               type: "assistantDelta" as const,
+              sessionRef: record.ref,
+              timestamp,
+              text: event.assistantMessageEvent.delta ?? "",
+            },
+            record,
+          );
+        }
+        if (
+          event.message.role === "assistant" &&
+          event.assistantMessageEvent.type === "thinking_delta"
+        ) {
+          return toDriverEvents(
+            {
+              type: "assistantThinkingDelta" as const,
               sessionRef: record.ref,
               timestamp,
               text: event.assistantMessageEvent.delta ?? "",

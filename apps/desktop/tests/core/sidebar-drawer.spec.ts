@@ -14,16 +14,26 @@ import {
 
 const WINDOW_HEIGHT = 760;
 /** `styles/sidebar.css` turns the sidebar into a drawer at `max-width: 760px`. */
-const NARROW_WIDTHS = [560, 760] as const;
+const NARROW_WIDTHS = [520, 720] as const;
+const DOCKED_WIDTH = 900;
+const DOCKED_BREAKPOINT = 760;
 
-async function resizeWindow(harness: DesktopHarness, window: Page, width: number): Promise<void> {
-  await harness.electronApp.evaluate(
+async function resizeWindow(harness: DesktopHarness, window: Page, width: number): Promise<number> {
+  // Assert on `innerWidth`, so size the content area directly: `setSize` sizes the decorated
+  // frame, and the window chrome then makes `innerWidth` narrower by the host's frame width.
+  // The host also rounds the granted width, so callers assert against the value returned here
+  // rather than the width they asked for.
+  const granted = await harness.electronApp.evaluate(
     ({ BrowserWindow }, size) => {
-      BrowserWindow.getAllWindows()[0]?.setSize(size.width, size.height);
+      const target = BrowserWindow.getAllWindows()[0];
+      if (!target) return 0;
+      target.setContentSize(size.width, size.height);
+      return target.getContentSize()[0];
     },
     { width, height: WINDOW_HEIGHT },
   );
-  await expect.poll(() => window.evaluate(() => globalThis.window.innerWidth)).toBe(width);
+  await expect.poll(() => window.evaluate(() => globalThis.window.innerWidth)).toBe(granted);
+  return granted;
 }
 
 async function expectSidebarCollapsed(window: Page, collapsed: boolean): Promise<void> {
@@ -91,7 +101,10 @@ for (const width of NARROW_WIDTHS) {
     test.setTimeout(90_000);
     const { harness, window } = await launchWithThreads(`sidebar-drawer-${width}`);
     try {
-      await resizeWindow(harness, window, width);
+      const granted = await resizeWindow(harness, window, width);
+      // The drawer is a CSS media query on `innerWidth`, so prove the granted width really is
+      // narrow instead of trusting the requested pixels.
+      expect(granted).toBeLessThanOrEqual(DOCKED_BREAKPOINT);
       await expectDrawerOpen(window);
 
       // Escape closes the drawer and returns focus to the toggle.
@@ -118,7 +131,7 @@ for (const width of NARROW_WIDTHS) {
       // Clicking the backdrop closes the drawer.
       await window
         .getByTestId("sidebar-drawer-backdrop")
-        .click({ position: { x: width - 40, y: WINDOW_HEIGHT / 2 } });
+        .click({ position: { x: granted - 40, y: WINDOW_HEIGHT / 2 } });
       await expectDrawerClosed(window);
 
       // Choosing a thread navigates to it and closes the drawer.
@@ -149,7 +162,10 @@ test("keeps the docked sidebar above the narrow breakpoint", async () => {
   test.setTimeout(90_000);
   const { harness, window } = await launchWithThreads("sidebar-drawer-docked");
   try {
-    await resizeWindow(harness, window, 761);
+    const granted = await resizeWindow(harness, window, DOCKED_WIDTH);
+    // The drawer breakpoint is a CSS media query on `innerWidth`; assert the width really is
+    // above it instead of assuming the host granted the requested pixels.
+    expect(granted).toBeGreaterThan(DOCKED_BREAKPOINT);
     await expectSidebarCollapsed(window, false);
     await expect(window.getByTestId("sidebar-drawer-backdrop")).toHaveCount(0);
     const sidebarBox = await window.locator(".sidebar").boundingBox();

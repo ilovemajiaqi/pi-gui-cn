@@ -32,7 +32,11 @@ Run `pnpm check` locally and in the existing CI typecheck job. It runs:
    including the website, video source, and extension helper. It also checks both
    desktop extension examples. First, `check:workspaces` asks pnpm for
    its workspace list and rejects missing or empty typecheck scripts, so a new
-   workspace cannot silently skip checking. This checks script presence, not
+   workspace cannot silently skip checking. It resolves pnpm through
+   `npm_execpath` when a package manager sets it, and otherwise through the
+   `pnpm` installed in the workspace, because launchers such as the WinGet
+   `pnpm.ps1` shim run lifecycle scripts without exporting `npm_execpath`. This
+   checks script presence, not
    whether a deliberately misleading script performs a real typecheck. Existing strict TypeScript settings
    remain in place.
 5. `pnpm test:baseline`: guard tests, driver and extension-helper tests, both

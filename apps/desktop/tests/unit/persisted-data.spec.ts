@@ -22,6 +22,7 @@ for (const invalid of [
   { version: 19, extensionFlagsBySession: { "ws:sess": ["plan"] } },
   { version: 19, collapsedWorkspaceIds: ["alpha", 42] },
   { version: 20, locale: "fr" },
+  { version: 21, archiveRetentionDays: "soon" },
   [],
 ]) {
   test(`preserves invalid UI state ${JSON.stringify(invalid)}`, async () => {
@@ -36,7 +37,7 @@ for (const invalid of [
   });
 }
 
-test("reads v15 ui-state without lastInteractedAt and writes v18", async () => {
+test("reads v15 ui-state without lastInteractedAt and writes the current version", async () => {
   const path = join(await mkdtemp(join(tmpdir(), "ui-state-recency-")), "ui-state.json");
   await writeFile(path, JSON.stringify({ version: 15, composerDraft: "kept" }));
   const decoded = await readPersistedUiState(path);
@@ -50,11 +51,11 @@ test("reads v15 ui-state without lastInteractedAt and writes v18", async () => {
     version: number;
     lastInteractedAtBySession: Record<string, string>;
   };
-  expect(written.version).toBe(20);
+  expect(written.version).toBe(21);
   expect(written.lastInteractedAtBySession).toEqual({ "ws:sess": "2026-09-21T12:00:00.000Z" });
 });
 
-test("reads v16 ui-state without threadGrouping and writes the saved choice as v18", async () => {
+test("reads v16 ui-state without threadGrouping and writes the saved choice", async () => {
   const path = join(await mkdtemp(join(tmpdir(), "ui-state-grouping-")), "ui-state.json");
   await writeFile(path, JSON.stringify({ version: 16, composerDraft: "kept" }));
   const decoded = await readPersistedUiState(path);
@@ -68,11 +69,11 @@ test("reads v16 ui-state without threadGrouping and writes the saved choice as v
     version: number;
     threadGrouping: string;
   };
-  expect(written.version).toBe(20);
+  expect(written.version).toBe(21);
   expect(written.threadGrouping).toBe("workspace");
 });
 
-test("reads v19 ui-state without a locale and writes the saved locale as v20", async () => {
+test("reads v19 ui-state without a locale and writes the saved locale", async () => {
   const path = join(await mkdtemp(join(tmpdir(), "ui-state-locale-")), "ui-state.json");
   await writeFile(path, JSON.stringify({ version: 19, composerDraft: "kept" }));
   const decoded = await readPersistedUiState(path);
@@ -84,9 +85,26 @@ test("reads v19 ui-state without a locale and writes the saved locale as v20", a
     version: number;
     locale?: string;
   };
-  expect(written.version).toBe(20);
+  expect(written.version).toBe(21);
   expect(written.locale).toBe("zh-CN");
   expect((await readPersistedUiState(path)).locale).toBe("zh-CN");
+});
+
+test("reads v20 ui-state without archive retention and writes it back", async () => {
+  const path = join(await mkdtemp(join(tmpdir(), "ui-state-retention-")), "ui-state.json");
+  await writeFile(path, JSON.stringify({ version: 20, composerDraft: "kept" }));
+  const decoded = await readPersistedUiState(path);
+  expect(decoded.version).toBe(20);
+  // Pre-v21 files keep archived threads forever; main falls back to the default.
+  expect(decoded.archiveRetentionDays).toBeUndefined();
+  await writePersistedUiState(path, { composerDraft: "kept", archiveRetentionDays: 30 });
+  const written = JSON.parse(await readFile(path, "utf8")) as {
+    version: number;
+    archiveRetentionDays?: number;
+  };
+  expect(written.version).toBe(21);
+  expect(written.archiveRetentionDays).toBe(30);
+  expect((await readPersistedUiState(path)).archiveRetentionDays).toBe(30);
 });
 
 test("extension flag defaults and per-thread flags round-trip through ui-state", async () => {
@@ -111,7 +129,7 @@ test("reads ui-state without folded folders and writes the collapsed ids", async
     version: number;
     collapsedWorkspaceIds: readonly string[];
   };
-  expect(written.version).toBe(20);
+  expect(written.version).toBe(21);
   expect(written.collapsedWorkspaceIds).toEqual(["alpha"]);
   expect((await readPersistedUiState(path)).collapsedWorkspaceIds).toEqual(["alpha"]);
 });

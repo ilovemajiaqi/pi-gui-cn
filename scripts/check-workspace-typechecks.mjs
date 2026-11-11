@@ -1,14 +1,33 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { relativePosix } from "./posix-path.mjs";
 
+// `npm_execpath` is only exported by npm and by pnpm's own script runner. Other launchers that
+// still set `npm_lifecycle_event` (the WinGet `pnpm.ps1` shim, `corepack pnpm run`, some CI
+// wrappers) run the script with an empty value, so resolve the package manager from the
+// workspace instead of failing the guard. CI passes the executable explicitly.
+function resolvePnpmPath(root, explicit) {
+  if (explicit) return explicit;
+  const guardRoot = path.dirname(fileURLToPath(import.meta.url));
+  for (const base of [root, path.dirname(guardRoot)]) {
+    const localPnpm = path.join(base, "node_modules", "pnpm", "bin", "pnpm.cjs");
+    if (existsSync(localPnpm)) return localPnpm;
+  }
+  return undefined;
+}
+
 export function checkWorkspaceTypechecks(root, pnpmPath) {
   root = realpathSync(root);
-  if (!pnpmPath) throw new Error("Run this guard through pnpm check:workspaces.");
+  const resolved = resolvePnpmPath(root, pnpmPath);
+  if (!resolved) {
+    throw new Error(
+      "Cannot locate pnpm: set npm_execpath or install pnpm in node_modules so this guard can list workspaces.",
+    );
+  }
   const projects = JSON.parse(
-    execFileSync(process.execPath, [pnpmPath, "-r", "list", "--depth", "-1", "--json"], {
+    execFileSync(process.execPath, [resolved, "-r", "list", "--depth", "-1", "--json"], {
       cwd: root,
       encoding: "utf8",
     }),

@@ -19,6 +19,26 @@ export function spawnProcess(command, args, options) {
 }
 
 /**
+ * The environment an Electron process must launch with.
+ *
+ * `ELECTRON_RUN_AS_NODE=1` turns the Electron binary into a plain Node runtime
+ * and ignores every Chromium switch, so a launcher that inherits it starts
+ * `electron.exe --remote-debugging-port=0` as Node and dies with
+ * `bad option: --remote-debugging-port=0`. Tools that embed Electron as a
+ * runtime (Playwright, electron-vite, IDE task runners) export it, and it then
+ * leaks into our own `electron` invocations. Drop it so the launcher always
+ * starts the real application.
+ *
+ * @param {NodeJS.ProcessEnv} [base]
+ * @returns {NodeJS.ProcessEnv}
+ */
+export function electronLaunchEnv(base = process.env) {
+  const env = { ...base };
+  delete env.ELECTRON_RUN_AS_NODE;
+  return env;
+}
+
+/**
  * Run a command to completion, rejecting on a non-zero exit.
  *
  * @param {string} command
@@ -54,10 +74,10 @@ export function run(command, args, cwd) {
  * @param {string} cwd
  * @returns {import("node:child_process").ChildProcess}
  */
-export function start(command, args, cwd) {
+export function start(command, args, cwd, env = process.env) {
   return spawnProcess(command, args, {
     cwd,
     stdio: "inherit",
-    env: process.env,
+    env,
   });
 }

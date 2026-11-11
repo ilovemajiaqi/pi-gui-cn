@@ -204,6 +204,10 @@ export function deriveThemeTokens(seedValue: ThemeSeed, variant: ResolvedTheme):
   const main = s;
   const elevated = light ? mix(s, "#ffffff", 0.4) : tint(0, 0.025);
   const surfaceMuted = tint(0.04, 0.055);
+  // The user bubble carries the Codex role hierarchy by luminance, not hue:
+  // in dark themes it sinks below the main surface (the darkest container in
+  // the window), in light themes it floats slightly above it.
+  const bubble = light ? tint(0.06, 0) : mix(s, "#000000", 0.3);
   const line = tint(0.12, 0.11);
   const lineStrong = tint(0.19, 0.21);
   const text = fade(0.1, 0.13, 7);
@@ -223,6 +227,8 @@ export function deriveThemeTokens(seedValue: ThemeSeed, variant: ResolvedTheme):
     "--surface-glass": alpha(elevated, 0.8),
     "--surface-muted": surfaceMuted,
     "--surface-muted-glass": alpha(surfaceMuted, 0.7),
+    "--bubble": bubble,
+    "--bubble-glass": alpha(bubble, 0.75),
     "--line": line,
     "--line-glass": alpha(line, 0.4),
     "--line-strong": lineStrong,

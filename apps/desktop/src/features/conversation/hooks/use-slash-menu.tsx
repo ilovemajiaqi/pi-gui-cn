@@ -20,6 +20,9 @@ import {
 } from "../composer-commands";
 import type { PiDesktopApi } from "../../../../contracts/ipc";
 import { useTranslation } from "../../../i18n";
+import { forgetSentPrompt, recordSentPrompt } from "../prompt-history";
+import { copyTranscriptToClipboard, exportTranscriptViaDialog } from "../export-transcript";
+import { AGENTS_MD_INIT_PROMPT } from "../../../../contracts/agent-instructions";
 import { deriveModelOnboardingState } from "../../settings/model-onboarding";
 import type { SettingsSection } from "../../settings/settings-view";
 
@@ -80,6 +83,8 @@ interface UseSlashMenuParams {
   readonly allowTreeCommand?: boolean;
   readonly immediateCommandMode?: "submit" | "prefill";
   readonly onRunTreeCommand?: () => void;
+  /** Opens the workbench review panel for `/diff`. */
+  readonly onRunDiffCommand?: () => void;
   readonly onSelectModelOption?: (provider: string, modelId: string) => void;
   readonly onSelectThinkingOption?: (level: string) => void;
   readonly onSelectLoginProvider?: (providerId: string) => void;
@@ -127,6 +132,7 @@ export function useSlashMenu(params: UseSlashMenuParams): SlashMenuState {
     allowTreeCommand = true,
     immediateCommandMode = "submit",
     onRunTreeCommand,
+    onRunDiffCommand,
     onSelectModelOption,
     onSelectThinkingOption,
     onSelectLoginProvider,
@@ -149,6 +155,11 @@ export function useSlashMenu(params: UseSlashMenuParams): SlashMenuState {
         commandCompatibility,
         {
           allowTreeCommand,
+          // These need a session (a transcript or a checkout); the new-thread view hides them.
+          allowExportCommand: selectedSession !== undefined,
+          allowCopyCommand: selectedSession !== undefined,
+          allowInitCommand: selectedSession !== undefined,
+          allowDiffCommand: selectedSession !== undefined,
         },
         t,
       )
@@ -299,6 +310,46 @@ export function useSlashMenu(params: UseSlashMenuParams): SlashMenuState {
       return;
     }
 
+    if (command.kind === "export") {
+      resetSlashUi();
+      setComposerDraft("");
+      if (api) {
+        exportTranscriptViaDialog(api, setSnapshot);
+      }
+      return;
+    }
+
+    if (command.kind === "copy") {
+      resetSlashUi();
+      setComposerDraft("");
+      if (api) {
+        copyTranscriptToClipboard(api, setSnapshot);
+      }
+      return;
+    }
+
+    if (command.kind === "init") {
+      resetSlashUi();
+      setComposerDraft("");
+      if (api) {
+        void updateSnapshot(setSnapshot, () => api.submitComposer(AGENTS_MD_INIT_PROMPT))
+          .then((state) => {
+            setComposerDraft(state.composerDraft);
+          })
+          .catch((error: unknown) => {
+            console.error("[renderer] submitComposer failed", error);
+          });
+      }
+      return;
+    }
+
+    if (command.kind === "diff") {
+      resetSlashUi();
+      setComposerDraft("");
+      onRunDiffCommand?.();
+      return;
+    }
+
     if (submitMode === "immediate") {
       if (mode === "enter" && immediateCommandMode === "submit") {
         if (!api) {
@@ -306,11 +357,18 @@ export function useSlashMenu(params: UseSlashMenuParams): SlashMenuState {
         }
         resetSlashUi();
         setComposerDraft(command.command);
+        // Recorded at submit time so a slow runtime command cannot reorder the recall list.
+        if (selectedSession) {
+          recordSentPrompt(selectedSession.id, command.command);
+        }
         void updateSnapshot(setSnapshot, () => api.submitComposer(command.command))
           .then((state) => {
             setComposerDraft(state.composerDraft);
           })
           .catch((error: unknown) => {
+            if (selectedSession) {
+              forgetSentPrompt(selectedSession.id, command.command);
+            }
             console.error("[renderer] submitComposer failed", error);
           });
         return;

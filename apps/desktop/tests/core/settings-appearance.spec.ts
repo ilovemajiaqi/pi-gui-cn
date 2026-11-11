@@ -132,6 +132,9 @@ test("selects and restores theme presets", async () => {
 });
 
 test("every preset recolours the same design instead of restyling it", async () => {
+  // Every preset in both variants means sixteen round-trips through Settings, the preset
+  // combobox and a token read, which measures around three minutes on a slow Windows host.
+  test.setTimeout(240_000);
   const userDataDir = await makeUserDataDir();
   const workspacePath = await makeWorkspace("appearance-one-design");
   const harness = await launchDesktop(userDataDir, {
@@ -157,7 +160,7 @@ test("every preset recolours the same design instead of restyling it", async () 
           .getByRole("radio", { name: variant === "light" ? "Light" : "Dark", exact: true })
           .click();
         await selectThemePreset(window, preset.name);
-        await expect(window.getByLabel("Color preset")).toHaveValue(preset.id);
+        await expect(window.getByLabel("Color preset")).toHaveAttribute("data-value", preset.id);
         await expectDerivedTokens(window, preset.id, variant);
         await window.getByRole("button", { name: "Back to app" }).click();
         await expect(window.locator(".main")).toBeVisible();

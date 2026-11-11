@@ -8,6 +8,7 @@ import type {
   NotificationPreferences,
   ThemePresetId,
   WorkspaceRecord,
+  WorkspaceSessionTarget,
 } from "../../../contracts/desktop-state";
 import type {
   CustomProviderConfig,
@@ -15,6 +16,7 @@ import type {
 } from "../../../contracts/ipc";
 import { useTranslation } from "../../i18n";
 import { SettingsAppearanceSection } from "./settings-appearance-section";
+import { type ArchivedThreadEntry, SettingsArchivedSection } from "./settings-archived-section";
 import { SettingsGeneralSection } from "./settings-general-section";
 import { type McpSettingsActions, SettingsMcpSection } from "./settings-mcp-section";
 import { SettingsModelsSection } from "./settings-models-section";
@@ -42,6 +44,10 @@ interface SettingsViewProps {
   readonly themePresetId: ThemePresetId;
   readonly enableTransparency: boolean;
   readonly uiFontSize: number;
+  /** Every archived thread in the app, for the archive management page. */
+  readonly archivedThreads: readonly ArchivedThreadEntry[];
+  readonly archiveRetentionDays: number;
+  readonly locale: string;
   readonly onSetModelSettingsScopeMode: (mode: ModelSettingsScopeMode) => void;
   readonly onSetDefaultModel: (provider: string, modelId: string) => void;
   readonly onSetThinkingLevel: (
@@ -63,6 +69,9 @@ interface SettingsViewProps {
   readonly onSetThemePresetId: (presetId: ThemePresetId) => void;
   readonly onSetEnableTransparency: (enabled: boolean) => void;
   readonly onSetUiFontSize: (px: number) => void;
+  readonly onSetArchiveRetentionDays: (days: number) => void;
+  readonly onRestoreArchivedThread: (target: WorkspaceSessionTarget) => void;
+  readonly onDeleteArchivedThread: (target: WorkspaceSessionTarget) => Promise<void>;
   readonly mcpActions: McpSettingsActions;
 }
 
@@ -83,6 +92,12 @@ export function SettingsView({
   enableTransparency,
   uiFontSize,
   onSetUiFontSize,
+  archivedThreads,
+  archiveRetentionDays,
+  locale,
+  onSetArchiveRetentionDays,
+  onRestoreArchivedThread,
+  onDeleteArchivedThread,
   onSetModelSettingsScopeMode,
   onSetDefaultModel,
   onSetThinkingLevel,
@@ -196,6 +211,17 @@ export function SettingsView({
 
           {section === "mcp" && workspace ? (
             <SettingsMcpSection actions={mcpActions} workspaceId={workspace.id} />
+          ) : null}
+
+          {section === "archive" ? (
+            <SettingsArchivedSection
+              archiveRetentionDays={archiveRetentionDays}
+              entries={archivedThreads}
+              locale={locale}
+              onDelete={onDeleteArchivedThread}
+              onRestore={onRestoreArchivedThread}
+              onSetArchiveRetentionDays={onSetArchiveRetentionDays}
+            />
           ) : null}
 
           {section === "notifications" ? (

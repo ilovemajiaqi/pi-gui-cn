@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { translate, type MessageKey, type Translate } from "../../i18n";
 import {
+  ArchiveIcon,
   BellIcon,
   ExtensionIcon,
   KeyboardIcon,
@@ -93,14 +94,50 @@ export const SETTINGS_SECTIONS = [
     descriptionKey: "settings.section.mcp.description",
     needsWorkspace: true,
   },
+  {
+    id: "archive",
+    titleKey: "settings.nav.archive",
+    groupKey: "settings.group.app",
+    icon: <ArchiveIcon />,
+    keywords: ["archived chats", "archived threads", "delete", "purge", "retention", "cleanup"],
+    descriptionKey: "settings.section.archive.description",
+    needsWorkspace: false,
+  },
 ] as const satisfies readonly SettingsSectionDefinition[];
 
 export type SettingsSection = (typeof SETTINGS_SECTIONS)[number]["id"];
 
-/** Skills and extensions live in the settings nav but are their own app views. */
-export const CUSTOMIZE_SECTION_ID = "customize";
+/**
+ * Skills and Extensions are their own app views, not settings sections: each has its own page,
+ * its own header and its own list. They still appear in the secondary nav so a reader can move
+ * between the customization pages without going back, and each entry highlights its own page.
+ */
+export const CUSTOMIZE_NAV_ITEMS = [
+  {
+    id: "skills",
+    titleKey: "settings.nav.skills",
+    groupKey: "settings.group.customize",
+    icon: <SkillIcon />,
+    keywords: ["skills", "slash commands", "workflows", "prompts"],
+  },
+  {
+    id: "extensions",
+    titleKey: "settings.nav.extensions",
+    groupKey: "settings.group.customize",
+    icon: <ExtensionIcon />,
+    keywords: ["extensions", "plugins", "add-ons", "tools", "hooks"],
+  },
+] as const satisfies readonly {
+  readonly id: string;
+  readonly titleKey: MessageKey;
+  readonly groupKey: MessageKey;
+  readonly icon: ReactNode;
+  readonly keywords: readonly string[];
+}[];
 
-/** The settings nav in one language: every section, then Skills and extensions. */
+export type CustomizeNavId = (typeof CUSTOMIZE_NAV_ITEMS)[number]["id"];
+
+/** The secondary nav in one language: every settings section, then the customization pages. */
 export function settingsNavItems(t: Translate) {
   return [
     ...SETTINGS_SECTIONS.map((section) => ({
@@ -110,13 +147,13 @@ export function settingsNavItems(t: Translate) {
       icon: section.icon,
       keywords: section.keywords,
     })),
-    {
-      id: CUSTOMIZE_SECTION_ID,
-      title: t("settings.nav.customize"),
-      group: t("settings.group.customize"),
-      icon: <SkillIcon />,
-      keywords: ["skills", "extensions", "plugins", "slash commands", "tools"],
-    },
+    ...CUSTOMIZE_NAV_ITEMS.map((item) => ({
+      id: item.id,
+      title: t(item.titleKey),
+      group: t(item.groupKey),
+      icon: item.icon,
+      keywords: item.keywords,
+    })),
   ];
 }
 

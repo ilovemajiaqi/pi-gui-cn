@@ -75,7 +75,7 @@ Use this skill when the user wants a short demo workflow.
   }
 });
 
-test("skills and extensions live inside settings as one tabbed page", async () => {
+test("skills and extensions are separate pages, not two tabs of one page", async () => {
   test.setTimeout(60_000);
   const userDataDir = await makeUserDataDir();
   const workspacePath = await makeWorkspace("skills-in-settings-workspace");
@@ -94,14 +94,14 @@ test("skills and extensions live inside settings as one tabbed page", async () =
     const window = await harness.firstWindow();
     await window.keyboard.press(desktopShortcut(","));
     await expect(window.getByTestId("settings-surface")).toBeVisible();
-    await window.getByRole("button", { name: "Skills and extensions", exact: true }).click();
 
+    // The settings sidebar opens the Skills page on its own, with no tab strip.
+    await window.getByRole("button", { name: "Skills", exact: true }).click();
     const surface = window.getByTestId("skills-surface");
     await expect(surface).toBeVisible();
-    await expect(surface.getByRole("tab", { name: /Skills/ })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
+    await expect(surface.getByRole("tab")).toHaveCount(0);
+    await expect(window.locator(".view-header__title")).toHaveText("Skills");
+
     const list = window.getByTestId("skills-list");
     await expect(list.getByRole("heading", { name: /Workspace/ })).toBeVisible();
 
@@ -120,18 +120,24 @@ test("skills and extensions live inside settings as one tabbed page", async () =
     await expect(surface).toBeVisible();
     await expect(row).toBeFocused();
 
+    // Searching lives on the Skills page and does not leak into Extensions.
     const search = surface.getByLabel("Search skills");
     await search.fill("demo");
-    await surface.getByRole("tab", { name: /Skills/ }).focus();
-    await window.keyboard.press("ArrowRight");
+
+    // The Extensions entry is its own destination, so it starts with a clean query.
+    await window.getByRole("button", { name: "Extensions", exact: true }).click();
     const extensionsSurface = window.getByTestId("extensions-surface");
     await expect(extensionsSurface).toBeVisible();
-    await expect(extensionsSurface.getByRole("tab", { name: /Extensions/ })).toBeFocused();
+    await expect(window.locator(".view-header__title")).toHaveText("Extensions");
+    await expect(extensionsSurface.getByRole("tab")).toHaveCount(0);
     await expect(extensionsSurface.getByLabel("Search extensions")).toHaveValue("");
 
+    // Both live under Customize in the settings sidebar, and General still works.
     await window.getByRole("button", { name: "General", exact: true }).click();
     await expect(window.getByTestId("settings-surface")).toBeVisible();
     await expect(window.locator(".view-header__title")).toHaveText("General");
+    await window.getByRole("button", { name: "Skills", exact: true }).click();
+    await expect(window.getByTestId("skills-surface")).toBeVisible();
   } finally {
     await harness.close();
   }

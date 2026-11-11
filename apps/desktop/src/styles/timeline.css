@@ -135,6 +135,83 @@
   text-transform: uppercase;
 }
 
+/* ---- Thinking block ----------------------------------------------------- */
+
+/* The assistant's reasoning, collapsed to one quiet line; expanding shows the full
+ * text the model produced. Active streaming reuses the working line's shimmer. */
+.timeline-thinking {
+  margin: 0 0 6px;
+  min-width: 0;
+}
+
+.timeline-thinking__toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 1px 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: left;
+}
+
+.timeline-thinking__chevron {
+  display: inline-flex;
+  flex: none;
+  transition: transform var(--motion-fast) var(--ease-out);
+}
+
+.timeline-thinking__toggle[aria-expanded="true"] .timeline-thinking__chevron {
+  transform: rotate(90deg);
+}
+
+.timeline-thinking__label {
+  flex: none;
+  font-weight: 600;
+}
+
+.timeline-thinking--active .timeline-thinking__label {
+  color: transparent;
+  background: linear-gradient(
+      90deg,
+      var(--muted-soft) 0%,
+      var(--muted-soft) 35%,
+      var(--text-strong) 50%,
+      var(--muted-soft) 65%,
+      var(--muted-soft) 100%
+    )
+    0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: working-shimmer 2s linear infinite;
+}
+
+.timeline-thinking__preview {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted-soft);
+  font-weight: 400;
+}
+
+.timeline-thinking__body {
+  margin-top: 4px;
+  padding: 2px 0 2px 17px;
+  border-left: 1px solid var(--border-default);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
 /* An extension's custom message: its customType over the markdown, like terminal pi's
  * [customType] label, kept quiet so it reads as a note beside the agent's reply. */
 .timeline-item--custom {
@@ -158,6 +235,39 @@
   min-width: 0;
   max-width: 100%;
   gap: 8px;
+}
+
+/* Provenance under the bubble, Codex-quiet: a small grey clock the copy icon
+ * joins on hover. The row is always laid out so hover never shifts layout. */
+.timeline-item__user-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 2px;
+  min-width: 0;
+}
+
+.timeline-item__timestamp {
+  color: var(--muted-subtle);
+  font-size: 11px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.timeline-item__user-meta .timeline-item__action {
+  height: 20px;
+  width: 20px;
+  padding: 0;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--motion-fast) var(--ease-out);
+}
+
+.timeline-item--user:hover .timeline-item__user-meta .timeline-item__action,
+.timeline-item__user-meta .timeline-item__action:focus-visible {
+  opacity: 1;
 }
 
 /* In flow, so a revealed action never covers the row below it. The negative inset lines the
@@ -217,13 +327,15 @@
   color: var(--ink);
 }
 
+/* The user bubble separates roles by luminance like Codex: it reads as the
+ * deepest container in dark themes and a lifted surface in light ones. */
 .timeline-item__bubble {
   width: min(620px, 100%);
   min-width: 0;
   padding: 12px 16px;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-2xl);
   border: 1px solid transparent;
-  background: var(--surface-muted);
+  background: var(--bubble, var(--surface-muted));
 }
 
 .timeline-item__attachments {
@@ -674,36 +786,37 @@
 
 /* ---- Empty state -------------------------------------------------------- */
 
+/* Codex greets with large, light type instead of a decorated panel; the spark
+ * stays as pi's own mark but reads as a quiet glyph, not a badge. */
 .transcript-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 4px;
-  padding: 64px 24px;
+  gap: 8px;
+  padding: 96px 24px 64px;
 }
 
 .transcript-empty__glyph {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
-  border-radius: var(--radius-pill);
-  background: var(--accent-tint-bg);
-  color: var(--accent);
+  color: var(--muted-icon);
   margin-bottom: 8px;
 }
 
 .transcript-empty__glyph svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 
 .transcript-empty__title {
   margin: 0;
   color: var(--text-strong);
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 1.375rem;
+  font-weight: var(--font-normal);
+  letter-spacing: var(--tracking-tight);
 }
 
 .transcript-empty__hint {

@@ -169,12 +169,46 @@ export function clearActiveAssistantMessage(
   activeAssistantMessageBySession.delete(sessionKey(sessionRef));
 }
 
+/**
+ * Reasoning deltas share the text delta's active-message lifecycle, but the row must
+ * already exist while only thinking has streamed, so the transcript shows the
+ * growing thinking block before any answer text arrives.
+ */
+export function appendAssistantThinkingDelta(
+  transcriptCache: Map<string, readonly TranscriptMessage[]>,
+  activeAssistantMessageBySession: Map<string, string>,
+  sessionRef: SessionRef,
+  text: string,
+): void {
+  const key = sessionKey(sessionRef);
+  const transcript = [...(transcriptCache.get(key) ?? [])];
+  const activeId = activeAssistantMessageBySession.get(key);
+  const index = activeId ? transcript.findIndex((message) => message.id === activeId) : -1;
+  const current = index >= 0 ? transcript[index] : undefined;
+
+  if (current?.kind === "message" && current.role === "assistant") {
+    transcript[index] = {
+      ...current,
+      thinking: `${current.thinking ?? ""}${text}`,
+    };
+  } else {
+    const message: TranscriptMessage = {
+      ...makeTranscriptMessage("assistant", ""),
+      thinking: text,
+    };
+    transcript.push(message);
+    activeAssistantMessageBySession.set(key, message.id);
+  }
+
+  transcriptCache.set(key, transcript);
+}
+
 export function applyTimelineEvent(
   transcriptCache: Map<string, readonly TranscriptMessage[]>,
   event: SessionDriverEvent,
   state: TimelineRuntimeState,
 ): void {
-  if (event.type === "assistantDelta") {
+  if (event.type === "assistantDelta" || event.type === "assistantThinkingDelta") {
     return;
   }
 

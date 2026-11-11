@@ -4,7 +4,12 @@ import type { ComposerDraftSyncSource, DesktopAppState } from "../../../../contr
 import type { PiDesktopApi } from "../../../../contracts/ipc";
 import { useTranslation } from "../../../i18n";
 
-/** Persist/state/command restore saved or submitted text. They must not overwrite a newer local edit. */
+/**
+ * Persist/state/command restores carry saved or submitted text, and a `selection` snapshot
+ * re-sent for the already-selected session carries its last persisted draft (possibly empty).
+ * None may overwrite a newer local edit: a real session switch is hydrated by the session-key
+ * branch before this check, so a pending edit always outranks these restores.
+ */
 export function shouldAdoptComposerSnapshot(
   source: ComposerDraftSyncSource | undefined,
   localEditPending: boolean,
@@ -12,7 +17,9 @@ export function shouldAdoptComposerSnapshot(
   if (!localEditPending) {
     return true;
   }
-  return source !== "persist" && source !== "state" && source !== "command";
+  return (
+    source !== "persist" && source !== "state" && source !== "command" && source !== "selection"
+  );
 }
 
 interface UseComposerDraftSyncParams {

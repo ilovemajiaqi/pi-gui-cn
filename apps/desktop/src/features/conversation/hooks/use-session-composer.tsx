@@ -5,6 +5,7 @@ import {
   type KeyboardEvent,
   type MutableRefObject,
   type SetStateAction,
+  useRef,
   useState,
 } from "react";
 import {
@@ -20,7 +21,16 @@ import {
   handleClipboardImageShortcut,
   readComposerAttachmentsFromFiles,
 } from "../composer-attachments";
-import { parseTreeComposerCommand } from "../composer-commands";
+import {
+  parseCopyComposerCommand,
+  parseDiffComposerCommand,
+  parseExportComposerCommand,
+  parseInitComposerCommand,
+  parseTreeComposerCommand,
+} from "../composer-commands";
+import { AGENTS_MD_INIT_PROMPT } from "../../../../contracts/agent-instructions";
+import { forgetSentPrompt, recordSentPrompt, sentPromptsForSession } from "../prompt-history";
+import { copyTranscriptToClipboard, exportTranscriptViaDialog } from "../export-transcript";
 import { formatAnnotatedPrompt } from "../annotations/annotation-prompt";
 import type { TranscriptAnnotations } from "../annotations/use-transcript-annotations";
 import type { PiDesktopApi } from "../../../../contracts/ipc";
@@ -39,6 +49,8 @@ interface UseSessionComposerParams {
   readonly composerRef: MutableRefObject<HTMLTextAreaElement | null>;
   readonly requiresModelSelection: boolean;
   readonly openTreeModal: () => void;
+  /** Opens the workbench review panel for a typed `/diff`. */
+  readonly openReviewPanel: () => void;
   readonly handleMentionKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => boolean;
   readonly handleSlashKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => boolean;
   readonly newThreadComposerRef: MutableRefObject<HTMLTextAreaElement | null>;
@@ -48,6 +60,8 @@ interface UseSessionComposerParams {
 }
 
 const EMPTY_ID_SET: ReadonlySet<string> = new Set();
+/** Two Escapes on an empty composer within this window open the session tree. */
+const DOUBLE_ESCAPE_MS = 600;
 
 export function useSessionComposer(params: UseSessionComposerParams) {
   const {
@@ -62,6 +76,7 @@ export function useSessionComposer(params: UseSessionComposerParams) {
     composerRef,
     requiresModelSelection,
     openTreeModal,
+    openReviewPanel,
     handleMentionKeyDown,
     handleSlashKeyDown,
     newThreadComposerRef,
@@ -76,6 +91,17 @@ export function useSessionComposer(params: UseSessionComposerParams) {
   // whole agent turn finishes; a blanket flag hid every attachment added mid-run.
   const [submittedAttachmentIds, setSubmittedAttachmentIds] =
     useState<ReadonlySet<string>>(EMPTY_ID_SET);
+  /**
+   * Where ArrowUp/ArrowDown recall sits. `cursor === null` means not recalling; while a
+   * recalled prompt is still untouched in the composer, the arrows keep walking the list.
+   * A stale cursor is harmless: recall re-attaches only when the draft still matches the
+   * entry the cursor points at.
+   */
+  const promptRecallRef = useRef<{ sessionId: string; cursor: number | null }>({
+    sessionId: "",
+    cursor: null,
+  });
+  const lastEmptyEscapeAtRef = useRef(0);
   const snapshotAttachments = snapshot?.composerAttachments ?? [];
   const composerAttachments =
     submittedAttachmentIds.size === 0
@@ -132,6 +158,96 @@ export function useSessionComposer(params: UseSessionComposerParams) {
       return;
     }
 
+    const exportCommand = parseExportComposerCommand(composerDraft, t);
+    if (exportCommand?.type === "error") {
+      setSnapshot((current) =>
+        current
+          ? {
+              ...current,
+              lastError: exportCommand.message,
+            }
+          : current,
+      );
+      return;
+    }
+    if (exportCommand?.type === "export") {
+      setComposerDraft("");
+      promptRecallRef.current.cursor = null;
+      if (api) {
+        exportTranscriptViaDialog(api, setSnapshot);
+      }
+      return;
+    }
+
+    const copyCommand = parseCopyComposerCommand(composerDraft, t);
+    if (copyCommand?.type === "error") {
+      setSnapshot((current) =>
+        current
+          ? {
+              ...current,
+              lastError: copyCommand.message,
+            }
+          : current,
+      );
+      return;
+    }
+    if (copyCommand?.type === "copy") {
+      setComposerDraft("");
+      promptRecallRef.current.cursor = null;
+      if (api) {
+        copyTranscriptToClipboard(api, setSnapshot);
+      }
+      return;
+    }
+
+    const initCommand = parseInitComposerCommand(composerDraft, t);
+    if (initCommand?.type === "error") {
+      setSnapshot((current) =>
+        current
+          ? {
+              ...current,
+              lastError: initCommand.message,
+            }
+          : current,
+      );
+      return;
+    }
+    if (initCommand?.type === "init") {
+      setComposerDraft("");
+      promptRecallRef.current.cursor = null;
+      if (api) {
+        void updateSnapshot(setSnapshot, () => api.submitComposer(AGENTS_MD_INIT_PROMPT))
+          .then((state) => {
+            if (composerDraftRef.current === "") {
+              setComposerDraft(state.composerDraft);
+            }
+          })
+          .catch((error: unknown) => {
+            setComposerLimitError(error);
+          });
+      }
+      return;
+    }
+
+    const diffCommand = parseDiffComposerCommand(composerDraft, t);
+    if (diffCommand?.type === "error") {
+      setSnapshot((current) =>
+        current
+          ? {
+              ...current,
+              lastError: diffCommand.message,
+            }
+          : current,
+      );
+      return;
+    }
+    if (diffCommand?.type === "diff") {
+      setComposerDraft("");
+      promptRecallRef.current.cursor = null;
+      openReviewPanel();
+      return;
+    }
+
     const previousDraft = composerDraft;
     // A slash command keeps its annotations for the next message rather than breaking the command.
     const sentAnnotations = composerDraft.trimStart().startsWith("/") ? null : annotations.take();
@@ -139,6 +255,10 @@ export function useSessionComposer(params: UseSessionComposerParams) {
       ? formatAnnotatedPrompt(sentAnnotations.taken, previousDraft)
       : previousDraft;
     setComposerDraft("");
+    promptRecallRef.current.cursor = null;
+    // Recorded at submit time, not resolution time: a long runtime command resolves after its
+    // output has already streamed, and a later prompt must still be the newest entry.
+    recordSentPrompt(selectedSession.id, text);
     const submittedIds = new Set(composerAttachments.map((attachment) => attachment.id));
     if (submittedIds.size > 0) {
       setSubmittedAttachmentIds(submittedIds);
@@ -155,7 +275,10 @@ export function useSessionComposer(params: UseSessionComposerParams) {
       // A failed send hands the text back as the draft; give back the annotations and the
       // typed text rather than their formatted blocks.
       const returnedToComposer = sentAnnotations?.taken.length && nextState.composerDraft === text;
-      if (returnedToComposer) sentAnnotations.undo();
+      if (returnedToComposer) {
+        sentAnnotations.undo();
+        forgetSentPrompt(selectedSession.id, text);
+      }
       // Only apply the resolved draft if the user hasn't typed into the composer during the
       // in-flight submit; otherwise their new input would be clobbered.
       if (composerDraftRef.current === "") {
@@ -163,6 +286,7 @@ export function useSessionComposer(params: UseSessionComposerParams) {
       }
       clearSubmittedAttachmentIds(submittedIds);
     })().catch(() => {
+      forgetSentPrompt(selectedSession.id, text);
       if (composerDraftRef.current === "") {
         setComposerDraft(previousDraft);
       }
@@ -360,11 +484,81 @@ export function useSessionComposer(params: UseSessionComposerParams) {
       return;
     }
 
+    // Codex-style prompt recall: on an empty composer, ArrowUp walks back through this
+    // session's sent prompts and ArrowDown returns toward the empty draft. Recall stays
+    // attached only while the composer still holds the recalled text, so editing detaches.
+    // It runs before the mention and slash menus: a recalled draft can start with "/" and
+    // open the slash menu, whose arrow handling must not swallow recall navigation.
+    const sessionId = selectedSession?.id ?? "";
+    const recall = promptRecallRef.current;
+    if (recall.sessionId !== sessionId) {
+      recall.sessionId = sessionId;
+      recall.cursor = null;
+    }
+    const historyEntries = sentPromptsForSession(sessionId);
+    const recallCursor = recall.cursor;
+    const recalling =
+      recallCursor !== null &&
+      recallCursor < historyEntries.length &&
+      historyEntries[recallCursor] === composerDraft;
+    const plainArrow = !event.shiftKey && !event.altKey && !event.nativeEvent.isComposing;
+    if (
+      event.key === "ArrowUp" &&
+      plainArrow &&
+      (composerDraft.length === 0 || recalling) &&
+      historyEntries.length > 0
+    ) {
+      const nextCursor =
+        (recalling && recallCursor !== null ? recallCursor : historyEntries.length) - 1;
+      const nextText = nextCursor >= 0 ? historyEntries[nextCursor] : undefined;
+      if (nextText !== undefined) {
+        event.preventDefault();
+        recall.cursor = nextCursor;
+        setComposerDraft(nextText);
+        return;
+      }
+    }
+    if (event.key === "ArrowDown" && plainArrow && recalling && recallCursor !== null) {
+      event.preventDefault();
+      const nextCursor = recallCursor + 1;
+      const nextText = historyEntries[nextCursor];
+      if (nextText !== undefined) {
+        recall.cursor = nextCursor;
+        setComposerDraft(nextText);
+      } else {
+        recall.cursor = null;
+        setComposerDraft("");
+      }
+      return;
+    }
+
     if (handleMentionKeyDown(event)) {
       return;
     }
 
     if (handleSlashKeyDown(event)) {
+      return;
+    }
+
+    // Codex parity: two Escapes on an empty composer open the session tree, the entry point
+    // for editing an earlier user prompt and branching from it. A single Escape does nothing.
+    if (
+      event.key === "Escape" &&
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.shiftKey &&
+      !event.nativeEvent.isComposing &&
+      composerDraft.length === 0
+    ) {
+      const now = Date.now();
+      if (now - lastEmptyEscapeAtRef.current <= DOUBLE_ESCAPE_MS) {
+        lastEmptyEscapeAtRef.current = 0;
+        event.preventDefault();
+        openTreeModal();
+        return;
+      }
+      lastEmptyEscapeAtRef.current = now;
       return;
     }
 

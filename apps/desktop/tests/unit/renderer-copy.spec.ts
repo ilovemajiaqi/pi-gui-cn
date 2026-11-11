@@ -25,6 +25,8 @@ const technicalCopy = new Set([
   "/v1",
   "~/.pi/agent/models.json",
   "/bin/zsh",
+  "px",
+  "cmd.exe",
 ]);
 const attributes = new Set([
   "title",

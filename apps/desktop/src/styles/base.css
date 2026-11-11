@@ -19,6 +19,7 @@
   --main: transparent !important;
   --surface: var(--surface-glass) !important;
   --surface-muted: var(--surface-muted-glass) !important;
+  --bubble: var(--bubble-glass) !important;
   --line: var(--line-glass) !important;
   --line-strong: var(--line-strong-glass) !important;
 }
@@ -165,6 +166,21 @@ svg {
 .button--ghost {
   background: var(--surface-overlay);
   border-color: var(--line);
+}
+
+.button--danger {
+  background: var(--danger-tint-bg);
+  border-color: var(--danger-tint-border);
+  color: var(--error);
+}
+
+.button--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--error) 18%, transparent);
+  border-color: var(--error);
+}
+
+.button--danger:disabled {
+  opacity: 0.6;
 }
 
 .button:disabled {

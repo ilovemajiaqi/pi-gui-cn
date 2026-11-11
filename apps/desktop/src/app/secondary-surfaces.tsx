@@ -14,13 +14,11 @@ import {
   type CustomProviderConfig,
   type DesktopNotificationPermissionStatus,
 } from "../../contracts/ipc";
-import { CustomizePage } from "../features/extensions/customize-page";
+import { ExtensionsPage } from "../features/extensions/extensions-page";
+import { SkillsPage } from "../features/extensions/skills-page";
 import { SettingsView, type SettingsSection } from "../features/settings/settings-view";
-import {
-  CUSTOMIZE_SECTION_ID,
-  SETTINGS_SECTIONS,
-  settingsNavItems,
-} from "../features/settings/settings-sections";
+import type { ArchivedThreadEntry } from "../features/settings/settings-archived-section";
+import { SETTINGS_SECTIONS, settingsNavItems } from "../features/settings/settings-sections";
 import { SettingsSelect } from "../features/settings/settings-controls";
 import type { McpSettingsActions } from "../features/settings/settings-mcp-section";
 import { useTranslation } from "../i18n";
@@ -41,7 +39,7 @@ interface SecondarySurfacesProps {
   readonly extensionsWorkspaceId: string;
   readonly onSelectExtensionsWorkspace: (workspaceId: string) => void;
   readonly onBack: () => void;
-  /** Settings and the Skills and extensions page are separate app views. */
+  /** Settings, Skills and Extensions are separate app views. */
   readonly onSelectView: (view: Extract<AppView, "settings" | "skills" | "extensions">) => void;
   readonly onTrySkill: (command: string) => void;
 }
@@ -64,7 +62,7 @@ export function SecondarySurfaces({
   onSelectView,
   onTrySkill,
 }: SecondarySurfacesProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   // Rebuilt only when the locale changes, so the nav list keeps a stable identity.
   const navItems = useMemo(() => settingsNavItems(t), [t]);
   const [notificationPermissionStatus, setNotificationPermissionStatus] =
@@ -93,6 +91,26 @@ export function SecondarySurfaces({
   const extensionsCommandCompatibility = extensionsWorkspace
     ? (snapshot.extensionCommandCompatibilityByWorkspace[extensionsWorkspace.id] ?? [])
     : [];
+
+  // The archive page is app-wide, like Codex's Archived chats page: it lists every archived
+  // thread from every workspace, newest archive first.
+  const archivedThreads = useMemo<readonly ArchivedThreadEntry[]>(
+    () =>
+      snapshot.workspaces
+        .flatMap((workspace) =>
+          workspace.sessions
+            .filter((session) => Boolean(session.archivedAt))
+            .map((session) => ({
+              workspaceId: workspace.id,
+              workspaceName: workspace.name,
+              session,
+            })),
+        )
+        .sort((left, right) =>
+          (right.session.archivedAt ?? "").localeCompare(left.session.archivedAt ?? ""),
+        ),
+    [snapshot.workspaces],
+  );
 
   useEffect(() => {
     const piApi = window.piApp;
@@ -372,8 +390,6 @@ export function SecondarySurfaces({
       });
   };
 
-  const customizeTab = activeView === "settings" ? undefined : activeView;
-  const customizeWorkspace = customizeTab === "extensions" ? extensionsWorkspace : skillsWorkspace;
   const workspacePicker = (
     value: WorkspaceRecord | undefined,
     onChange: (workspaceId: string) => void,
@@ -390,50 +406,54 @@ export function SecondarySurfaces({
       />
     ) : null;
 
+  const customizeView = activeView === "settings" ? undefined : activeView;
+  const customizeWorkspace = customizeView === "extensions" ? extensionsWorkspace : skillsWorkspace;
+  const refreshCustomizeRuntime = () => {
+    if (!customizeWorkspace) return;
+    void updateSnapshot(setSnapshot, () => api.refreshRuntime(customizeWorkspace.id)).catch(
+      (error: unknown) => {
+        console.error("[renderer] refreshRuntime failed", error);
+      },
+    );
+  };
+
   return (
     <SecondarySurface
-      activeNavId={customizeTab ? CUSTOMIZE_SECTION_ID : settingsSection}
+      activeNavId={customizeView ?? settingsSection}
       navItems={navItems}
       onBack={onBack}
       onSelectNav={(id) => {
-        if (id === CUSTOMIZE_SECTION_ID) {
-          if (!customizeTab) onSelectView("skills");
+        if (id === "skills" || id === "extensions") {
+          onSelectView(id);
           return;
         }
         const section = SETTINGS_SECTIONS.find((definition) => definition.id === id);
         if (!section) return;
         onSelectSettingsSection(section.id);
-        if (customizeTab) onSelectView("settings");
+        if (customizeView) onSelectView("settings");
       }}
-      testId={customizeTab ? `${customizeTab}-surface` : "settings-surface"}
+      testId={customizeView ? `${customizeView}-surface` : "settings-surface"}
       title={t("settings.title")}
     >
-      {customizeTab ? (
-        <CustomizePage
-          commandCompatibility={extensionsCommandCompatibility}
-          extensionsRuntime={extensionsRuntime}
-          skillsRuntime={skillsRuntime}
-          tab={customizeTab}
-          workspace={customizeWorkspace}
-          workspacePicker={
-            customizeTab === "extensions"
-              ? workspacePicker(extensionsWorkspace, onSelectExtensionsWorkspace)
-              : workspacePicker(skillsWorkspace, onSelectSkillsWorkspace)
-          }
-          onOpenExtensionFolder={handleOpenExtensionFolder}
+      {customizeView === "skills" ? (
+        <SkillsPage
+          runtime={skillsRuntime}
+          workspace={skillsWorkspace}
+          workspacePicker={workspacePicker(skillsWorkspace, onSelectSkillsWorkspace)}
           onOpenSkillFolder={handleOpenSkillFolder}
-          onRefresh={() => {
-            if (!customizeWorkspace) return;
-            void updateSnapshot(setSnapshot, () => api.refreshRuntime(customizeWorkspace.id)).catch(
-              (error: unknown) => {
-                console.error("[renderer] refreshRuntime failed", error);
-              },
-            );
-          }}
-          onSelectTab={onSelectView}
-          onToggleExtension={handleToggleExtension}
+          onRefresh={refreshCustomizeRuntime}
           onToggleSkill={handleToggleSkill}
           onTryCommand={onTrySkill}
+        />
+      ) : customizeView === "extensions" ? (
+        <ExtensionsPage
+          commandCompatibility={extensionsCommandCompatibility}
+          runtime={extensionsRuntime}
+          workspace={extensionsWorkspace}
+          workspacePicker={workspacePicker(extensionsWorkspace, onSelectExtensionsWorkspace)}
+          onOpenExtensionFolder={handleOpenExtensionFolder}
+          onRefresh={refreshCustomizeRuntime}
+          onToggleExtension={handleToggleExtension}
         />
       ) : (
         <SettingsView
@@ -463,6 +483,9 @@ export function SecondarySurfaces({
           themePresetId={snapshot.themePresetId}
           enableTransparency={snapshot.enableTransparency}
           uiFontSize={snapshot.uiFontSize}
+          archiveRetentionDays={snapshot.archiveRetentionDays}
+          archivedThreads={archivedThreads}
+          locale={locale}
           onLoginProvider={handleLoginProvider}
           onSelectSection={onSelectSettingsSection}
           onLogoutProvider={handleLogoutProvider}
@@ -495,6 +518,23 @@ export function SecondarySurfaces({
                 console.error("[renderer] setUiFontSize failed", error);
               },
             );
+          }}
+          onSetArchiveRetentionDays={(days) => {
+            void updateSnapshot(setSnapshot, () => api.setArchiveRetentionDays(days)).catch(
+              (error: unknown) => {
+                console.error("[renderer] setArchiveRetentionDays failed", error);
+              },
+            );
+          }}
+          onRestoreArchivedThread={(target) => {
+            void updateSnapshot(setSnapshot, () => api.unarchiveSession(target)).catch(
+              (error: unknown) => {
+                console.error("[renderer] unarchiveSession failed", error);
+              },
+            );
+          }}
+          onDeleteArchivedThread={async (target) => {
+            await updateSnapshot(setSnapshot, () => api.deleteSession(target));
           }}
         />
       )}

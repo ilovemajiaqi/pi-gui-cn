@@ -663,8 +663,9 @@ test("switches pi-gui tools off app-wide and keeps them off after a restart", as
   };
   const openPiGuiTools = async (window: Page) => {
     const list = window.getByTestId("extensions-list");
-    const openButton = window.getByRole("button", { name: "Extensions", exact: true });
-    // A restart restores the last open view, so Settings may already show the list.
+    // The Extensions page has its own nav entry inside Settings, so scope the sidebar button.
+    const openButton = window.getByTestId("sidebar-extensions");
+    // A restart restores the last open view, so the Extensions page may already be showing.
     await expect(list.or(openButton)).toBeVisible();
     if (!(await list.isVisible())) {
       await openButton.click();

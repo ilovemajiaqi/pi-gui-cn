@@ -91,6 +91,7 @@ test("right-click thread menu supports rename, archive/restore, mark read, and c
       "Mark as read",
       "Add scheduled task…",
       "Copy session ID",
+      "Delete thread",
     ]);
     await captureProof(window, "01-open-menu.png");
 

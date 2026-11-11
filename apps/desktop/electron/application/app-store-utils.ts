@@ -10,6 +10,7 @@ import type {
   SessionConfig,
   SessionQueuedMessage,
   SessionRef,
+  SessionTranscriptMessage,
 } from "@pi-gui/session-driver";
 import type {
   ComposerAttachment,
@@ -315,7 +316,10 @@ export function toSessionRef(target: WorkspaceSessionTarget): SessionRef {
   };
 }
 
-export function makeTranscriptMessage(role: "user" | "assistant", text: string): TranscriptMessage {
+export function makeTranscriptMessage(
+  role: "user" | "assistant",
+  text: string,
+): SessionTranscriptMessage {
   return {
     kind: "message",
     id: randomUUID(),

@@ -18,7 +18,7 @@ import type {
   ExtensionContext,
   ExtensionToolContext,
 } from "@earendil-works/pi-coding-agent";
-import { readFile, stat } from "node:fs/promises";
+import { readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { augmentPosixPath } from "../scripts/augment-path.cjs";
@@ -918,6 +918,11 @@ app
           options: GenerateThreadTitleOptions,
         ) => Promise<string | null | undefined>)
       | undefined;
+    /**
+     * The next export save-dialog result under test: undefined shows the real dialog,
+     * null cancels it, and a path saves there. Set only through the test hooks.
+     */
+    let testNextSaveDialogPath: string | null | undefined;
     let deferredThreadTitle:
       | {
           resolve: (title: string | null) => void;
@@ -1051,11 +1056,16 @@ app
             runScheduledTaskRuntimeToolForTest(scheduledTaskRuntimeBridge, input),
           fireDueScheduledTasks: (nowIso?: string) =>
             store.fireDueScheduledTasks(nowIso ? new Date(nowIso) : undefined),
+          sweepArchivedSessions: (nowIso?: string) =>
+            store.sweepArchivedSessions(nowIso ? new Date(nowIso) : undefined),
           setDeferredThreadTitleMode: () => {
             generateThreadTitleOverride = () =>
               new Promise<string | null>((resolve, reject) => {
                 deferredThreadTitle = { resolve, reject };
               });
+          },
+          setNextSaveDialogPath: (path: string | null) => {
+            testNextSaveDialogPath = path;
           },
           hasDeferredThreadTitle: () => Boolean(deferredThreadTitle),
           resolveDeferredThreadTitle: (title: string) => {
@@ -1183,6 +1193,32 @@ app
             return undefined;
           }
           return readComposerAttachmentsFromPaths(result.filePaths, existing);
+        },
+        saveTranscriptMarkdown: async (window, exportDocument) => {
+          const stubbedPath = testNextSaveDialogPath;
+          testNextSaveDialogPath = undefined;
+          if (stubbedPath !== undefined) {
+            if (stubbedPath === null) {
+              return { canceled: true } as const;
+            }
+            await writeFile(stubbedPath, exportDocument.markdown, "utf8");
+            return { savedPath: stubbedPath } as const;
+          }
+          const t = createMainTranslator(localeManager.getLocale());
+          const parent = resolveDialogWindow(window);
+          const options = {
+            title: t("main.exportTranscript"),
+            defaultPath: exportDocument.fileName,
+            filters: [{ name: "Markdown", extensions: ["md"] }],
+          };
+          const result = parent
+            ? await dialog.showSaveDialog(parent, options)
+            : await dialog.showSaveDialog(options);
+          if (result.canceled || !result.filePath) {
+            return { canceled: true } as const;
+          }
+          await writeFile(result.filePath, exportDocument.markdown, "utf8");
+          return { savedPath: result.filePath } as const;
         },
         readClipboardImage: readClipboardImageAttachment,
         validateComposerAttachments: (attachments) =>

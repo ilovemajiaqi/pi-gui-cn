@@ -429,6 +429,12 @@ function buildDesktopLaunchEnv(
   options: LaunchDesktopOptions,
 ): NodeJS.ProcessEnv {
   const baseEnv = options.inheritParentEnv === false ? {} : { ...process.env };
+  // `ELECTRON_RUN_AS_NODE=1` turns the Electron binary into plain Node, which then
+  // rejects Chromium switches with `bad option: --remote-debugging-port=0` and the
+  // launch dies before the window exists. Tools that embed Electron as a runtime
+  // (Playwright, electron-vite, IDE task runners) export it, so it leaks in from the
+  // shell; every launch must start from an env without it.
+  delete baseEnv.ELECTRON_RUN_AS_NODE;
   // Ambient provider credentials must never turn a fixture test into a real request.
   // Explicit envOverrides remain available for tests of environment configuration.
   for (const key of Object.keys(baseEnv)) {
@@ -1380,6 +1386,51 @@ export async function fireDueScheduledTasks(
     }
     return hooks.fireDueScheduledTasks(payload);
   }, nowIso);
+}
+
+/**
+ * Runs the archive-retention sweep at an explicit instant so retention tests never
+ * sleep on wall-clock days. The hook only exists while PI_APP_TEST_MODE is set.
+ */
+export async function sweepArchivedSessions(
+  harness: DesktopHarness,
+  nowIso?: string,
+): Promise<DesktopAppState> {
+  await harness.firstWindow();
+  return harness.electronApp.evaluate(async (_, payload) => {
+    const hooks = (
+      globalThis as {
+        __PI_APP_TEST_HOOKS?: {
+          sweepArchivedSessions?: (nowIso?: string) => Promise<DesktopAppState>;
+        };
+      }
+    ).__PI_APP_TEST_HOOKS;
+    if (!hooks?.sweepArchivedSessions) {
+      throw new Error("Archive sweep hook is unavailable");
+    }
+    return hooks.sweepArchivedSessions(payload);
+  }, nowIso);
+}
+
+/**
+ * Answers the next export save dialog without opening the native one: a path saves there,
+ * null cancels. The hook only exists while PI_APP_TEST_MODE is set.
+ */
+export async function stubNextSaveDialogPath(
+  harness: DesktopHarness,
+  nextPath: string | null,
+): Promise<void> {
+  await harness.electronApp.evaluate((_, path) => {
+    const hooks = (
+      globalThis as {
+        __PI_APP_TEST_HOOKS?: { setNextSaveDialogPath?: (value: string | null) => void };
+      }
+    ).__PI_APP_TEST_HOOKS;
+    if (!hooks?.setNextSaveDialogPath) {
+      throw new Error("Save-dialog test hook is unavailable");
+    }
+    hooks.setNextSaveDialogPath(path);
+  }, nextPath);
 }
 
 export async function emitTestSessionEvent(

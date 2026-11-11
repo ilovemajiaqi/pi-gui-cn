@@ -427,14 +427,16 @@ function transcriptFromSources(
     }
 
     const text = messageText(message);
+    const thinking = messageThinking(message);
     const attachments = messageAttachments(message);
-    if (text || attachments.length > 0) {
+    if (text || thinking || attachments.length > 0) {
       transcript.push({
         kind: "message",
         id: typeof message.id === "string" ? message.id : `${role}-${index}`,
         ...(typeof message.id === "string" ? { sourceMessageId: message.id } : {}),
         role,
         text,
+        ...(thinking ? { thinking } : {}),
         ...(attachments.length > 0 ? { attachments } : {}),
         createdAt,
       });
@@ -755,6 +757,25 @@ export function messageText(message: Record<string, unknown>): string {
   }
 
   return "";
+}
+
+/**
+ * The assistant message's reasoning blocks, in content order. Redacted thinking
+ * carries an opaque payload with no readable text, so it contributes nothing.
+ */
+export function messageThinking(message: Record<string, unknown>): string {
+  if (message.role !== "assistant") return "";
+  const { content } = message;
+  if (!Array.isArray(content)) return "";
+  return content
+    .map((part) =>
+      isRecord(part) && part.type === "thinking" && typeof part.thinking === "string"
+        ? part.thinking
+        : "",
+    )
+    .filter((thinking) => thinking.length > 0)
+    .join("\n\n")
+    .trim();
 }
 
 function messageAttachments(message: Record<string, unknown>) {

@@ -59,6 +59,13 @@ export interface ThreadMenuState {
   readonly archive: (target: WorkspaceSessionTarget) => void;
   readonly restore: (target: WorkspaceSessionTarget) => void;
   readonly setPinned: (target: WorkspaceSessionTarget, pinned: boolean) => void;
+  /** The thread a confirmation dialog is currently asking about, if any. */
+  readonly pendingDelete: ThreadActionSubject | null;
+  readonly deleting: boolean;
+  readonly deleteError: string | undefined;
+  readonly requestDelete: (subject: ThreadActionSubject) => void;
+  readonly confirmDelete: () => void;
+  readonly cancelDelete: () => void;
 }
 
 export function useThreadActions({
@@ -74,6 +81,9 @@ export function useThreadActions({
   const [openMenu, setOpenMenu] = useState<OpenThreadMenu | null>(null);
   const [renameSessionId, setRenameSessionId] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<ThreadActionSubject | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | undefined>(undefined);
   const menuWrapRef = useRef<HTMLDivElement | null>(null);
   const renamePanelRef = useRef<HTMLFormElement | null>(null);
 
@@ -120,6 +130,32 @@ export function useThreadActions({
   const setPinned = (target: WorkspaceSessionTarget, pinned: boolean) =>
     mutate((desktopApi) => desktopApi.setSessionPinned(target, pinned));
 
+  const requestDelete = (subject: ThreadActionSubject) => {
+    setDeleteError(undefined);
+    setPendingDelete(subject);
+  };
+  const cancelDelete = () => {
+    if (deleting) return;
+    setPendingDelete(null);
+    setDeleteError(undefined);
+  };
+  const confirmDelete = () => {
+    if (!pendingDelete || !api || deleting) return;
+    // Deleting the open thread selects another one, which drops a draft still in its debounce.
+    flushComposerDraft();
+    setDeleting(true);
+    setDeleteError(undefined);
+    void updateSnapshot(setSnapshot, () => api.deleteSession(targetFor(pendingDelete)))
+      .then(() => {
+        setPendingDelete(null);
+      })
+      .catch((error: unknown) => {
+        console.error("[renderer] deleteSession failed", error);
+        setDeleteError(error instanceof Error ? error.message : String(error));
+      })
+      .finally(() => setDeleting(false));
+  };
+
   const platform = api?.platform ?? "linux";
   const handlers: ThreadActionHandlers = {
     platform,
@@ -157,6 +193,7 @@ export function useThreadActions({
         console.error("[renderer] navigator.clipboard.writeText failed", error);
       });
     },
+    requestDelete,
   };
 
   return {
@@ -197,5 +234,11 @@ export function useThreadActions({
     archive,
     restore,
     setPinned,
+    pendingDelete,
+    deleting,
+    deleteError,
+    requestDelete,
+    confirmDelete,
+    cancelDelete,
   };
 }

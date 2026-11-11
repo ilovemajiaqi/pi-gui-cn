@@ -11,6 +11,11 @@ import type {
   WorkspaceSessionTarget,
 } from "../../contracts/desktop-state";
 import { toSessionRef } from "../application/app-store-utils";
+import {
+  buildTranscriptMarkdown,
+  transcriptExportFileName,
+  type TranscriptExportDocument,
+} from "../../contracts/transcript-export";
 import { assertComposerAttachmentsAccepted } from "../../contracts/composer-attachments";
 import {
   formatSessionConfigStatus,
@@ -163,6 +168,11 @@ export interface ConversationOwner {
     textInput: string,
     options?: { readonly deliverAs?: "steer" | "followUp" },
   ): Promise<DesktopAppState>;
+  /**
+   * The saved-thread Markdown export for the sender's session, or undefined when the
+   * session is unknown. Read-only: it never touches state or the driver.
+   */
+  buildTranscriptExport(sessionRef: SessionRef | undefined): TranscriptExportDocument | undefined;
   composerSubmitNeedsSenderView(sessionRef: SessionRef | undefined, textInput: string): boolean;
   /**
    * Runs an extension command for a card button. It is not a user message: nothing is added
@@ -211,6 +221,7 @@ export function createConversationOwner(store: ConversationOwnerHost): Conversat
     steerQueuedComposerMessage: (sessionRef, messageId) =>
       steerQueuedComposerMessage(store, sessionRef, messageId),
     submitComposer: (sessionRef, text, options) => submitComposer(store, sessionRef, text, options),
+    buildTranscriptExport: (sessionRef) => buildTranscriptExport(store, sessionRef),
     runExtensionCommand: (sessionRef, command) => runExtensionCommand(store, sessionRef, command),
     composerSubmitNeedsSenderView: (sessionRef, text) =>
       sessionRef
@@ -724,6 +735,25 @@ async function cancelCurrentRun(
   } catch (error) {
     return store.withSessionError(sessionRef, error);
   }
+}
+
+function buildTranscriptExport(
+  store: ComposerStore,
+  sessionRef: SessionRef | undefined,
+): TranscriptExportDocument | undefined {
+  if (!sessionRef) {
+    return undefined;
+  }
+  const session = store.sessionFromState(sessionRef);
+  if (!session) {
+    return undefined;
+  }
+  const items = store.conversationState.transcriptCache.get(sessionKey(sessionRef)) ?? [];
+  const exportedAt = new Date().toISOString();
+  return {
+    fileName: transcriptExportFileName(session.title, exportedAt),
+    markdown: buildTranscriptMarkdown(items, { title: session.title, exportedAt }),
+  };
 }
 
 /* ── Internal helpers ───────────────────────────────────── */

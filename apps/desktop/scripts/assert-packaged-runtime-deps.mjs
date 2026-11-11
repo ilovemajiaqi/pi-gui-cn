@@ -401,7 +401,9 @@ function verifyPackagedDependencyGraph(extractedDir) {
   }
 
   if (problems.length > 0) {
-    throw new Error(`Packaged dependency graph diverges from the workspace install:\n${problems.join("\n")}`);
+    throw new Error(
+      `Packaged dependency graph diverges from the workspace install:\n${problems.join("\n")}`,
+    );
   }
 }
 

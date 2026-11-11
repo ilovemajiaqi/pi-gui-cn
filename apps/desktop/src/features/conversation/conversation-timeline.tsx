@@ -196,6 +196,13 @@ export function ConversationTimeline({
                     scheduledOrigin={
                       item.kind === "message" ? scheduledOrigins?.get(item.id) : undefined
                     }
+                    thinkingActive={
+                      running &&
+                      item.kind === "message" &&
+                      item.role === "assistant" &&
+                      !item.text &&
+                      Boolean(item.thinking)
+                    }
                   />
                 ))}
               </div>
@@ -302,6 +309,7 @@ interface MeasuredTimelineItemProps {
   readonly workspacePath?: string;
   readonly annotationMarkers: readonly AnnotationMarker[];
   readonly onOpenAnnotation: OpenAnnotation;
+  readonly thinkingActive?: boolean;
 }
 
 function MeasuredTimelineItemBase({
@@ -323,6 +331,7 @@ function MeasuredTimelineItemBase({
   workspacePath,
   annotationMarkers,
   onOpenAnnotation,
+  thinkingActive,
 }: MeasuredTimelineItemProps) {
   const rowRef = useRef<HTMLDivElement | null>(null);
 
@@ -371,6 +380,7 @@ function MeasuredTimelineItemBase({
           workspacePath={workspacePath}
           annotationMarkers={annotationMarkers}
           onOpenAnnotation={onOpenAnnotation}
+          thinkingActive={thinkingActive}
         />
       </div>
     </div>
@@ -393,6 +403,7 @@ function isSameDisplayItem(a: DisplayTimelineItem, b: DisplayTimelineItem): bool
     return (
       a.role === b.role &&
       a.text === b.text &&
+      a.thinking === b.thinking &&
       a.attachments === b.attachments &&
       a.sourceMessageId === b.sourceMessageId
     );
@@ -487,7 +498,8 @@ function areMeasuredTimelineItemPropsEqual(
     prev.workspacePath === next.workspacePath &&
     prev.annotationMarkers === next.annotationMarkers &&
     prev.onOpenAnnotation === next.onOpenAnnotation &&
-    prev.scheduledOrigin?.taskId === next.scheduledOrigin?.taskId
+    prev.scheduledOrigin?.taskId === next.scheduledOrigin?.taskId &&
+    prev.thinkingActive === next.thinkingActive
   );
 }
 

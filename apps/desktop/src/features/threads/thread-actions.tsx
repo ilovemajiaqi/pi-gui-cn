@@ -10,6 +10,7 @@ import {
   PencilIcon,
   PinIcon,
   RestoreIcon,
+  TrashIcon,
 } from "../../ui/icons";
 
 /**
@@ -24,7 +25,8 @@ export type ThreadActionId =
   | "restore-thread"
   | "mark-read"
   | "scheduled-task"
-  | "copy-session-id";
+  | "copy-session-id"
+  | "delete-thread";
 
 export interface ThreadAction {
   readonly id: ThreadActionId;
@@ -32,6 +34,8 @@ export interface ThreadAction {
   readonly icon: ReactNode;
   readonly hint?: string;
   readonly run: () => void;
+  /** Destructive actions render in the danger color. */
+  readonly danger?: boolean;
 }
 
 /** The thread an action applies to. Sidebar entries and the open thread both fit. */
@@ -50,6 +54,8 @@ export interface ThreadActionHandlers {
   readonly markRead: (subject: ThreadActionSubject) => void;
   readonly openScheduledTask: (subject: ThreadActionSubject) => void;
   readonly copySessionId: (subject: ThreadActionSubject) => void;
+  /** Asks for confirmation, then deletes the thread and its transcript file. */
+  readonly requestDelete: (subject: ThreadActionSubject) => void;
 }
 
 export function renameThreadShortcut(platform: NodeJS.Platform): string {
@@ -125,6 +131,15 @@ export function buildThreadActions(
       run: () => handlers.copySessionId(subject),
     },
   );
+  // Last on purpose: deletion is irreversible, so it never sits next to the
+  // items a user reaches for repeatedly.
+  actions.push({
+    id: "delete-thread",
+    title: t("threads.action.deleteThread"),
+    icon: <TrashIcon />,
+    danger: true,
+    run: () => handlers.requestDelete(subject),
+  });
   return actions;
 }
 
@@ -139,7 +154,11 @@ export function ThreadActionsMenu({ actions, className }: ThreadActionsMenuProps
       {actions.map((action) => (
         <button
           key={action.id}
-          className="workspace-menu__item"
+          className={
+            action.danger
+              ? "workspace-menu__item workspace-menu__item--danger"
+              : "workspace-menu__item"
+          }
           data-thread-action={action.id}
           type="button"
           onClick={(event) => {

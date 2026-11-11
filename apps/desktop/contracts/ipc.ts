@@ -15,6 +15,7 @@ import type {
 } from "@pi-gui/session-driver/types";
 import type { ClipboardImageRead } from "./composer-attachments";
 import type { DesktopEditorList } from "./editors";
+import type { TranscriptExportResult } from "./transcript-export";
 import type { SessionRef } from "@pi-gui/session-driver/types";
 import type { SaveTaskWorkbenchTemplateInput, TaskWorkbenchTemplate } from "./workbench";
 import type {
@@ -155,6 +156,7 @@ export const desktopIpc = {
   renameSession: "pi-gui:rename-session",
   archiveSession: "pi-gui:archive-session",
   unarchiveSession: "pi-gui:unarchive-session",
+  deleteSession: "pi-gui:delete-session",
   markSessionRead: "pi-gui:mark-session-read",
   setSessionPinned: "pi-gui:set-session-pinned",
   createSession: "pi-gui:create-session",
@@ -198,6 +200,7 @@ export const desktopIpc = {
   setIntegratedTerminalShell: "pi-gui:set-integrated-terminal-shell",
   setEnableTransparency: "pi-gui:set-enable-transparency",
   setUiFontSize: "pi-gui:set-ui-font-size",
+  setArchiveRetentionDays: "pi-gui:set-archive-retention-days",
   terminalEnsurePanel: "pi-gui:terminal-ensure-panel",
   terminalCreateSession: "pi-gui:terminal-create-session",
   terminalSetActiveSession: "pi-gui:terminal-set-active-session",
@@ -228,6 +231,8 @@ export const desktopIpc = {
   flushPendingComposerDraft: "pi-gui:flush-pending-composer-draft",
   pendingComposerDraftFlushed: "pi-gui:pending-composer-draft-flushed",
   submitComposer: "pi-gui:submit-composer",
+  exportTranscript: "pi-gui:export-transcript",
+  copyTranscript: "pi-gui:copy-transcript",
   getSessionTree: "pi-gui:get-session-tree",
   navigateSessionTree: "pi-gui:navigate-session-tree",
   toggleWindowMaximize: "pi-gui:toggle-window-maximize",
@@ -775,6 +780,7 @@ export interface PiDesktopApi {
   renameSession(target: WorkspaceSessionTarget, title: string): Promise<DesktopAppState>;
   archiveSession(target: WorkspaceSessionTarget): Promise<DesktopAppState>;
   unarchiveSession(target: WorkspaceSessionTarget): Promise<DesktopAppState>;
+  deleteSession(target: WorkspaceSessionTarget): Promise<DesktopAppState>;
   markSessionRead(target: WorkspaceSessionTarget): Promise<DesktopAppState>;
   setSessionPinned(target: WorkspaceSessionTarget, pinned: boolean): Promise<DesktopAppState>;
   createSession(input: CreateSessionInput): Promise<DesktopAppState>;
@@ -859,6 +865,7 @@ export interface PiDesktopApi {
   setIntegratedTerminalShell(shell: string): Promise<DesktopAppState>;
   setEnableTransparency(enabled: boolean): Promise<DesktopAppState>;
   setUiFontSize(px: number): Promise<DesktopAppState>;
+  setArchiveRetentionDays(days: number): Promise<DesktopAppState>;
   setThemePresetId(presetId: ThemePresetId): Promise<DesktopAppState>;
   ensureTerminalPanel(
     workspaceId: string,
@@ -917,6 +924,10 @@ export interface PiDesktopApi {
     text: string,
     options?: { readonly deliverAs?: "steer" | "followUp" },
   ): Promise<DesktopAppState>;
+  /** Saves the selected thread's transcript as Markdown through a native save dialog. */
+  exportTranscript(): Promise<TranscriptExportResult>;
+  /** Copies the selected thread's transcript Markdown to the clipboard; false without a thread. */
+  copyTranscript(): Promise<boolean>;
   getSessionTree(target: WorkspaceSessionTarget): Promise<SessionTreeSnapshot>;
   navigateSessionTree(
     target: WorkspaceSessionTarget,

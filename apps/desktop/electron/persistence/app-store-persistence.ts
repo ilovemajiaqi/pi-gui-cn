@@ -13,6 +13,7 @@ import type {
 } from "../../contracts/desktop-state";
 import { isDesktopLocale, type DesktopLocale } from "../../contracts/ipc";
 import {
+  clampArchiveRetentionDays,
   clampUiFontSize,
   isThemeMode,
   isThemePresetId,
@@ -28,7 +29,7 @@ import { decodeTaskWorkbenchTemplate, type TaskWorkbenchTemplate } from "../../c
 
 export interface PersistedUiState {
   readonly version?:
-    2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20;
+    2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21;
   readonly taskWorkbenchTemplatesBySession?: Record<string, TaskWorkbenchTemplate>;
   readonly selectedWorkspaceId?: string;
   readonly selectedSessionId?: string;
@@ -60,6 +61,8 @@ export interface PersistedUiState {
   readonly allowMultiple?: boolean;
   readonly enableTransparency?: boolean;
   readonly uiFontSize?: number;
+  /** Days an archived thread is kept before the purge deletes it; 0 or absent keeps forever. */
+  readonly archiveRetentionDays?: number;
   readonly themeMode?: ThemeMode;
   readonly themePresetId?: ThemePresetId;
   /**
@@ -153,6 +156,10 @@ export function decodePersistedUiState(parsed: unknown): LegacyPersistedUiState 
       typeof candidate.enableTransparency === "boolean" ? candidate.enableTransparency : undefined,
     uiFontSize:
       typeof candidate.uiFontSize === "number" ? clampUiFontSize(candidate.uiFontSize) : undefined,
+    archiveRetentionDays:
+      typeof candidate.archiveRetentionDays === "number"
+        ? clampArchiveRetentionDays(candidate.archiveRetentionDays)
+        : undefined,
     themeMode: toThemeMode(candidate.themeMode),
     themePresetId: toThemePresetId(candidate.themePresetId),
     locale: toDesktopLocale(candidate.locale),
@@ -169,7 +176,7 @@ export async function writePersistedUiState(
   const serialized = `${JSON.stringify(
     {
       ...payload,
-      version: 20,
+      version: 21,
     } satisfies PersistedUiState,
     null,
     2,
@@ -178,7 +185,7 @@ export async function writePersistedUiState(
   await writeFileAtomicQueued(uiStateFilePath, serialized, decodePersistedUiState, {
     preserveExistingAs: (validated) => {
       const existing = validated as LegacyPersistedUiState;
-      if (existing.version === 20) return undefined;
+      if (existing.version === 21) return undefined;
       return join(
         dirname(uiStateFilePath),
         `${basename(uiStateFilePath, ".json")}.pre-workbench-v${existing.version ?? "legacy"}.${randomUUID()}.json`,
@@ -249,6 +256,7 @@ function validateUiState(value: unknown): Record<string, unknown> {
       "allowMultiple",
       "enableTransparency",
       "uiFontSize",
+      "archiveRetentionDays",
       "themeMode",
       "themePresetId",
       "locale",
@@ -305,6 +313,7 @@ function validateUiState(value: unknown): Record<string, unknown> {
     optional(root, key, boolean);
   optional(root, "activeView", (v) => toAppView(v) !== undefined);
   optional(root, "threadGrouping", isThreadGrouping);
+  optional(root, "archiveRetentionDays", (v) => typeof v === "number" && Number.isFinite(v));
   optional(root, "themeMode", isThemeMode);
   optional(root, "themePresetId", isThemePresetId);
   optional(root, "locale", isDesktopLocale);
@@ -563,7 +572,7 @@ function toAppView(value: unknown): AppView | undefined {
 }
 
 function toPersistedVersion(value: unknown): NonNullable<PersistedUiState["version"]> | undefined {
-  return typeof value === "number" && Number.isInteger(value) && value >= 2 && value <= 20
+  return typeof value === "number" && Number.isInteger(value) && value >= 2 && value <= 21
     ? (value as NonNullable<PersistedUiState["version"]>)
     : undefined;
 }

@@ -22,6 +22,10 @@ export type ComposerSlashCommandKind =
   | "login"
   | "logout"
   | "settings"
+  | "export"
+  | "copy"
+  | "init"
+  | "diff"
   | "scoped-models";
 
 export interface ComposerSlashCommand {
@@ -186,6 +190,46 @@ function buildHostActionSlashCommands(t: Translate): readonly ComposerSlashComma
       submitMode: "immediate",
       section: "host",
     },
+    {
+      id: "host:export",
+      kind: "export",
+      command: "/export",
+      template: "/export",
+      title: t("conversation.commands.export"),
+      description: t("conversation.commands.exportDescription"),
+      submitMode: "immediate",
+      section: "host",
+    },
+    {
+      id: "host:copy",
+      kind: "copy",
+      command: "/copy",
+      template: "/copy",
+      title: t("conversation.commands.copy"),
+      description: t("conversation.commands.copyDescription"),
+      submitMode: "immediate",
+      section: "host",
+    },
+    {
+      id: "host:init",
+      kind: "init",
+      command: "/init",
+      template: "/init",
+      title: t("conversation.commands.init"),
+      description: t("conversation.commands.initDescription"),
+      submitMode: "immediate",
+      section: "host",
+    },
+    {
+      id: "host:diff",
+      kind: "diff",
+      command: "/diff",
+      template: "/diff",
+      title: t("conversation.commands.diff"),
+      description: t("conversation.commands.diffDescription"),
+      submitMode: "immediate",
+      section: "host",
+    },
   ];
 }
 
@@ -226,6 +270,10 @@ export function buildSlashCommandSections(
   compatibilityRecords: readonly ExtensionCommandCompatibilityRecord[] = [],
   options: {
     readonly allowTreeCommand?: boolean;
+    readonly allowExportCommand?: boolean;
+    readonly allowCopyCommand?: boolean;
+    readonly allowInitCommand?: boolean;
+    readonly allowDiffCommand?: boolean;
   } = {},
   t: Translate = translate,
 ): readonly ComposerSlashCommandSection[] {
@@ -252,9 +300,18 @@ export function buildSlashCommandSections(
     }))
     .filter((command) => matchesCommand(command, normalizedQuery));
   const allowTreeCommand = options.allowTreeCommand ?? true;
+  const allowExportCommand = options.allowExportCommand ?? true;
+  const allowCopyCommand = options.allowCopyCommand ?? true;
+  const allowInitCommand = options.allowInitCommand ?? true;
+  const allowDiffCommand = options.allowDiffCommand ?? true;
   const hostMatches = buildHostActionSlashCommands(t).filter(
     (command) =>
-      (allowTreeCommand || command.kind !== "tree") && matchesCommand(command, normalizedQuery),
+      (allowTreeCommand || command.kind !== "tree") &&
+      (allowExportCommand || command.kind !== "export") &&
+      (allowCopyCommand || command.kind !== "copy") &&
+      (allowInitCommand || command.kind !== "init") &&
+      (allowDiffCommand || command.kind !== "diff") &&
+      matchesCommand(command, normalizedQuery),
   );
 
   // Prefer a host action when it is a prefix match and runtime skills only
@@ -540,4 +597,104 @@ export function parseTreeComposerCommand(
   }
 
   return { type: "tree" };
+}
+
+/** `/export` is a host action: it never reaches pi, so the composer intercepts it. */
+export function parseExportComposerCommand(
+  value: string,
+  t: Translate = translate,
+): { readonly type: "export" } | { readonly type: "error"; readonly message: string } | undefined {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("/")) {
+    return undefined;
+  }
+
+  const [command, ...rest] = trimmed.split(/\s+/);
+  if (command !== "/export") {
+    return undefined;
+  }
+
+  if (rest.length > 0) {
+    return {
+      type: "error",
+      message: t("conversation.commands.exportNoArgs"),
+    };
+  }
+
+  return { type: "export" };
+}
+
+/** `/init` submits a fixed scaffold prompt, so the composer intercepts it by name. */
+export function parseInitComposerCommand(
+  value: string,
+  t: Translate = translate,
+): { readonly type: "init" } | { readonly type: "error"; readonly message: string } | undefined {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("/")) {
+    return undefined;
+  }
+
+  const [command, ...rest] = trimmed.split(/\s+/);
+  if (command !== "/init") {
+    return undefined;
+  }
+
+  if (rest.length > 0) {
+    return {
+      type: "error",
+      message: t("conversation.commands.initNoArgs"),
+    };
+  }
+
+  return { type: "init" };
+}
+
+/** `/diff` is a host action that opens the review panel; it never reaches pi. */
+export function parseDiffComposerCommand(
+  value: string,
+  t: Translate = translate,
+): { readonly type: "diff" } | { readonly type: "error"; readonly message: string } | undefined {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("/")) {
+    return undefined;
+  }
+
+  const [command, ...rest] = trimmed.split(/\s+/);
+  if (command !== "/diff") {
+    return undefined;
+  }
+
+  if (rest.length > 0) {
+    return {
+      type: "error",
+      message: t("conversation.commands.diffNoArgs"),
+    };
+  }
+
+  return { type: "diff" };
+}
+
+/** `/copy` copies the thread's Markdown to the clipboard; it never reaches pi. */
+export function parseCopyComposerCommand(
+  value: string,
+  t: Translate = translate,
+): { readonly type: "copy" } | { readonly type: "error"; readonly message: string } | undefined {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("/")) {
+    return undefined;
+  }
+
+  const [command, ...rest] = trimmed.split(/\s+/);
+  if (command !== "/copy") {
+    return undefined;
+  }
+
+  if (rest.length > 0) {
+    return {
+      type: "error",
+      message: t("conversation.commands.copyNoArgs"),
+    };
+  }
+
+  return { type: "copy" };
 }

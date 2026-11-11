@@ -6,6 +6,7 @@ import {
   lastRunOutcome,
   sessionRunOutcome,
   messageText,
+  messageThinking,
   persistedToolOutput,
   shouldPersistSnapshotForAgentEvent,
   transcriptFromMessages,
@@ -107,6 +108,56 @@ await test("persistedToolOutput keeps only the content and details Pi saves", ()
   );
   assert.deepEqual(persistedToolOutput({ content }), { content });
   assert.deepEqual(persistedToolOutput(undefined), {});
+});
+
+await test("messageThinking collects reasoning blocks; redacted and non-assistant content contribute nothing", () => {
+  const withThinking = {
+    role: "assistant",
+    content: [
+      { type: "thinking", thinking: "First reasoning pass." },
+      { type: "text", text: "Answer." },
+      { type: "thinking", thinking: "Second reasoning pass." },
+      { type: "thinking", thinking: "", thinkingSignature: "opaque", redacted: true },
+    ],
+  };
+  assert.equal(messageThinking(withThinking), "First reasoning pass.\n\nSecond reasoning pass.");
+  assert.equal(messageThinking({ role: "assistant", content: "plain text" }), "");
+  assert.equal(
+    messageThinking({ role: "user", content: [{ type: "thinking", thinking: "no" }] }),
+    "",
+  );
+  assert.equal(messageThinking({ role: "assistant" }), "");
+});
+
+await test("transcriptFromMessages keeps a thinking-only assistant reply and carries its reasoning", () => {
+  const transcript = transcriptFromMessages([
+    {
+      role: "assistant",
+      id: "reply-1",
+      content: [
+        { type: "thinking", thinking: "The user wants the diff summarized." },
+        { type: "text", text: "Here is the summary." },
+      ],
+    },
+    {
+      role: "assistant",
+      id: "reply-2",
+      content: [{ type: "thinking", thinking: "Calling the read tool next." }],
+    },
+    {
+      role: "assistant",
+      id: "reply-3",
+      content: [{ type: "text", text: "No reasoning here." }],
+    },
+  ]);
+
+  const messages = transcript.filter((item) => item.kind === "message");
+  assert.equal(messages.length, 3);
+  assert.equal(messages[0]?.thinking, "The user wants the diff summarized.");
+  assert.equal(messages[0]?.text, "Here is the summary.");
+  assert.equal(messages[1]?.thinking, "Calling the read tool next.");
+  assert.equal(messages[1]?.text, "");
+  assert.equal(messages[2]?.thinking, undefined);
 });
 
 await test("transcriptFromMessages shows displayed custom messages the way terminal pi does", () => {

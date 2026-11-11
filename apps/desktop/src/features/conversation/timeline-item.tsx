@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import type {
   SessionTranscriptCustomMessage,
   SessionTranscriptMessage,
@@ -21,6 +21,7 @@ import { useRunningLabel } from "./hooks/use-running-label";
 import {
   activityLabel,
   activityMetadata,
+  formatClockTime,
   formatDuration,
   summaryLabel,
   summaryMetadata,
@@ -65,6 +66,7 @@ export function TimelineItem({
   onExtensionAction,
   annotationMarkers,
   onOpenAnnotation,
+  thinkingActive,
 }: {
   readonly item: DisplayTimelineItem;
   readonly expandedToolCallIds?: ReadonlySet<string>;
@@ -79,6 +81,7 @@ export function TimelineItem({
   readonly onExtensionAction?: RunExtensionAction;
   readonly annotationMarkers?: readonly AnnotationMarker[];
   readonly onOpenAnnotation?: OpenAnnotation;
+  readonly thinkingActive?: boolean;
 }) {
   switch (item.kind) {
     case "turn-marker":
@@ -98,6 +101,7 @@ export function TimelineItem({
           workspacePath={workspacePath}
           annotationMarkers={annotationMarkers}
           onOpenAnnotation={onOpenAnnotation}
+          thinkingActive={thinkingActive}
         />
       );
     case "activity":
@@ -127,6 +131,12 @@ function unhandledTimelineItem(item: never): null {
   return null;
 }
 
+function copyText(text: string): void {
+  void navigator.clipboard.writeText(text).catch((error: unknown) => {
+    console.error("[renderer] navigator.clipboard.writeText failed", error);
+  });
+}
+
 /** An extension message, drawn like terminal pi: its customType labels the markdown. */
 function TimelineCustomMessage({ item }: { readonly item: SessionTranscriptCustomMessage }) {
   return (
@@ -146,6 +156,7 @@ function TimelineMessage({
   onOpenWorkspaceFileLine,
   annotationMarkers,
   onOpenAnnotation,
+  thinkingActive,
 }: {
   readonly item: SessionTranscriptMessage;
   readonly sourceMessageIndex?: number;
@@ -155,8 +166,9 @@ function TimelineMessage({
   readonly onOpenWorkspaceFileLine?: (target: WorkspaceFileLine) => void;
   readonly annotationMarkers?: readonly AnnotationMarker[];
   readonly onOpenAnnotation?: OpenAnnotation;
+  readonly thinkingActive?: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const articleRef = useRef<HTMLElement | null>(null);
   const crossProject = useMemo(
     () => (item.role === "user" ? parseCrossProjectMessage(item.text) : null),
@@ -223,6 +235,21 @@ function TimelineMessage({
             {annotated ? <SentAnnotations annotations={annotated.annotations} /> : null}
             {annotated && !body.trim() ? null : <MessageMarkdown annotationRoot text={body} />}
           </div>
+          <div className="timeline-item__user-meta">
+            <time className="timeline-item__timestamp" title={item.createdAt}>
+              {formatClockTime(item.createdAt, locale)}
+            </time>
+            <button
+              type="button"
+              className="timeline-item__action"
+              title={t("conversation.timeline.copy")}
+              aria-label={t("conversation.timeline.copy")}
+              data-testid="copy-message"
+              onClick={() => copyText(body)}
+            >
+              <CopyIcon />
+            </button>
+          </div>
         </div>
         {markers}
       </article>
@@ -247,14 +274,25 @@ function TimelineMessage({
   const forkable = sourceMessageIndex !== undefined;
   return (
     <article className="timeline-item timeline-item--assistant" ref={articleRef}>
+      {item.thinking ? <ThinkingBlock thinking={item.thinking} active={thinkingActive} /> : null}
       <MessageMarkdown
         annotationRoot
         onOpenWorkspaceFileLine={onOpenWorkspaceFileLine}
         text={item.text}
         workspacePath={workspacePath}
       />
-      {forkable ? (
-        <div className="timeline-item__actions">
+      <div className="timeline-item__actions">
+        <button
+          type="button"
+          className="timeline-item__action"
+          title={t("conversation.timeline.copy")}
+          aria-label={t("conversation.timeline.copy")}
+          data-testid="copy-message"
+          onClick={() => copyText(item.text)}
+        >
+          <CopyIcon />
+        </button>
+        {forkable ? (
           <button
             type="button"
             className="timeline-item__action"
@@ -271,10 +309,58 @@ function TimelineMessage({
             <ForkIcon />
             <span className="timeline-item__action-label">{t("conversation.timeline.fork")}</span>
           </button>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
       {markers}
     </article>
+  );
+}
+
+/**
+ * The assistant message's reasoning, collapsed to one quiet line while streaming and after
+ * the run, expandable to the full text the model produced. Only rendered for messages
+ * that carry thinking content, so non-thinking models see no dead UI.
+ */
+function ThinkingBlock({
+  thinking,
+  active,
+}: {
+  readonly thinking: string;
+  readonly active?: boolean;
+}) {
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+  const firstLine = useMemo(() => {
+    const line = thinking.split("\n").find((candidate) => candidate.trim().length > 0);
+    if (!line) return "";
+    return line.length > 160 ? `${line.slice(0, 160)}…` : line;
+  }, [thinking]);
+
+  return (
+    <div
+      className={`timeline-thinking${active ? " timeline-thinking--active" : ""}`}
+      data-testid="timeline-thinking"
+    >
+      <button
+        type="button"
+        className="timeline-thinking__toggle"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((value) => !value)}
+      >
+        <span className="timeline-thinking__chevron" aria-hidden="true">
+          <ChevronRightIcon />
+        </span>
+        <span className="timeline-thinking__label">
+          {active
+            ? t("conversation.timeline.thinkingRunning")
+            : t("conversation.timeline.thinking")}
+        </span>
+        {!expanded && firstLine ? (
+          <span className="timeline-thinking__preview">{firstLine}</span>
+        ) : null}
+      </button>
+      {expanded ? <div className="timeline-thinking__body">{thinking}</div> : null}
+    </div>
   );
 }
 

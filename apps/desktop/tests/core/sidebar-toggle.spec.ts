@@ -71,19 +71,29 @@ async function setElectronWindowSize(
   window: Page,
   width: number,
   height: number,
-): Promise<void> {
-  const didSetSize = await app.evaluate(
-    ({ BrowserWindow }, size) => {
+): Promise<{ readonly width: number; readonly height: number }> {
+  // A small host display refuses a window larger than its work area, and a decorated
+  // window's frame shrinks the content box, so size the content box and assert what the
+  // OS actually granted instead of the raw request.
+  const target = await app.evaluate(
+    ({ BrowserWindow, screen }, size) => {
       const window = BrowserWindow.getAllWindows()[0];
       if (!window) {
-        return false;
+        return undefined;
       }
-      window.setSize(size.width, size.height);
-      return true;
+      const workArea = screen.getPrimaryDisplay().workAreaSize;
+      window.setContentSize(
+        Math.min(size.width, workArea.width),
+        Math.min(size.height, workArea.height),
+      );
+      const [width, height] = window.getContentSize();
+      return { width, height };
     },
     { width, height },
   );
-  expect(didSetSize).toBe(true);
+  if (!target) {
+    throw new Error("Expected an Electron BrowserWindow to resize");
+  }
   await expect
     .poll(() =>
       window.evaluate(() => ({
@@ -91,7 +101,8 @@ async function setElectronWindowSize(
         width: globalThis.window.innerWidth,
       })),
     )
-    .toEqual({ height, width });
+    .toEqual(target);
+  return target;
 }
 
 async function writeProofScreenshot(window: Page, name: string): Promise<void> {
@@ -247,7 +258,12 @@ test("keeps collapsed sidebar out of narrow windows and reopens from the button"
   try {
     window = await run.firstWindow();
     await waitForWorkspaceByPath(window, workspacePath);
-    await setElectronWindowSize(run.electronApp, window, NARROW_WINDOW_WIDTH, NARROW_WINDOW_HEIGHT);
+    const narrowSize = await setElectronWindowSize(
+      run.electronApp,
+      window,
+      NARROW_WINDOW_WIDTH,
+      NARROW_WINDOW_HEIGHT,
+    );
     await expect(window.getByTestId("sidebar-toggle")).toBeVisible();
 
     await window.keyboard.press(desktopShortcut("B"));
@@ -261,7 +277,7 @@ test("keeps collapsed sidebar out of narrow windows and reopens from the button"
         "Expected collapsed narrow layout to include main, topbar, and sidebar toggle",
       );
     }
-    expect(collapsedLayout.viewportWidth).toBeLessThanOrEqual(NARROW_WINDOW_WIDTH);
+    expect(collapsedLayout.viewportWidth).toBeLessThanOrEqual(narrowSize.width);
     expect(collapsedLayout.mainLeft).toBeLessThanOrEqual(1);
     expect(collapsedLayout.mainRight).toBeGreaterThanOrEqual(collapsedLayout.viewportWidth - 1);
     expect(collapsedLayout.mainWidth).toBeGreaterThanOrEqual(collapsedLayout.viewportWidth - 1);

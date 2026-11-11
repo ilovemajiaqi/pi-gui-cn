@@ -36,6 +36,7 @@ import {
 import type { ExtensionActionEffect, ExtensionActionRequest } from "../contracts/extension-actions";
 import type { ClipboardImageRead } from "../contracts/composer-attachments";
 import type { DesktopEditorList } from "../contracts/editors";
+import type { TranscriptExportResult } from "../contracts/transcript-export";
 import type { SaveTaskWorkbenchTemplateInput, TaskWorkbenchTemplate } from "../contracts/workbench";
 import type {
   TurnChangesInput,
@@ -273,6 +274,8 @@ contextBridge.exposeInMainWorld("piApp", {
     ipcRenderer.invoke(desktopIpc.archiveSession, target) as Promise<DesktopAppState>,
   unarchiveSession: (target: WorkspaceSessionTarget) =>
     ipcRenderer.invoke(desktopIpc.unarchiveSession, target) as Promise<DesktopAppState>,
+  deleteSession: (target: WorkspaceSessionTarget) =>
+    ipcRenderer.invoke(desktopIpc.deleteSession, target) as Promise<DesktopAppState>,
   markSessionRead: (target: WorkspaceSessionTarget) =>
     ipcRenderer.invoke(desktopIpc.markSessionRead, target) as Promise<DesktopAppState>,
   setSessionPinned: (target: WorkspaceSessionTarget, pinned: boolean) =>
@@ -456,6 +459,8 @@ contextBridge.exposeInMainWorld("piApp", {
     ) as Promise<DesktopAppState>,
   setUiFontSize: (px: number) =>
     ipcRenderer.invoke(desktopIpc.setUiFontSize, px) as Promise<DesktopAppState>,
+  setArchiveRetentionDays: (days: number) =>
+    ipcRenderer.invoke(desktopIpc.setArchiveRetentionDays, days) as Promise<DesktopAppState>,
   setEnableTransparency: (enabled: boolean) =>
     ipcRenderer.invoke(desktopIpc.setEnableTransparency, enabled) as Promise<DesktopAppState>,
   setThemePresetId: (presetId: ThemePresetId) =>
@@ -587,6 +592,9 @@ contextBridge.exposeInMainWorld("piApp", {
   },
   submitComposer: (text: string, options?: { readonly deliverAs?: "steer" | "followUp" }) =>
     ipcRenderer.invoke(desktopIpc.submitComposer, text, options) as Promise<DesktopAppState>,
+  exportTranscript: () =>
+    ipcRenderer.invoke(desktopIpc.exportTranscript) as Promise<TranscriptExportResult>,
+  copyTranscript: () => ipcRenderer.invoke(desktopIpc.copyTranscript) as Promise<boolean>,
   getSessionTree: (target: WorkspaceSessionTarget) =>
     ipcRenderer.invoke(desktopIpc.getSessionTree, target) as Promise<SessionTreeSnapshot>,
   navigateSessionTree: (

@@ -40,6 +40,7 @@ type WorkspaceDriver = Pick<
   | "archiveSession"
   | "archiveSessionIfIdle"
   | "createSession"
+  | "deleteSession"
   | "forkSession"
   | "generateThreadTitle"
   | "removeWorkspace"
@@ -120,6 +121,8 @@ export interface WorkspaceOwner {
     expect: { readonly lastRunOutcome: SessionRunOutcome },
   ): Promise<DesktopAppState>;
   unarchiveSession(target: WorkspaceSessionTarget): Promise<DesktopAppState>;
+  /** Permanently deletes a thread's transcript and catalog entry. Not recoverable. */
+  deleteSession(target: WorkspaceSessionTarget): Promise<DesktopAppState>;
   createSession(input: CreateSessionInput): Promise<DesktopAppState>;
   syncCurrentWorkspace(): Promise<DesktopAppState>;
   createWorktree(input: CreateWorktreeInput): Promise<DesktopAppState>;
@@ -143,6 +146,7 @@ export function createWorkspaceOwner(store: WorkspaceOwnerHost): WorkspaceOwner 
     archiveSession: (target) => archiveSession(store, target),
     archiveIdleSession: (sessionRef, expect) => archiveIdleSession(store, sessionRef, expect),
     unarchiveSession: (target) => unarchiveSession(store, target),
+    deleteSession: (target) => deleteSession(store, target),
     createSession: (input) => createSession(store, input),
     syncCurrentWorkspace: () => syncCurrentWorkspace(store),
     createWorktree: (input) => worktree.createWorktree(store, input),
@@ -328,6 +332,26 @@ async function archiveSession(
   });
 }
 
+async function deleteSession(
+  store: WorkspaceOwnerHost,
+  target: WorkspaceSessionTarget,
+): Promise<DesktopAppState> {
+  await store.initialize();
+
+  return store.withErrorHandling(async () => {
+    const sessionRef = toSessionRef(target);
+    if (!store.sessionFromState(sessionRef)) {
+      return store.withError(`Unknown session: ${target.workspaceId}:${target.sessionId}`);
+    }
+
+    store.clearPendingAutoTitle(sessionRef);
+    store.unpinSession(sessionRef);
+    // Deleting the open thread selects another one, which drops a draft still in its debounce.
+    await store.driver.deleteSession(sessionRef);
+    return store.refreshState(selectionAfterDeleting(store.workspaceState(), target));
+  });
+}
+
 async function archiveIdleSession(
   store: WorkspaceOwnerHost,
   sessionRef: SessionRef,
@@ -342,7 +366,26 @@ async function archiveIdleSession(
   return store.refreshState();
 }
 
+/** Archives leave the archived thread's list, so they always land back on Threads. */
 function selectionAfterArchiving(
+  state: WorkspaceStateView,
+  target: WorkspaceSessionTarget,
+): RefreshStateOptions {
+  return { ...selectionAfterRemoving(state, target), activeView: "threads" };
+}
+
+/**
+ * Deletion is reachable from the sidebar and from the Archived threads page, so it keeps
+ * the destination the user was on instead of forcing the thread list.
+ */
+function selectionAfterDeleting(
+  state: WorkspaceStateView,
+  target: WorkspaceSessionTarget,
+): RefreshStateOptions {
+  return selectionAfterRemoving(state, target);
+}
+
+function selectionAfterRemoving(
   state: WorkspaceStateView,
   target: WorkspaceSessionTarget,
 ): RefreshStateOptions {
@@ -354,7 +397,6 @@ function selectionAfterArchiving(
       selectedWorkspaceId: state.selectedWorkspaceId,
       selectedSessionId: state.selectedSessionId,
       clearLastError: true,
-      activeView: "threads",
     };
   }
 
@@ -364,7 +406,6 @@ function selectionAfterArchiving(
       selectedWorkspaceId: state.selectedWorkspaceId,
       selectedSessionId: state.selectedSessionId,
       clearLastError: true,
-      activeView: "threads",
     };
   }
 
@@ -396,7 +437,6 @@ function selectionAfterArchiving(
     selectedWorkspaceId: next?.workspaceId ?? target.workspaceId,
     selectedSessionId: next?.session.id ?? "",
     clearLastError: true,
-    activeView: "threads",
   };
 }
 
@@ -418,7 +458,6 @@ async function unarchiveSession(
           ? target.sessionId
           : state.selectedSessionId,
       clearLastError: true,
-      activeView: "threads",
     });
   });
 }

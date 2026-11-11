@@ -273,6 +273,31 @@ export function RestoreIcon() {
   );
 }
 
+export function TrashIcon() {
+  return (
+    <Icon>
+      <path
+        d="M4.2 5.4h11.6M8.1 5.4V4.2a.9.9 0 0 1 .9-.9h2a.9.9 0 0 1 .9.9v1.2"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.35"
+      />
+      <path
+        d="M5.5 5.4l.7 9.4a1.2 1.2 0 0 0 1.2 1.1h5.2a1.2 1.2 0 0 0 1.2-1.1l.7-9.4"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.35"
+      />
+      <path
+        d="M8.5 8.3v4.9M11.5 8.3v4.9"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.35"
+      />
+    </Icon>
+  );
+}
+
 export function ChevronDownIcon() {
   return (
     <Icon>

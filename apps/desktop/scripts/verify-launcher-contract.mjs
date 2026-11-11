@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
 
-import { run, spawnProcess } from "./launcher.mjs";
+import { electronLaunchEnv, run, spawnProcess } from "./launcher.mjs";
 
 const require = createRequire(import.meta.url);
 const { augmentPosixPath } = require("./augment-path.cjs");
@@ -14,6 +14,37 @@ const POSIX_DELIMITER = ":";
 // ---------------------------------------------------------------------------
 // PATH augmentation contract
 // ---------------------------------------------------------------------------
+
+function verifyElectronLaunchEnv() {
+  // `ELECTRON_RUN_AS_NODE=1` turns the Electron binary into Node and it then rejects
+  // Chromium switches with `bad option: --remote-debugging-port=0`. Launchers must strip it.
+  const stripped = electronLaunchEnv({
+    ELECTRON_RUN_AS_NODE: "1",
+    PATH: "/usr/bin",
+    HOME: "/home/pi",
+  });
+  assert.equal(stripped.ELECTRON_RUN_AS_NODE, undefined, "ELECTRON_RUN_AS_NODE must be removed");
+  assert.equal(stripped.PATH, "/usr/bin", "unrelated env must survive verbatim");
+  assert.equal(stripped.HOME, "/home/pi", "unrelated env must survive verbatim");
+
+  const untouched = electronLaunchEnv({ PATH: "/usr/bin" });
+  assert.deepEqual(untouched, { PATH: "/usr/bin" }, "an already-clean env must not gain keys");
+
+  const ambientBefore = process.env.ELECTRON_RUN_AS_NODE;
+  const defaultsFromProcess = electronLaunchEnv();
+  assert.notStrictEqual(defaultsFromProcess, process.env, "must copy, not mutate process.env");
+  assert.equal(
+    defaultsFromProcess.ELECTRON_RUN_AS_NODE,
+    undefined,
+    "a process env carrying the flag must still produce a clean launch env",
+  );
+  assert.equal(
+    process.env.ELECTRON_RUN_AS_NODE,
+    ambientBefore,
+    "must never mutate the caller's env",
+  );
+  console.log("ok - electron launch env drops ELECTRON_RUN_AS_NODE");
+}
 
 function verifyPathContract() {
   // Windows PATH must be left completely untouched (no POSIX entries, no
@@ -207,5 +238,6 @@ function captureStdout(command, args, options) {
 }
 
 verifyPathContract();
+verifyElectronLaunchEnv();
 await verifyLauncherContract();
 console.log("Verified dev launcher argv/PATH contract");

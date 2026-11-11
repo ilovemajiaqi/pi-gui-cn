@@ -36,6 +36,7 @@ function handlers(
     markRead: record("mark-read"),
     openScheduledTask: record("scheduled"),
     copySessionId: record("copy"),
+    requestDelete: record("delete"),
   };
 }
 
@@ -43,7 +44,7 @@ function titles(actions: readonly { readonly title: string }[]): string[] {
   return actions.map((action) => action.title);
 }
 
-test("an open thread lists rename, pin, archive, scheduled task and copy with shortcut hints", () => {
+test("an open thread lists rename, pin, archive, scheduled task, copy and delete", () => {
   const actions = buildThreadActions({ workspaceId: "ws", session: session() }, handlers("darwin"));
   expect(titles(actions)).toEqual([
     "Rename thread",
@@ -51,11 +52,25 @@ test("an open thread lists rename, pin, archive, scheduled task and copy with sh
     "Archive thread",
     "Add scheduled task…",
     "Copy session ID",
+    "Delete thread",
   ]);
   expect(actions.find((action) => action.id === "rename-thread")?.hint).toBe("⇧⌘R");
   expect(actions.find((action) => action.id === "archive-thread")?.hint).toBe("⇧⌘A");
   const linux = buildThreadActions({ workspaceId: "ws", session: session() }, handlers("linux"));
   expect(linux.find((action) => action.id === "archive-thread")?.hint).toBe("Ctrl+Shift+A");
+});
+
+test("delete is last and dangerous, and only asks for confirmation", () => {
+  const recorder = handlers("linux");
+  const actions = buildThreadActions({ workspaceId: "ws", session: session() }, recorder);
+  const last = actions[actions.length - 1];
+  expect(last.id).toBe("delete-thread");
+  expect(last.title).toBe("Delete thread");
+  expect(last.danger).toBe(true);
+  // The handler stages the request; the dialog performs the deletion.
+  last.run();
+  expect(recorder.calls).toEqual(["delete"]);
+  expect(actions.filter((action) => action.danger)).toHaveLength(1);
 });
 
 test("state changes the list: pinned, unseen, scheduled and archived threads", () => {
@@ -71,6 +86,7 @@ test("state changes the list: pinned, unseen, scheduled and archived threads", (
     "Mark as read",
     "Edit scheduled task…",
     "Copy session ID",
+    "Delete thread",
   ]);
   actions.find((action) => action.id === "pin-thread")?.run();
   expect(recorder.calls).toEqual(["pin:false"]);
@@ -84,6 +100,7 @@ test("state changes the list: pinned, unseen, scheduled and archived threads", (
     "Restore thread",
     "Add scheduled task…",
     "Copy session ID",
+    "Delete thread",
   ]);
   expect(archived.some((action) => action.id === "archive-thread")).toBe(false);
 });

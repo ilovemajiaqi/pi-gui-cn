@@ -68,6 +68,16 @@ export interface ScheduledTaskOwner {
   createScheduledTask(input: CreateScheduledTaskInput): Promise<DesktopAppState>;
   updateScheduledTask(id: string, patch: UpdateScheduledTaskInput): Promise<DesktopAppState>;
   deleteScheduledTask(id: string): Promise<DesktopAppState>;
+  /**
+   * Stops every task bound to a thread without discarding it. An archived thread cannot host a
+   * run, and deleting the thread deletes the task, so pausing keeps the schedule recoverable.
+   */
+  pauseTasksForSession(sessionRef: SessionRef): Promise<void>;
+  /**
+   * Drops every task bound to a thread. Used when the thread itself is deleted: nothing is left
+   * to run the task against, and the user deleted the thread it belonged to.
+   */
+  deleteTasksForSession(sessionRef: SessionRef): Promise<void>;
   beginScheduledTaskInterview(): Promise<DesktopAppState>;
   fireDueScheduledTasks(now?: Date): Promise<DesktopAppState>;
   createScheduledTaskToolResult(
@@ -204,6 +214,10 @@ export function createScheduledTaskOwner(store: ScheduledTaskOwnerHost): Schedul
     updateScheduledTask: (id, patch) =>
       enqueueMutation(() => updateScheduledTask(store, id, patch)),
     deleteScheduledTask: (id) => enqueueMutation(() => deleteScheduledTask(store, id)),
+    deleteTasksForSession: (sessionRef) =>
+      enqueueMutation(() => deleteTasksForSession(store, sessionRef)),
+    pauseTasksForSession: (sessionRef) =>
+      enqueueMutation(() => pauseTasksForSession(store, sessionRef)),
     beginScheduledTaskInterview: () => enqueueMutation(() => beginScheduledTaskInterview(store)),
     fireDueScheduledTasks: (now) => fireDueScheduledTasks(store, now ?? new Date()),
     createScheduledTaskToolResult: (parentRef, input) =>
@@ -434,6 +448,53 @@ async function deleteScheduledTask(
     store.scheduledTasks().filter((task) => task.id !== id),
     true,
   );
+}
+
+async function pauseTasksForSession(
+  store: ScheduledTaskOwnerHost,
+  sessionRef: SessionRef,
+): Promise<void> {
+  await store.initialize();
+  const now = new Date();
+  let changed = false;
+  const next = store.scheduledTasks().map((task) => {
+    if (
+      task.status !== "active" ||
+      task.target.kind !== "existing-thread" ||
+      task.target.sessionId !== sessionRef.sessionId
+    ) {
+      return task;
+    }
+    changed = true;
+    return pauseWithError(task, now, "The thread was archived, so its scheduled task was paused.");
+  });
+  if (!changed) {
+    return;
+  }
+  store.replaceScheduledTasks(next.map(cloneTask));
+  if (store.canWriteScheduledTasks()) {
+    await store.persistScheduledTasks();
+  }
+}
+
+async function deleteTasksForSession(
+  store: ScheduledTaskOwnerHost,
+  sessionRef: SessionRef,
+): Promise<void> {
+  await store.initialize();
+  const remaining = store
+    .scheduledTasks()
+    .filter(
+      (task) =>
+        !(task.target.kind === "existing-thread" && task.target.sessionId === sessionRef.sessionId),
+    );
+  if (remaining.length === store.scheduledTasks().length) {
+    return;
+  }
+  store.replaceScheduledTasks(remaining.map(cloneTask));
+  if (store.canWriteScheduledTasks()) {
+    await store.persistScheduledTasks();
+  }
 }
 
 async function beginScheduledTaskInterview(

@@ -1,6 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { run, start } from "./launcher.mjs";
+import { electronLaunchEnv, run, start } from "./launcher.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const desktopDir = path.resolve(__dirname, "..");
@@ -38,7 +38,12 @@ async function main() {
       desktopDir,
     ),
     start("pnpm", ["--dir", repoRoot, "--filter", extensionUiPackage, "run", "watch"], desktopDir),
-    start("pnpm", ["exec", "electron-vite", "dev", "--watch", ...extraArgs], desktopDir),
+    start(
+      "pnpm",
+      ["exec", "electron-vite", "dev", "--watch", ...extraArgs],
+      desktopDir,
+      electronLaunchEnv(),
+    ),
   ];
 
   let exiting = false;

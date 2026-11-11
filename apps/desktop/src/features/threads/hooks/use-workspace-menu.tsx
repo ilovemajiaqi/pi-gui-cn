@@ -37,12 +37,21 @@ export interface WorkspaceMenuState {
   readonly submitRename: (workspace: WorkspaceRecord) => void;
   readonly cancelRename: () => void;
   readonly removeWorkspace: (workspace: WorkspaceRecord) => void;
+  readonly removeWorktree: (workspaceId: string, worktree: WorktreeRecord) => void;
+  /** Staged destructive request: the in-app dialog decides, not window.confirm. */
+  readonly pendingRemove:
+    | { readonly kind: "workspace"; readonly workspace: WorkspaceRecord }
+    | { readonly kind: "worktree"; readonly workspaceId: string; readonly worktree: WorktreeRecord }
+    | null;
+  readonly removing: boolean;
+  readonly removeError: string | undefined;
+  readonly confirmRemove: () => void;
+  readonly cancelRemove: () => void;
   readonly createWorktree: (
     workspaceId: string,
     fromSessionWorkspaceId?: string,
     fromSessionId?: string,
   ) => void;
-  readonly removeWorktree: (workspaceId: string, worktree: WorktreeRecord) => void;
   readonly selectWorkspace: (workspaceId: string) => void;
   readonly runWorkspaceMenuAction: (
     event: ReactMouseEvent<HTMLElement>,
@@ -56,6 +65,13 @@ export function useWorkspaceMenu(params: UseWorkspaceMenuParams): WorkspaceMenuS
   const [workspaceMenuId, setWorkspaceMenuId] = useState<string | null>(null);
   const [workspaceRenameId, setWorkspaceRenameId] = useState<string | null>(null);
   const [workspaceRenameDraft, setWorkspaceRenameDraft] = useState("");
+  const [pendingRemove, setPendingRemove] = useState<
+    | { readonly kind: "workspace"; readonly workspace: WorkspaceRecord }
+    | { readonly kind: "worktree"; readonly workspaceId: string; readonly worktree: WorktreeRecord }
+    | null
+  >(null);
+  const [removing, setRemoving] = useState(false);
+  const [removeError, setRemoveError] = useState<string | undefined>(undefined);
 
   const workspaceMenuWrapRef = useRef<HTMLSpanElement | null>(null);
   const workspaceRenamePanelRef = useRef<HTMLFormElement | null>(null);
@@ -141,19 +157,10 @@ export function useWorkspaceMenu(params: UseWorkspaceMenuParams): WorkspaceMenuS
   };
 
   const removeWorkspace = (workspace: WorkspaceRecord) => {
-    const confirmed = window.confirm(
-      `Remove ${workspace.name} from pi-gui? This will not delete any files.`,
-    );
     setWorkspaceMenuId(null);
     setWorkspaceRenameId(null);
-    if (!confirmed || !api) {
-      return;
-    }
-    void updateSnapshot(setSnapshot, () => api.removeWorkspace(workspace.id)).catch(
-      (error: unknown) => {
-        console.error("[renderer] removeWorkspace failed", error);
-      },
-    );
+    setRemoveError(undefined);
+    setPendingRemove({ kind: "workspace", workspace });
   };
 
   const createWorktree = (
@@ -173,17 +180,44 @@ export function useWorkspaceMenu(params: UseWorkspaceMenuParams): WorkspaceMenuS
   };
 
   const removeWorktree = (workspaceId: string, worktree: WorktreeRecord) => {
-    const confirmed = window.confirm(
-      `Remove worktree ${worktree.name}? This removes the git worktree from disk.`,
-    );
-    if (!confirmed || !api) {
+    setRemoveError(undefined);
+    setPendingRemove({ kind: "worktree", workspaceId, worktree });
+  };
+
+  const cancelRemove = () => {
+    if (removing) {
       return;
     }
-    void updateSnapshot(setSnapshot, () =>
-      api.removeWorktree({ workspaceId, worktreeId: worktree.id }),
-    ).catch((error: unknown) => {
-      console.error("[renderer] updateSnapshot failed", error);
-    });
+    setPendingRemove(null);
+    setRemoveError(undefined);
+  };
+
+  const confirmRemove = () => {
+    const request = pendingRemove;
+    if (!request || !api || removing) {
+      return;
+    }
+    setRemoving(true);
+    setRemoveError(undefined);
+    const action =
+      request.kind === "workspace"
+        ? () => api.removeWorkspace(request.workspace.id)
+        : () =>
+            api.removeWorktree({
+              workspaceId: request.workspaceId,
+              worktreeId: request.worktree.id,
+            });
+    void updateSnapshot(setSnapshot, action)
+      .then(() => {
+        setPendingRemove(null);
+      })
+      .catch((error: unknown) => {
+        console.error("[renderer] remove failed", error);
+        setRemoveError(error instanceof Error ? error.message : String(error));
+      })
+      .finally(() => {
+        setRemoving(false);
+      });
   };
 
   const selectWorkspace = (workspaceId: string) => {
@@ -218,8 +252,13 @@ export function useWorkspaceMenu(params: UseWorkspaceMenuParams): WorkspaceMenuS
     submitRename,
     cancelRename,
     removeWorkspace,
-    createWorktree,
     removeWorktree,
+    pendingRemove,
+    removing,
+    removeError,
+    confirmRemove,
+    cancelRemove,
+    createWorktree,
     selectWorkspace,
     runWorkspaceMenuAction,
   };

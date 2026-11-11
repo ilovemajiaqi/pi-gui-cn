@@ -45,6 +45,7 @@ import { getDesktopShortcutLabel } from "../../contracts/ipc";
 import { CommandPaletteSurface } from "../features/command-palette/command-palette-surface";
 import { deriveModelOnboardingState } from "../features/settings/model-onboarding";
 import type { SettingsSection } from "../features/settings/settings-view";
+import { AppOverlays } from "./app-overlays";
 import { SecondarySurfaces } from "./secondary-surfaces";
 import { NewThreadView } from "../features/threads/new-thread-view";
 import {
@@ -68,10 +69,7 @@ import { Topbar } from "./topbar";
 import { TerminalPanel } from "../features/workbench/terminal-panel";
 import { ConversationTimeline } from "../features/conversation/conversation-timeline";
 import { ScheduledTasksView } from "../features/scheduled-tasks/scheduled-tasks-view";
-import {
-  ScheduledTaskEditor,
-  type ScheduledEditorState,
-} from "../features/scheduled-tasks/scheduled-task-editor";
+import type { ScheduledEditorState } from "../features/scheduled-tasks/scheduled-task-editor";
 import { ScheduledTaskChip } from "../features/scheduled-tasks/scheduled-task-chip";
 import { useSlashMenu } from "../features/conversation/hooks/use-slash-menu";
 import { useMentionMenu } from "../features/conversation/hooks/use-mention-menu";
@@ -527,6 +525,7 @@ export default function App() {
     updateSnapshot,
     allowTreeCommand: true,
     onRunTreeCommand: openTreeModal,
+    onRunDiffCommand: () => workbench.openTool({ kind: "changes" }),
   });
 
   const enableSelectedMentionExtension = useCallback(
@@ -618,6 +617,7 @@ export default function App() {
     composerRef,
     requiresModelSelection: selectedSessionModelOnboarding.requiresModelSelection,
     openTreeModal,
+    openReviewPanel: () => workbench.openTool({ kind: "changes" }),
     handleMentionKeyDown: mentionMenu.handleMentionKeyDown,
     handleSlashKeyDown: slashMenu.handleSlashKeyDown,
     newThreadComposerRef: newThread.composerRef,
@@ -1023,6 +1023,9 @@ export default function App() {
           onSelectSession={sidebarDrawer.thenDismiss(handleSelectSession)}
           onSetSessionPinned={threadMenu.setPinned}
           onUnarchiveSession={threadMenu.restore}
+          onOpenArchiveSettings={() =>
+            openSettings(selectedWorkspace?.rootWorkspaceId ?? selectedWorkspace?.id, "archive")
+          }
         />
       ) : null}
 
@@ -1417,23 +1420,18 @@ export default function App() {
         ) : null}
       </main>
       <SidebarDrawerBackdrop drawer={sidebarDrawer} />
-      {scheduledEditor ? (
-        <ScheduledTaskEditor
-          editor={scheduledEditor}
-          task={
-            scheduledEditor.mode === "edit"
-              ? snapshot.scheduledTasks.find((task) => task.id === scheduledEditor.taskId)
-              : undefined
-          }
-          workspaces={snapshot.workspaces}
-          selectedWorkspaceId={snapshot.selectedWorkspaceId}
-          busy={false}
-          error={snapshot.lastError}
-          onClose={() => setScheduledEditor(null)}
-          onSubmit={handleSubmitScheduledTask}
-          onOpenChat={handleOpenScheduledChat}
-        />
-      ) : null}
+      <AppOverlays
+        threadMenu={threadMenu}
+        workspaceMenu={wsMenu}
+        scheduledEditor={scheduledEditor}
+        scheduledTasks={snapshot.scheduledTasks}
+        workspaces={snapshot.workspaces}
+        selectedWorkspaceId={snapshot.selectedWorkspaceId}
+        error={snapshot.lastError}
+        onCloseScheduledEditor={() => setScheduledEditor(null)}
+        onSubmitScheduledTask={handleSubmitScheduledTask}
+        onOpenScheduledChat={handleOpenScheduledChat}
+      />
       {threadSwitcher.state?.overlayVisible ? (
         <ThreadSwitcher state={threadSwitcher.state} onChoose={threadSwitcher.choose} />
       ) : null}

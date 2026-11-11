@@ -205,6 +205,12 @@ export interface AssistantDeltaEvent extends SessionEventBase {
   readonly text: string;
 }
 
+/** Streams one reasoning-token delta for the active assistant message. */
+export interface AssistantThinkingDeltaEvent extends SessionEventBase {
+  readonly type: "assistantThinkingDelta";
+  readonly text: string;
+}
+
 /** Finalizes one assistant message while the containing run may continue. */
 export interface AssistantMessageEndedEvent extends SessionEventBase {
   readonly type: "assistantMessageEnded";
@@ -378,6 +384,7 @@ export type SessionDriverEvent =
   | SessionOpenedEvent
   | SessionUpdatedEvent
   | AssistantDeltaEvent
+  | AssistantThinkingDeltaEvent
   | AssistantMessageEndedEvent
   | AssistantMessagePersistedEvent
   | TranscriptItemAppendedEvent

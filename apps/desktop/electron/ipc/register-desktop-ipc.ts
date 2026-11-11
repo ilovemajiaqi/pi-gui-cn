@@ -1,4 +1,4 @@
-import { ipcMain, shell, type BrowserWindow, type IpcMainInvokeEvent } from "electron";
+import { clipboard, ipcMain, shell, type BrowserWindow, type IpcMainInvokeEvent } from "electron";
 import path from "node:path";
 import type { SessionRef } from "@pi-gui/session-driver";
 import type {
@@ -16,6 +16,10 @@ import {
   type CustomProviderProbeInput,
   type CustomProviderProbeResult,
 } from "../../contracts/ipc";
+import type {
+  TranscriptExportDocument,
+  TranscriptExportResult,
+} from "../../contracts/transcript-export";
 import type { DesktopAppStore } from "../application/app-store";
 import type { NotificationPermissionService } from "../platform/notification-permission";
 import type { EditorService } from "../platform/editors/editor-service";
@@ -105,6 +109,7 @@ type ConversationOwner = Pick<
   | "renameSession"
   | "archiveSession"
   | "unarchiveSession"
+  | "deleteSession"
   | "markSessionRead"
   | "setSessionPinned"
   | "createSession"
@@ -119,6 +124,7 @@ type ConversationOwner = Pick<
   | "steerQueuedComposerMessage"
   | "updateComposerDraft"
   | "submitComposer"
+  | "buildTranscriptExport"
   | "composerSubmitNeedsSenderView"
   | "runExtensionCommand"
   | "reportExtensionActionFailure"
@@ -168,6 +174,7 @@ type SettingsOwner = Pick<
   | "setIntegratedTerminalShell"
   | "setEnableTransparency"
   | "setUiFontSize"
+  | "setArchiveRetentionDays"
   | "getSkillFilePath"
   | "getExtensionFilePath"
 >;
@@ -208,6 +215,10 @@ export interface DesktopIpcCapabilities {
     window: BrowserWindow,
     existing?: readonly ComposerAttachment[],
   ) => Promise<readonly ComposerAttachment[] | undefined>;
+  readonly saveTranscriptMarkdown: (
+    window: BrowserWindow,
+    exportDocument: TranscriptExportDocument,
+  ) => Promise<TranscriptExportResult>;
   readonly readClipboardImage: () => ClipboardImageRead;
   readonly validateComposerAttachments: (
     attachments: readonly ComposerAttachment[],
@@ -425,6 +436,10 @@ export function registerDesktopIpc({
   ipcMain.handle(desktopIpc.unarchiveSession, (event, rawTarget: unknown) => {
     const target = expectSessionTarget(rawTarget);
     return run(event, () => owners.conversation.unarchiveSession(target));
+  });
+  ipcMain.handle(desktopIpc.deleteSession, (event, rawTarget: unknown) => {
+    const target = expectSessionTarget(rawTarget);
+    return run(event, () => owners.conversation.deleteSession(target));
   });
   ipcMain.handle(desktopIpc.markSessionRead, (event, rawTarget: unknown) => {
     const target = expectSessionTarget(rawTarget);
@@ -690,6 +705,9 @@ export function registerDesktopIpc({
   ipcMain.handle(desktopIpc.setUiFontSize, (event, rawSize: unknown) =>
     run(event, () => owners.settings.setUiFontSize(expectNumber(rawSize, "px"))),
   );
+  ipcMain.handle(desktopIpc.setArchiveRetentionDays, (event, rawDays: unknown) =>
+    run(event, () => owners.settings.setArchiveRetentionDays(expectNumber(rawDays, "days"))),
+  );
   ipcMain.handle(desktopIpc.setEnableTransparency, async (event, rawEnabled: unknown) => {
     const window = senderWindow(windows, event);
     const enabled = expectBoolean(rawEnabled, "enabled");
@@ -920,6 +938,24 @@ export function registerDesktopIpc({
       ? run
       : immediate;
     return dispatch(event, () => owners.conversation.submitComposer(target, text, options));
+  });
+  ipcMain.handle(desktopIpc.exportTranscript, async (event) => {
+    const window = senderWindow(windows, event);
+    const target = windows.targetForSender(event.sender);
+    const exportDocument = owners.conversation.buildTranscriptExport(target);
+    if (!exportDocument) {
+      return { canceled: true } as const;
+    }
+    return capabilities.saveTranscriptMarkdown(window, exportDocument);
+  });
+  ipcMain.handle(desktopIpc.copyTranscript, (event) => {
+    const target = windows.targetForSender(event.sender);
+    const exportDocument = owners.conversation.buildTranscriptExport(target);
+    if (!exportDocument) {
+      return false;
+    }
+    clipboard.writeText(exportDocument.markdown);
+    return true;
   });
   // Card buttons carry extension-authored data, so only the app's own frame may send them.
   handleMainFrame(

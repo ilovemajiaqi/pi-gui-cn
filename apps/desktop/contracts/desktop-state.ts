@@ -52,6 +52,18 @@ export function clampUiFontSize(value: number): number {
   if (!Number.isFinite(value)) return DEFAULT_UI_FONT_SIZE;
   return Math.min(UI_FONT_SIZE_MAX, Math.max(UI_FONT_SIZE_MIN, Math.round(value)));
 }
+
+/**
+ * How long archived threads are kept before an automatic purge deletes them. 0 means "keep
+ * forever", which is the default: deleting a transcript is unrecoverable, so the user opts in.
+ */
+export const ARCHIVE_RETENTION_MAX_DAYS = 3650;
+export const DEFAULT_ARCHIVE_RETENTION_DAYS = 0;
+
+export function clampArchiveRetentionDays(value: number): number {
+  if (!Number.isFinite(value)) return DEFAULT_ARCHIVE_RETENTION_DAYS;
+  return Math.min(ARCHIVE_RETENTION_MAX_DAYS, Math.max(0, Math.round(value)));
+}
 export const themePresetIds = [
   "default",
   "catppuccin",
@@ -540,6 +552,8 @@ export interface DesktopAppState {
   readonly enableTransparency: boolean;
   /** Root font size in px the renderer applies to the whole UI (Codex-style). */
   readonly uiFontSize: number;
+  /** Days an archived thread is kept before the purge deletes it; 0 keeps them forever. */
+  readonly archiveRetentionDays: number;
   readonly startupDiagnostics: readonly StartupDiagnostic[];
   readonly revision: number;
   readonly lastError?: string;
@@ -600,6 +614,7 @@ export function createEmptyDesktopAppState(): DesktopAppState {
     collapsedWorkspaceIds: [],
     enableTransparency: false,
     uiFontSize: DEFAULT_UI_FONT_SIZE,
+    archiveRetentionDays: DEFAULT_ARCHIVE_RETENTION_DAYS,
     startupDiagnostics: [],
     revision: 0,
   };
